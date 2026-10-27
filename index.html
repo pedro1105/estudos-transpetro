@@ -3565,6 +3565,51 @@ vTopic=function(){
 RES.mat=RES.mat||[];
 RES.mat.push(["Trigonometria",["No triângulo retângulo: **sen = oposto ÷ hipotenusa**, **cos = adjacente ÷ hipotenusa**, **tg = oposto ÷ adjacente**.","Valores notáveis: sen 30° = cos 60° = 1/2; sen 45° = cos 45° = √2/2; sen 60° = cos 30° = √3/2; tg 45° = 1.","sen²x + cos²x = 1. Seno e cosseno variam de −1 a 1; o período de sen(kx) e de cos(kx) é 2π ÷ k.","! log (a × b) = log a + log b; log (a ÷ b) = log a − log b; log aⁿ = n · log a."]]);
 
+/* ---------- 17. v12: telas mais limpas (seções secundárias recolhíveis) ---------- */
+S.fold=S.fold||{};
+function foldGroup(key,title,nodes,anchor,sub){
+  nodes=nodes.filter(Boolean); if(!nodes.length) return;
+  const d=document.createElement("details"); d.className="panel fold"; d.open=!!S.fold[key];
+  d.innerHTML=`<summary><span>${esc(title)}</span>${sub?`<span class="muted">${esc(sub)}</span>`:""}</summary><div class="stack foldin"></div>`;
+  const at=anchor||nodes.find(n=>n.isConnected); if(!at) return; at.before(d);
+  const box=d.querySelector(".foldin"); nodes.forEach(n=>{n.classList.remove("panel");n.classList.add("inner");box.appendChild(n);});
+  d.addEventListener("toggle",()=>{S.fold[key]=d.open;save();});
+}
+const secBy=(t)=>[...document.querySelectorAll("#view > section, #view > div, #view > details")].find(e=>{const h=e.querySelector("h2,h3");return h&&h.textContent.trim().startsWith(t);});
+const _vGuia12=vGuia;
+vGuia=function(){
+  _vGuia12();
+  const meta=[...document.querySelectorAll("#view > section")].find(e=>{const h=e.querySelector("h3");return h&&h.textContent.trim()==="Hoje";});
+  foldGroup("ferr","Cronômetro e meta diária",[secBy("Cronômetro de estudo"),meta],null,"blocos de 50 min, sequência de dias");
+  foldGroup("avis","Lembretes e avisos",[secBy("Lembrete diário"),secBy("Avisos com o app fechado")],null,"horário do aviso, Google Agenda");
+  foldGroup("plan","Plano e método de estudo",[secBy("Plano até 06/12"),secBy("Método de estudo diário")],null,"as 4 fases e como estudar cada dia");
+  foldGroup("bkp","Backup e sincronização",[secBy("Backup e sincronização")],null,"copiar o progresso para outro aparelho");
+};
+const _vPratica12=vPratica;
+vPratica=function(){
+  _vPratica12();
+  const g=$("#view .grid2"); if(!g) return;
+  const card=t=>[...g.children].find(c=>{const h=c.querySelector("h3");return h&&h.textContent.trim().startsWith(t);});
+  const moved=["Provas anteriores","Modo prova real","Simulado de ritmo","Lei 13.303"].map(card).filter(Boolean);
+  if(!moved.length) return;
+  const g2=document.createElement("div"); g2.className="grid2"; moved.forEach(c=>g2.appendChild(c));
+  const note=[...document.querySelectorAll("#view > p.muted")].pop();
+  const outras=secBy("Outras provas Cesgranrio");
+  foldGroup("prat","Provas reais e treinos especiais",[g2,outras,note],outras||note,"Transpetro, Petrobras e BB; modo prova real; ritmo; lei seca");
+  const d=$("#view details.fold"); if(d) d.open=S.fold.prat!==false;
+};
+(function(){const st=document.createElement("style");st.textContent=`
+details.fold{padding:0}
+details.fold>summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:14px 44px 14px 16px;position:relative;font-weight:600}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::after{content:"";position:absolute;right:18px;top:50%;width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-70%) rotate(45deg);opacity:.6;transition:transform .15s}
+details.fold[open]>summary::after{transform:translateY(-30%) rotate(-135deg)}
+details.fold>summary .muted{font-weight:400;font-size:13px}
+details.fold>summary:focus-visible{outline:2px solid var(--petrol);border-radius:10px}
+.foldin{padding:0 16px 16px}
+.foldin>.inner{border-top:1px solid var(--line);padding-top:14px}
+`;document.head.appendChild(st);})();
+
 if("serviceWorker" in navigator&&location.protocol==="https:"){navigator.serviceWorker.register("sw.js").catch(()=>{});}
 go("guia");
 </script>
