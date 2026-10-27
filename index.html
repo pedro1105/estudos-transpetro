@@ -1011,6 +1011,7 @@ Q.push(
 
 Q.forEach(q=>{q.c=q[0];});
 /* v10: duplicadas ocultas (o progresso continua guardado pelo índice) */
+function QV(){return Q.filter(q=>!q.hid);}
 function QI(){return Q.map((q,i)=>i).filter(i=>!Q[i].hid);}
 
 /* ---------- Conteúdos: resumo por assunto. [título da seção, [tópicos]]. **texto** = destaque; "!" no início = pegadinha de prova ---------- */
@@ -1034,7 +1035,7 @@ patr:[
  ["Gestão de ativos",["Objetivo: extrair valor dos ativos ao longo de todo o ciclo de vida (aquisição, operação, manutenção, descarte), equilibrando custo, risco e desempenho.","Norma de referência: **ISO 55000**."]]
 ],
 manut:[
- ["Tipos de manutenção",["**Corretiva não planejada**: depois da falha, sem preparo (emergência).","**Corretiva planejada**: atua sobre falha ou baixo desempenho, mas com decisão gerencial e preparo.","**Preventiva**: intervalos fixos de tempo ou uso (ex.: troca de óleo a cada 500 h), independente do estado.","**Preditiva**: acompanha a condição (vibração, termografia, análise de óleo, ultrassom) e intervém no momento certo.","**Detectiva**: busca falhas ocultas em sistemas de proteção (testar alarmes, válvulas de segurança).","Engenharia de manutenção: estuda causas e melhora o desempenho (melhoria contínua)."]],
+ ["Tipos de manutenção",["**Corretiva não planejada**: depois da falha, sem preparo (emergência).","**Corretiva planejada**: atua sobre falha ou baixo desempenho, mas com decisão gerencial e preparo.","**Preventiva**: intervalos fixos de tempo ou uso (ex.: troca de óleo a cada 500 h), independentemente do estado.","**Preditiva**: acompanha a condição (vibração, termografia, análise de óleo, ultrassom) e intervém no momento certo.","**Detectiva**: busca falhas ocultas em sistemas de proteção (testar alarmes, válvulas de segurança).","Engenharia de manutenção: estuda causas e melhora o desempenho (melhoria contínua)."]],
  ["Indicadores",["**MTBF** = tempo médio entre falhas (quanto maior, melhor).","**MTTR** = tempo médio para reparo (quanto menor, melhor).","**Disponibilidade** = MTBF ÷ (MTBF + MTTR).","**Backlog** = carga de serviços pendentes, em homens-hora ou dias de equipe."]],
  ["Planejamento e controle (PCM)",["Ordem de serviço (OS), programação, cadastro de equipamentos, histórico de falhas, controle de custos.","**TPM** (Manutenção Produtiva Total): envolve todos, manutenção autônoma pelos operadores, meta de zero quebra.","**RCM/MCC**: manutenção centrada em confiabilidade, escolhe a estratégia pela função e pelo modo de falha."]]
 ],
@@ -1439,7 +1440,7 @@ function go(v){
 
 /* ---------- Início ---------- */
 function vHome(){
-  const nEsp=Q.filter(q=>!["port","mat"].includes(CATS[q.c].b)).length;
+  const nEsp=QV().filter(q=>!["port","mat"].includes(CATS[q.c].b)).length;
   const last=S.hist[0];
   const gk=todayK(), gits=dayItems(dayPlan(gk)), gdone=gits.filter(i=>itemDone(gk,i)).length;
   $("#view").innerHTML=`
@@ -1472,7 +1473,7 @@ function vHome(){
     <h2>O que tem no app</h2>
     <div class="grid2">
       <div class="panel mode"><span class="tag">${Object.keys(RES).length} assuntos</span><h3>Conteúdos</h3><p class="muted">Resumo de cada tópico do edital e ${BASE.length} lições de revisão da escola.${(()=>{const n=Object.values(S.read||{}).filter(Boolean).length;return n?` Você já leu ${n}.`:"";})()}</p><button class="btn ghost" onclick="go('cont')">Estudar</button></div>
-      <div class="panel mode"><span class="tag">${Q.length} questões</span><h3>Praticar</h3><p class="muted">${nEsp} específicas, ${Q.filter(q=>q.c==="port").length} de Português e ${Q.filter(q=>q.c==="mat").length} de Matemática. Simulado completo, mini simulado e treino por assunto.${last?` Último resultado: ${last.score}/${last.total} (${esc(last.label)}).`:""}</p><button class="btn" onclick="go('pratica')">Praticar</button></div>
+      <div class="panel mode"><span class="tag">${QV().length} questões</span><h3>Praticar</h3><p class="muted">${nEsp} específicas, ${QV().filter(q=>q.c==="port").length} de Português e ${QV().filter(q=>q.c==="mat").length} de Matemática. Simulado completo, mini simulado e treino por assunto.${last?` Último resultado: ${last.score}/${last.total} (${esc(last.label)}).`:""}</p><button class="btn" onclick="go('pratica')">Praticar</button></div>
       <div class="panel mode"><span class="tag">${FC.length} cartões</span><h3>Jogos</h3><p class="muted">Flashcards, verdadeiro ou falso contra o relógio e associação de termos.</p><button class="btn ghost" onclick="go('jogos')">Jogar</button></div>
     </div>
   </section>`;
@@ -1481,7 +1482,7 @@ function vHome(){
 
 /* ---------- Praticar ---------- */
 function vPratica(){
-  const opts=Object.entries(CATS).map(([k,v])=>`<option value="${k}">${esc(v.n)} (${Q.filter(q=>q.c===k).length})</option>`).join("");
+  const opts=Object.entries(CATS).map(([k,v])=>`<option value="${k}">${esc(v.n)} (${QV().filter(q=>q.c===k).length})</option>`).join("");
   const blk=Object.entries(BLOCKS).map(([k,v])=>`<option value="b:${k}">Bloco: ${esc(v)}</option>`).join("");
   $("#view").innerHTML=`
   ${rq?`<div class="rule row" style="justify-content:space-between"><span>Você tem uma prova real em andamento.</span><button class="btn" onclick="go('real')">Continuar</button></div>`:""}
@@ -1491,11 +1492,11 @@ function vPratica(){
     <div class="panel mode"><span class="tag">Igual à prova</span><h3>Simulado completo</h3><p class="muted">60 questões no formato da prova, 4 h cronometradas, correção só no final e verificação das notas de corte.</p><button class="btn" onclick="startExam('full')">Iniciar simulado</button></div>
     <div class="panel mode"><span class="tag">50 minutos</span><h3>Mini simulado</h3><p class="muted">20 questões com a mesma proporção entre os blocos. Bom para dias de semana.</p><button class="btn" onclick="startExam('mini')">Iniciar mini</button></div>
     <div class="panel mode"><span class="tag">Correção imediata</span><h3>Treino por assunto</h3><p class="muted">Até 15 questões de um tema, com gabarito comentado a cada resposta.</p>
-      <label for="selCat" class="muted">Assunto</label><select id="selCat"><option value="src:all">Só questões de provas anteriores (${Q.filter(q=>q[4]).length})</option>${blk}${opts}</select>
+      <label for="selCat" class="muted">Assunto</label><select id="selCat"><option value="src:all">Só questões de provas anteriores (${QV().filter(q=>q[4]).length})</option>${blk}${opts}</select>
       <label class="row muted" style="gap:8px"><input type="checkbox" id="onlyNew" style="width:18px;height:18px;accent-color:var(--petrol)"> Só questões que ainda não respondi</label>
       <button class="btn ghost" onclick="startTrain()">Treinar</button></div>
     <div class="panel mode"><span class="tag">Cesgranrio · questões reais</span><h3>Provas anteriores</h3><p class="muted">Técnico de Administração e Controle da Transpetro, só com as questões que ainda valem pelas regras atuais, conferidas com o gabarito oficial. Cronômetro de 4 min por questão, como na prova.</p>
-      <div class="row" style="gap:8px;flex-wrap:wrap">${Object.keys(PROVAS).sort().reverse().map(y=>`<button class="btn ghost sm" onclick="startPast('${y}')">${y} · ${Q.filter(q=>q[4]===y).length} questões</button>`).join("")}</div></div>
+      <div class="row" style="gap:8px;flex-wrap:wrap">${Object.keys(PROVAS).sort().reverse().map(y=>`<button class="btn ghost sm" onclick="startPast('${y}')">${y} · ${QV().filter(q=>q[4]===y).length} questões</button>`).join("")}</div></div>
     <div class="panel mode"><span class="tag">${srsDue().length} para hoje · ${Object.keys(S.srs).length} na revisão</span><h3>Revisar erradas</h3><p class="muted">Revisão espaçada: cada questão errada volta 1, 3, 7 e 15 dias depois. Acertou nas quatro, ela sai da fila; errou, recomeça.</p><button class="btn ghost" ${S.wrong.length||Object.keys(S.srs).length?"":"disabled"} onclick="startWrong()">Revisar</button></div>
     <div class="panel mode"><span class="tag">Cartão-resposta</span><h3>Modo prova real</h3><p class="muted">Caderno de questões com rascunho e “voltar depois”, cartão-resposta separado e só a correção no fim. Treina passar as respostas a tempo.</p>
       <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" onclick="startReal('full')">Simulado de 60</button>${Object.keys(PROVAS).sort().reverse().map(y=>`<button class="btn ghost sm" onclick="startReal('${y}')">Transpetro ${y}</button>`).join("")}</div></div>
@@ -1720,7 +1721,7 @@ function openTopic(k){topicCur=k;go("topic");}
 function vTopic(){
   const k=topicCur; if(!k||!RES[k]){go("cont");return;}
   const keys=Object.keys(CATS).filter(c=>RES[c]), i=keys.indexOf(k);
-  const nQ=Q.filter(q=>q.c===k).length, nF=FC.filter(f=>f[0]===k).length, read=!!(S.read||{})[k];
+  const nQ=QV().filter(q=>q.c===k).length, nF=FC.filter(f=>f[0]===k).length, read=!!(S.read||{})[k];
   $("#view").innerHTML=`
   <div><button class="btn ghost sm" onclick="go('cont')">← Todos os conteúdos</button></div>
   <div class="stack" style="gap:4px"><span class="qcat" style="color:var(--c-${CATS[k].b})">${esc(BLOCKS[CATS[k].b])}</span><h2>${esc(CATS[k].n)}</h2></div>
@@ -1794,12 +1795,12 @@ function fcAns(ok){
 }
 
 /* Verdadeiro ou falso: afirmações montadas a partir do banco (enunciado + alternativa certa ou errada) */
-const VFP=QI().filter(i=>{if(Q[i][4]) return false;const s=Q[i][1].trim();return !/NÃO|Assinale|Leia|Está corret|Está de acordo|respectivamente/.test(s)&&!/[.?:]$/.test(s);});
+function vfp(){return QI().filter(i=>{if(Q[i][4]) return false;const s=Q[i][1].trim();return !/NÃO|Assinale|Leia|Está corret|Está de acordo|respectivamente/.test(s)&&!/[.?:]$/.test(s);});}
 let vf=null, gtick=null;
 const VF_T=90;
 function startVf(){
   const sel=$("#selVf").value; S.gm.lastVf=sel; save();
-  const pool=VFP.filter(i=>inSel(sel,Q[i].c));
+  const pool=vfp().filter(i=>inSel(sel,Q[i].c));
   if(pool.length<4){$("#selVf").insertAdjacentHTML("afterend",`<span class="pill bad">Poucas afirmações neste assunto. Escolha um bloco.</span>`);return;}
   vf={pool:shuffle([...pool]),k:0,label:selLabel(sel),end:Date.now()+VF_T*1000,ok:0,bad:0,streak:0,maxStreak:0,log:[],cur:null,fb:null,done:false};
   vfNext(); go("vf");
@@ -2132,7 +2133,7 @@ function vGuia(){
   <section class="stack">
     <h2>Plano até 06/12</h2>
     <div class="phases">${PHASES.map((f,i)=>`<div class="panel phase ${p.ph===f?"cur":""}"><span class="tag">Fase ${i+1} · ${fmtK(f.a)} a ${fmtK(f.b)}${p.ph===f?" · agora":""}</span><h3>${esc(f.t)}</h3><p class="muted">${esc(f.d)}</p></div>`).join("")}</div>
-    <div class="rule">Toda semana, confira a previsão de nota na aba Desempenho. Se o acerto nas específicas não subir por duas semanas seguidas, mude o método naquele assunto (mais teoria ou mais questões comentadas), e não só a quantidade de horas.</div>
+    <div class="rule">Toda semana, confira a previsão de nota na aba Progresso. Se o acerto nas específicas não subir por duas semanas seguidas, mude o método naquele assunto (mais teoria ou mais questões comentadas), e não só a quantidade de horas.</div>
     <div><button class="btn ghost sm" onclick="go('crono')">Ver o cronograma dia a dia até a prova</button></div>
   </section>
   <section class="stack">
@@ -2140,8 +2141,8 @@ function vGuia(){
     <p class="muted">Questões em 70% do tempo e teoria em 30%. Tentar lembrar a resposta antes de conferir fixa mais do que reler o resumo.</p>
     <ol class="steps">
       <li><b>Aquecimento, 10 min:</b> revise as questões erradas (Revisar erradas) ou faça um V ou F.</li>
-      <li><b>Teoria curta, 25 min:</b> leia o resumo de um assunto em Conteúdos. Feche e escreva de memória 3 a 5 pontos principais.</li>
-      <li><b>Questões, 50 min:</b> treino do mesmo assunto e, em seguida, de outro assunto. Misturar temas treina você a reconhecer o assunto sem aviso, como na prova.</li>
+      <li><b>Teoria curta, 30 min:</b> leia o resumo de um assunto em Conteúdos. Feche e escreva de memória 3 a 5 pontos principais.</li>
+      <li><b>Questões, 45 min:</b> 30 min do mesmo assunto e 15 de outro assunto ou de Português e Matemática. Misturar temas treina você a reconhecer o assunto sem aviso, como na prova.</li>
       <li><b>Caderno de erros, 10 min:</b> para cada erro, anote por que errou: não sabia, confundiu, leu rápido ou errou a conta. O app traz as notas de volta depois de 1, 3, 7 e 15 dias.</li>
     </ol>
     <h3>Regras que fazem diferença</h3>
@@ -3213,7 +3214,7 @@ vPratica=function(){
   _vPratica5();
   const g=$("#view .grid2"); if(!g) return;
   const t=paceTarget(), a=myAvgT();
-  const lawN=Q.filter(q=>/13\.303/.test(q[1])).length;
+  const lawN=QV().filter(q=>/13\.303/.test(q[1])).length;
   g.insertAdjacentHTML("beforeend",`
     <div class="panel mode"><span class="tag">60 questões · ${fmt(t)} cada</span><h3>Simulado de ritmo</h3><p class="muted">${a?`Sua média recente é ${fmt(Math.round(a))} por questão. O tempo deste simulado é 10% menor, para você ganhar folga no dia da prova.`:"Sem média ainda: o alvo começa em 3:30 por questão."} Em qualquer questão, o app avisa quando você passa de 3 minutos.</p><button class="btn ghost" onclick="startPace()">Iniciar</button></div>
     <div class="panel mode"><span class="tag">${lawN} questões</span><h3>Lei 13.303 artigo por artigo</h3><p class="muted">Questões com o número do artigo, no estilo da letra da lei que a Cesgranrio cobra. Complete com o jogo Lei seca.</p><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="startLaw()">Treinar</button><button class="btn ghost sm" onclick="go('jogos')">Lei seca</button></div></div>`);
@@ -3466,6 +3467,7 @@ vCrono=function(){
 .agfoco{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.agfoco i{font-style:normal;font-size:13px}
 .agst{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:12px}
 .agwk{margin:8px 0 0}
+#view{overflow-wrap:anywhere}
 .qcomp{display:flex;flex-direction:column;gap:8px}.qcomp table{font-size:13px}.qcomp th,.qcomp td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 .qcomp th{background:var(--amber-soft)}.fcard{font-family:ui-monospace,Menlo,monospace;background:var(--amber-soft);padding:6px 10px;border-radius:6px;display:block}
 `;document.head.appendChild(st);})();
@@ -3540,6 +3542,28 @@ vTopic=function(){
   const first=$("#view section.panel");
   if(first) first.insertAdjacentHTML("beforebegin",html); else $("#view").insertAdjacentHTML("beforeend",html);
 };
+
+/* ---------- 16. v11: revisão geral do banco ---------- */
+// fora do edital (PA, SAC/Price), BrOffice e repetidas: ocultas, sem apagar o progresso
+[428,573,574,555,577,578,581,584,603,615,619].forEach(i=>{if(Q[i])Q[i].hid=1;});
+(function(){
+  const set=(i,stem,ex)=>{const q=Q[i];if(!q)return;if(stem)q[1]=stem;if(ex)q[3]=ex;};
+  set(605,"Pela Lei 13.303/2016 (art. 71, parágrafo único), é vedado o contrato","Art. 71, parágrafo único: é vedado o contrato por prazo indeterminado. A duração máxima, em regra, é de 5 anos (art. 71, caput).");
+  set(598,null,"Art. 64, § 5º: a pré-qualificação vale por até 1 ano. Art. 65: os registros cadastrais também valem por até 1 ano. Ambos podem ser atualizados a qualquer tempo.");
+  set(388,"Assinale a frase escrita de acordo com a norma-padrão quanto à ortografia.");
+  if(Q[682]) Q[682][1]=Q[682][1].replace("do Windows 10","do Windows");
+  if(Q[682]) Q[682][3]="No Windows 10 e no 11, o recurso se chama Reprodução Automática (AutoPlay). Desativá-lo evita que pendrives infectados rodem programas sozinhos.";
+  if(Q[701]) Q[701][1]=Q[701][1].replace("do Windows 10","do Windows (10 e 11)");
+})();
+// edital de Matemática: funções e equações exponenciais, logarítmicas e trigonométricas
+[["mat","Em um triângulo retângulo, o cateto oposto a um ângulo agudo α mede 6 cm e a hipotenusa mede 10 cm. O valor de cos α é",["0,8","0,6","0,75","1,25","1,33"],"Pitágoras: o cateto adjacente mede √(10² − 6²) = √64 = 8. cos α = adjacente ÷ hipotenusa = 8 ÷ 10 = 0,8. (0,6 seria o seno e 0,75 a tangente.)"],
+ ["mat","O período da função f(x) = sen(2x) é",["π","2π","π/2","4π","1"],"O período de sen(kx) é 2π ÷ k. Com k = 2, o período é 2π ÷ 2 = π: a função completa um ciclo duas vezes mais rápido que sen x."],
+ ["mat","O valor máximo da função f(x) = 3 + 2·cos x é",["5","3","2","1","6"],"O cosseno varia entre −1 e 1. O máximo ocorre com cos x = 1: f = 3 + 2 × 1 = 5. O mínimo seria 3 − 2 = 1."],
+ ["mat","Considerando log 2 ≈ 0,30 e log 3 ≈ 0,48, o valor de log 6 é, aproximadamente,",["0,78","0,144","0,18","0,90","1,08"],"Logaritmo do produto é a soma dos logaritmos: log 6 = log (2 × 3) = log 2 + log 3 = 0,30 + 0,48 = 0,78. Pegadinha: multiplicar os logaritmos (0,144) está errado."],
+ ["mat","A solução da equação 3^(2x) = 81 é",["x = 2","x = 4","x = 3","x = 1","x = 27"],"Escreva 81 na base 3: 81 = 3⁴. Iguale os expoentes: 2x = 4, logo x = 2. Confira: 3^(2·2) = 3⁴ = 81."]
+].forEach(q=>{q.c=q[0];Q.push(q);});
+RES.mat=RES.mat||[];
+RES.mat.push(["Trigonometria",["No triângulo retângulo: **sen = oposto ÷ hipotenusa**, **cos = adjacente ÷ hipotenusa**, **tg = oposto ÷ adjacente**.","Valores notáveis: sen 30° = cos 60° = 1/2; sen 45° = cos 45° = √2/2; sen 60° = cos 30° = √3/2; tg 45° = 1.","sen²x + cos²x = 1. Seno e cosseno variam de −1 a 1; o período de sen(kx) e de cos(kx) é 2π ÷ k.","! log (a × b) = log a + log b; log (a ÷ b) = log a − log b; log aⁿ = n · log a."]]);
 
 if("serviceWorker" in navigator&&location.protocol==="https:"){navigator.serviceWorker.register("sw.js").catch(()=>{});}
 go("guia");
