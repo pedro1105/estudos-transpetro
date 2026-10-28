@@ -76,11 +76,6 @@ Ao publicar, troque a versão do cache em `sw.js`.
 - Praticar > Outras provas: novo grupo "Mesmo cargo".
 - Testes: `node tests/v17.js`.
 
-## Carreira em Dados 2027 (`carreira/`)
+## Carreira em Dados 2027 (mudou)
 
-App separado (plano de carreira em dados), publicado em https://pedro1105.github.io/estudos-transpetro/carreira/ e também no claude.ai.
-
-- `carreira/src/app.html` é a página do claude.ai; `python3 carreira/build.py` gera `carreira/index.html` com manifest, ícones e service worker próprios (escopo `/carreira/`, cache `carreira-vN`).
-- Sincroniza pela mesma tabela `progress` e pelas mesmas funções `tp_get`/`tp_save`/`tp_ver`, com códigos `cd-…` (os da Transpetro são `tp-…`).
-- O `sw.js` da raiz ignora `/carreira/` (v24).
-- v4: cronômetro de foco (marca a tarefa ao completar os minutos), aba Revisar (flashcards com FSRS, habilidades da PL-300, áudio com sons gerados no aparelho, tutor com IA via capability `sample` no claude.ai), resumo semanal e estatísticas, botão "Reorganizar o plano" (`cfg.rp` no `build`), candidaturas (`ST.apps`), diário de projetos (`ST.diary`) e push pela função `tp_push` + Edge Function `tp-push` (o plano de cada inscrição já leva título, texto e URL).
+O app de carreira ficou em `carreira/` por pouco tempo e mudou para o repositório próprio `pedro1105/carreira-dados` (https://pedro1105.github.io/carreira-dados/), porque o app instalado da Transpetro (escopo `/estudos-transpetro/`) abria a página de carreira dentro dele. `carreira/index.html` só aponta o endereço novo e `carreira/sw.js` apaga o service worker antigo. O `sw.js` da raiz continua ignorando `/carreira/`.
