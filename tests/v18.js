@@ -15,7 +15,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
     return { n: sup.length, first: sup[0], last: sup[sup.length - 1], total: Q.length, bad, srcs: ['2018', '2014', '2012'].map(y => srcCount('Petrobras ' + y + ' Suprimento')), ids: new Set(QID).size === QID.length };
   });
   ok('85 questões novas', r.n === 85, r.n);
-  ok('entram no fim do banco (1059..1143)', r.first === 1059 && r.last === 1143 && r.total === 1144, r.first + '..' + r.last);
+  ok('entram no fim do banco (1059..1143)', r.first === 1059 && r.last === 1143 && r.total >= 1144, r.first + '..' + r.last);
   ok('todas íntegras', r.bad.length === 0, r.bad.join(','));
   ok('contagem por prova 30/35/20', r.srcs.join('/') === '30/35/20', r.srcs.join('/'));
   ok('códigos únicos', r.ids);

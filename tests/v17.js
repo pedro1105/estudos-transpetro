@@ -10,9 +10,9 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto(file); await p.waitForTimeout(300);
   const r = await p.evaluate(() => {
-    const tac = Q.map((q, i) => i).filter(i => / TAC$/.test(Q[i][4] || ''));
+    const tac = Q.map((q, i) => i).filter(i => /^(Petrobras 20(18|14|12)|BR Distribuidora 20(15|13)) TAC$/.test(Q[i][4] || ''));
     const bad = tac.filter(i => { const q = Q[i]; return !CATS[q.c] || q[2].length !== 5 || new Set(q[2]).size !== 5 || q[2].some(o => !o.trim()) || !q[3] || !q[1] || typeof q[5] !== 'number'; });
-    return { n: tac.length, first: tac[0], last: tac[tac.length - 1], bad, srcs: SRC_ORD.filter(s => / TAC$/.test(s)).map(s => s + ':' + srcCount(s)), ids: new Set(QID).size === QID.length };
+    return { n: tac.length, first: tac[0], last: tac[tac.length - 1], bad, srcs: SRC_ORD.filter(s => /^(Petrobras 20(18|14|12)|BR Distribuidora 20(15|13)) TAC$/.test(s)).map(s => s + ':' + srcCount(s)), ids: new Set(QID).size === QID.length };
   });
   ok('202 questões novas', r.n === 202, r.n);
   ok('ficam nas posições 857..1058 (progresso preservado)', r.first === 857 && r.last === 1058, r.first + '..' + r.last);

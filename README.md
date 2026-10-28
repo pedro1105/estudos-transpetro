@@ -39,6 +39,11 @@ Ao publicar, troque a versão do cache em `sw.js`.
 - Limpeza: plano antigo de semanas (PLAN), SRS de intervalos fixos, vCrono antigo e funções duplicadas saíram. A cópia na conta do claude.ai agora junta em vez de substituir.
 - Testes: `node tests/v16.js`.
 
+## v19
+
+- +95 questões do mesmo cargo (TAC): BR Distribuidora 2011 (29), Innova 2012 (34) e Termobahia 2012 (32), em `src/js/07e-questoes-tac2.js` (`Q19`, posições 1144–1238), no grupo "Mesmo cargo". Total 1.239.
+- Cache do service worker `transpetro-v19`. Teste: `tests/v19.js`.
+
 ## v18
 
 - +85 questões da Petrobras, Técnico de Suprimento de Bens e Serviços (Administração): 2018 (30), 2014 (35) e 2012 (20), em `src/js/07d-questoes-suprimento.js` (`Q18`, posições 1059–1143). Total 1.144.
