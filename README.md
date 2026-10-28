@@ -32,4 +32,4 @@ Ao publicar, troque a versão do cache em `sw.js`.
 - `src/js/10-v15.js`: edital verticalizado (`EDITAL`, tela `edital`), revisão espaçada FSRS (`srsUpdate` com `{s,dif,d,l}`), estatísticas detalhadas, tutor com IA (capability `sample`, só no claude.ai), deslizar entre questões, atalhos `?a=wrong|daily|sim|afc`, flashcards em áudio (tela `afc`) e notificações push.
 - Push: o app grava a inscrição e o plano dos próximos 14 dias pela função `tp_push`; a Edge Function `supabase/functions/tp-push` roda a cada 15 min (pg_cron) e envia o que venceu. Chaves VAPID e chave do cron ficam na tabela `push_cfg` (sem acesso público).
 - GitHub: o script vai em `app.js` (cache de código compilado) e o service worker abre pelo cache e atualiza em segundo plano.
-- Testes: `node tests/v15.js`.
+- Testes: `node tests/v15.js` e `node tests/claude.js` (sincronização dentro do claude.ai, com o conector simulado).

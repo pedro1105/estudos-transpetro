@@ -2077,13 +2077,13 @@ function itemDone(k,i){if(i.chk) return i.chk(k)||!!(S.daily[k]&&S.daily[k][i.id
 function dayScore(k){const its=dayItems(dayPlan(k));return its.filter(i=>itemDone(k,i)).length/its.length;}
 
 /* ---------- Lembretes ---------- */
-function toast(t,b){
+function toast(t,b,goHoje){
   let el=$("#toast"); if(!el){el=document.createElement("div");el.id="toast";el.setAttribute("role","status");document.body.appendChild(el);}
-  el.innerHTML=`<strong>${esc(t)}</strong><span>${esc(b)}</span><button class="btn sm" onclick="this.parentNode.classList.remove('on');go('guia')">Ver checklist</button><button class="btn ghost sm" onclick="this.parentNode.classList.remove('on')">Fechar</button>`;
+  el.innerHTML=`<strong>${esc(t)}</strong><span>${esc(b)}</span>${goHoje?`<button class="btn sm" onclick="this.parentNode.classList.remove('on');go('guia')">Ver o dia</button>`:""}<button class="btn ghost sm" onclick="this.parentNode.classList.remove('on')">Fechar</button>`;
   el.classList.add("on");
 }
 function notify(t,b){
-  toast(t,b);
+  toast(t,b,true);
   try{ if("Notification" in window&&Notification.permission==="granted") new Notification(t,{body:b}); }catch(e){}
 }
 function remCheck(){
@@ -2093,7 +2093,7 @@ function remCheck(){
   if(now.getHours()*60+now.getMinutes()<h*60+m) return;
   const its=dayItems(dayPlan(k)), left=its.filter(i=>!itemDone(k,i)).length, due=srsDue().length;
   S.rem.last=k; save();
-  if(left||due) notify("Hora de estudar",`${left} ${left===1?"item":"itens"} do checklist de hoje em aberto${due?` e ${due} ${due===1?"questão":"questões"} para revisar`:""}.`);
+  if(left||due) notify("Hora de estudar",`${left} ${left===1?"etapa":"etapas"} da programação de hoje em aberto${due?` e ${due} ${due===1?"questão":"questões"} para revisar`:""}.`);
 }
 setInterval(remCheck,60000); setTimeout(remCheck,4000);
 async function remEnable(on){
@@ -2102,6 +2102,7 @@ async function remEnable(on){
   save(); vConfigKeep();
 }
 function notifState(){
+  if(window.claude&&window.claude.use) return "Aqui no claude.ai o aviso aparece dentro do app, com ele aberto.";
   if(!("Notification" in window)) return "Este navegador não mostra notificações do sistema; o aviso aparece dentro do app.";
   if(Notification.permission==="granted") return "Notificações do navegador permitidas.";
   if(Notification.permission==="denied") return "O navegador bloqueou as notificações; o aviso aparece dentro do app.";
@@ -2134,9 +2135,9 @@ function vCaderno(){
   const ids=Object.keys(S.notes).map(Number).filter(q=>Q[q]), k=todayK();
   const dueN=ids.filter(q=>S.notes[q].n&&S.notes[q].n<=k);
   const cnt=Object.keys(REASONS).map(r=>[r,ids.filter(q=>S.notes[q].r===r).length]);
-  const list=(cadFilter==="all"?ids:ids.filter(q=>S.notes[q].r===cadFilter)).sort((a,b)=>S.notes[b].d.localeCompare(S.notes[a].d));
+  const list=(cadFilter==="all"?ids:ids.filter(q=>S.notes[q].r===cadFilter)).sort((a,b)=>String(S.notes[b].d||"").localeCompare(String(S.notes[a].d||"")));
   const card=(qi,rev)=>{const q=Q[qi],n=S.notes[qi];return `<details class="rev" ${rev?"open":""}><summary><span class="mark bad">✗</span><span>${esc(q[1].length>100?q[1].slice(0,100)+"…":q[1])}</span></summary>
-    <div class="stack" style="margin-top:10px"><span class="qcat" style="color:var(--c-${CATS[q.c].b})">${esc(CATS[q.c].n)} · ${REASONS[n.r]} · anotada em ${fmtK(n.d)}</span>
+    <div class="stack" style="margin-top:10px"><span class="qcat" style="color:var(--c-${CATS[q.c].b})">${esc(CATS[q.c].n)} · ${REASONS[n.r]}${n.d?" · anotada em "+fmtK(n.d):""}</span>
     <p class="qtext" style="font-size:16px">${esc(q[1])}</p><p>Gabarito: <b>${esc(q[2][0])}</b></p>
     ${n.t?`<div class="rule"><b>Sua nota:</b> ${esc(n.t)}</div>`:""}<div class="expl">${esc(q[3])}</div>
     <div class="row">${rev?`<button class="btn sm" onclick="noteRev(${qi})">Revisei</button>`:`<span class="muted">${n.n?"Próxima revisão em "+fmtK(n.n):"Revisões concluídas"}</span>`}<button class="btn ghost sm" onclick="noteDel(${qi})">Apagar</button></div></div></details>`;};
@@ -2519,7 +2520,7 @@ function vVesp(){
       ${traps.length?`<h4>Pegadinhas</h4><ul class="res">${traps.map(([k,x])=>`<li class="trap">${md(x)}</li>`).join("")}</ul>`:""}
       <h4>Pontos-chave</h4><ul class="res">${pts.map(([k,x])=>`<li>${md(x)} <span class="muted">(${esc(CATS[k].n)})</span></li>`).join("")}</ul>
       ${notes.length?`<h4>Do seu caderno de erros</h4><ul class="res">${notes.map(q=>`<li>${esc(S.notes[q].t)} <span class="muted">(${esc(CATS[Q[q].c].n)})</span></li>`).join("")}</ul>`:""}
-      <div class="row"><button class="btn ghost sm" onclick="ttsSpeak(this.closest('details').querySelector('.stack').innerText,this)">Ouvir</button></div>
+      <div class="row"><button class="btn ghost sm" onclick="ttsSpeak(plain([...this.closest('details').querySelectorAll('h4,li')].map(x=>x.textContent).join('. ')),this)">Ouvir</button></div>
     </div></details>`;}).join("");
   $("#view").innerHTML=segNav("vesp",SEG_EST)+`
   <div class="stack"><h2>Revisão da véspera</h2><p class="muted">O essencial de cada bloco numa página: os assuntos em que você mais erra, as pegadinhas, um ponto-chave por seção e as notas do seu caderno de erros. Para os dias 04 e 05/12, sem conteúdo novo.</p></div>
@@ -3130,8 +3131,9 @@ function icsBuild(){
   }
   return out+"END:VCALENDAR\r\n";
 }
-function icsDownload(){
+async function icsDownload(){
   const m=$("#icsMsg");
+  try{if(window.claude&&claude.use){const dl=await claude.use("downloads");if(dl){await dl.save({filename:"estudos-transpetro.ics",data:icsBuild()});if(m)m.textContent="Arquivo salvo. Abra-o no celular ou importe no Google Agenda (Configurações → Importar).";return;}}}catch(e){if(e&&e.code==="declined"){if(m)m.textContent="Download cancelado.";return;}}
   try{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([icsBuild()],{type:"text/calendar"}));a.download="estudos-transpetro.ics";document.body.appendChild(a);a.click();a.remove();if(m)m.textContent="Arquivo baixado. Abra-o no celular ou importe no Google Agenda (Configurações → Importar).";}
   catch(e){if(m)m.textContent="Este aparelho não permitiu o download.";}
 }
@@ -3139,7 +3141,7 @@ function gcalLink(){
   const [h,m]=(S.rem.h||"19:00").split(":").map(Number), st=new Date(), en=new Date();
   st.setHours(h,m,0,0); if(st<new Date()) st.setDate(st.getDate()+1); en.setTime(st.getTime()+2*3600e3);
   const f=d=>d.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
-  const det="Checklist do dia:\n1. Aquecimento: revisão espaçada (10 min)\n2. Teoria: resumo do assunto do dia (25 min)\n3. Questões do assunto do dia (25 min)\n4. Questões de outro assunto (25 min)\n5. Português ou Matemática\n6. Caderno de erros (10 min)\n7. Desafio do dia\n\nOs assuntos do dia estão na aba Hoje do app.";
+  const det="Abra o app na aba Hoje: a programação do dia mostra cada etapa com horário, área e dica.\n"+GH_URL;
   return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("Estudo Transpetro")+"&dates="+f(st)+"/"+f(en)+"&ctz=America/Sao_Paulo&recur="+encodeURIComponent("RRULE:FREQ=DAILY;UNTIL=20261205T235959Z")+"&details="+encodeURIComponent(det);
 }
 const IS_PWA=location.protocol==="https:"&&/github\.io$/.test(location.hostname);
@@ -3493,8 +3495,12 @@ async function mcpReady(ask){
   if(!IN_CLAUDE) return false;
   if(CL.mcp) return true;
   try{
-    const perm=await window.claude.use("permissions");
-    if(perm){const st=await perm.state("mcp");if(st!=="granted"){if(!ask) return false;const r=await perm.request("mcp");if(r&&r.mcp&&r.mcp!=="granted") return false;}}
+    /* permissão por conector ("mcp:Supabase"): "prompt" já pode seguir, a primeira chamada pergunta */
+    const perm=await window.claude.use("permissions"), K="mcp:Supabase";
+    let st=perm?await perm.state(K).catch(()=>"unavailable"):"prompt";
+    if(st==="prompt"&&ask){const r=await perm.request([K]).catch(()=>null);if(r&&r[K])st=r[K];}
+    CL.perm=st;
+    if(st==="denied"||st==="unavailable") return false;
     CL.mcp=await window.claude.use("mcp"); return !!CL.mcp;
   }catch(e){return false;}
 }
@@ -3502,7 +3508,10 @@ async function rpcMcp(fn,args){
   const tag="$tp"+Math.random().toString(36).slice(2,8)+"$";
   const lit=v=>typeof v==="number"?String(Math.round(v)):tag+String(v).split(tag).join("")+tag;
   const params=fn!=="tp_save"?[lit(args.p_code)]:[lit(args.p_code),lit(args.p_s),lit(args.p_upd),lit(args.p_base)];
-  const res=await CL.mcp.callTool("Supabase","execute_sql",{project_id:SB_REF,query:`select public.${fn}(${params.join(",")})::text as r`},{cache:false});
+  let res;
+  try{res=await CL.mcp.callTool("Supabase","execute_sql",{project_id:SB_REF,query:`select public.${fn}(${params.join(",")})::text as r`},{cache:false});}
+  catch(e){const c=e&&e.code||"";if(["consent_required","denied","not_granted"].includes(c)){CL.perm="denied";CL.st="needmcp";throw new Error("needmcp");}
+    if(c==="server_not_connected"||c==="needs_reauth"){CL.st="noconn";throw new Error(c);}throw new Error(c||String(e&&e.message||e));}
   let p=res&&res.payload; if(p&&typeof p==="object"&&p.result) p=p.result; if(typeof p!=="string") p=JSON.stringify(p);
   const m=/<untrusted-data[^>]*>\s*([\s\S]*?)\s*<\/untrusted-data/.exec(p); const arr=JSON.parse(m?m[1]:p);
   const r=Array.isArray(arr)&&arr[0]?arr[0].r:null; return r?JSON.parse(r):null;
@@ -3566,7 +3575,7 @@ async function clPush(){
     const r=await rpc("tp_save",{p_code:CL.code,p_s:body,p_upd:upd,p_base:CL.base||0});
     if(r&&r.ok===false){CL.busy=false;return clPull();}
     CL.base=upd; clStore(); clSnap(JSON.parse(body)); CL.st="ok"; CL.at=new Date(); CL.err="";
-  }catch(e){CL.st=e.message==="needmcp"?"needmcp":"err";CL.err=String(e.message||e);}
+  }catch(e){CL.st=e.message==="needmcp"?"needmcp":(e.message==="server_not_connected"||e.message==="needs_reauth")?"noconn":"err";CL.err=String(e.message||e);}
   CL.busy=false; clLbl();
 }
 async function clPull(){
@@ -3590,7 +3599,7 @@ async function clPull(){
       else{clAdopt(remote,r.upd);CL.base=r.upd;clStore();clSnap(remote);}
     }else then="push";
     CL.st="ok"; CL.at=new Date(); CL.err="";
-  }catch(e){CL.st=e.message==="needmcp"?"needmcp":"err";CL.err=String(e.message||e);}
+  }catch(e){CL.st=e.message==="needmcp"?"needmcp":(e.message==="server_not_connected"||e.message==="needs_reauth")?"noconn":"err";CL.err=String(e.message||e);}
   CL.busy=false; clLbl();
   if(then==="push") clPush();
 }
@@ -3604,7 +3613,7 @@ async function clCheck(){
   if(CL.via==="mcp"&&Date.now()-(CL.lastMcp||0)<55000) return;
   if(CL.via==="mcp") CL.lastMcp=Date.now();
   try{const v=await rpc("tp_ver",{p_code:CL.code});if(v!==CL.base||(S.upd||0)>CL.base) clPull();else if(CL.st!=="ok"){CL.st="ok";CL.at=new Date();clLbl();}}
-  catch(e){CL.st=e.message==="needmcp"?"needmcp":"err";CL.err=String(e.message||e);clLbl();}
+  catch(e){CL.st=e.message==="needmcp"?"needmcp":(e.message==="server_not_connected"||e.message==="needs_reauth")?"noconn":"err";CL.err=String(e.message||e);clLbl();}
 }
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible") clPull();else if(CL.code&&CL.base&&(S.upd||0)>CL.base){clearTimeout(CL.t);clPush();}});
 window.addEventListener("online",()=>clPull());
@@ -3617,14 +3626,14 @@ async function clLink(code,ask){
   if(!codeOk(code)){toast("Código inválido","Copie o código inteiro, no formato tp-xxxx-xxxx-…");return;}
   CL.code=code; CL.base=0; clStore(); clLbl();
   let r=null;
-  try{r=await rpc("tp_get",{p_code:code},ask);}catch(e){CL.st=e.message==="needmcp"?"needmcp":"err";clLbl();toast("Sem conexão agora","O código foi guardado; a sincronização tenta de novo sozinha.");return;}
+  try{r=await rpc("tp_get",{p_code:code},ask);}catch(e){CL.st=e.message==="needmcp"?"needmcp":(e.message==="server_not_connected"||e.message==="needs_reauth")?"noconn":"err";clLbl();toast("Sem conexão agora","O código foi guardado; a sincronização tenta de novo sozinha.");return;}
   if(!r){S.cloud=code;save();toast("Sincronização ativada","Este aparelho passa a enviar o progresso para a nuvem.");return;}
   const remote=JSON.parse(r.s);
   if(!(hasProgress(S)&&hasProgress(remote))){clAdopt(remote,r.upd);CL.base=r.upd;clStore();clSnap(remote);}
   else{const m=mergeS(S,remote,null);clAdopt(m,Math.max(Date.now(),r.upd+1));CL.base=r.upd;clStore();await clPush();}
   toast("Aparelho conectado","O progresso agora é o mesmo nos aparelhos conectados.");
 }
-async function copyTxt(t,ok,sub){try{await navigator.clipboard.writeText(t);toast(ok,sub||"");}catch(e){prompt("Copie o texto:",t);}}
+async function copyTxt(t,ok,sub){try{await navigator.clipboard.writeText(t);toast(ok,sub||"");}catch(e){const p=modal(`<h3>Copie o texto</h3><p class="muted">Toque e segure no texto e escolha Copiar.</p><textarea rows="3" readonly onfocus="this.select()">${esc(t)}</textarea>`,[["ok","Fechar","btn"]]);setTimeout(()=>{const x=document.querySelector("dialog.tpdlg textarea");if(x){x.focus();x.select();}},50);await p;}}
 /* o painel entra no lugar do texto de status da sincronização antiga, dentro de "Backup e sincronização" */
 /* link #sync=código (abre o app já conectado) */
 (function(){const m=/[#&]sync=(tp-[a-z0-9-]+)/.exec(location.hash||"");if(!m) return;try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}if(m[1]!==CL.code) setTimeout(()=>clLink(m[1],true),400);})();
@@ -3808,7 +3817,7 @@ function schedule(k,its){
 function areaChip(a){return a?`<span class="achip a-${a}">${ICO_AREA[a]}${AREAS[a].n}</span>`:"";}
 
 function syncChip(){
-  const s=!CL.code?["off","Não sincronizado"]:CL.st==="ok"?["ok","Sincronizado"]:CL.st==="needmcp"?["bad","Permitir sincronização"]:CL.st==="err"?["bad",navigator.onLine?"Sincronização pendente":"Sem internet"]:["","Sincronizando…"];
+  const s=!CL.code?["off","Não sincronizado"]:CL.st==="ok"?["ok","Sincronizado"]:CL.st==="needmcp"?["bad","Permitir sincronização"]:CL.st==="noconn"?["bad","Reconectar Supabase"]:CL.st==="err"?["bad",navigator.onLine?"Sincronização pendente":"Sem internet"]:["","Sincronizando…"];
   return `<button class="clchip ${s[0]}" onclick="go('config')" title="Configurações › Sincronização"><i></i>${s[1]}</button>`;
 }
 
@@ -3864,18 +3873,20 @@ function syncBanner(){
   if(!CL.code&&!IN_CLAUDE) return `<div class="rule stack"><span><b>Este aparelho ainda não está sincronizado.</b> Abra o link de conexão (fica em Configurações, no app do PC ou do Claude) ou cole o código aqui.</span><div class="row" style="gap:8px;flex-wrap:wrap"><input id="clInH" placeholder="tp-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1;min-width:220px"><button class="btn sm" onclick="clLink($('#clInH').value,true).then(()=>vGuiaKeep())">Conectar</button></div></div>`;
   return "";
 }
-async function clAllow(){CL.via="mcp";if(await mcpReady(true)){CL.st="";clLbl();await clPull();}else toast("Sem permissão","A sincronização com o celular fica parada até você permitir o conector Supabase.");if(current==="guia")vGuiaKeep();if(current==="config")vConfigKeep();}
+async function clAllow(){CL.via="mcp";if(CL.perm==="denied"){try{const perm=await window.claude.use("permissions");await perm.manage();}catch(e){toast("Permissão bloqueada","Abra o menu Permissões deste artifact (no topo da página) e ligue o conector Supabase.");}CL.perm=null;}
+  if(await mcpReady(true)){CL.st="";clLbl();await clPull();}else toast("Sem permissão","A sincronização com o celular fica parada até você permitir o conector Supabase.");if(current==="guia")vGuiaKeep();if(current==="config")vConfigKeep();}
 
 /* ---------- Configurações ---------- */
 function clText(){
   if(!CL.code) return IN_CLAUDE?"Preparando a sincronização…":"Este aparelho ainda não está conectado. Cole o código abaixo ou abra o link de conexão.";
   if(CL.st==="ok") return "Ligada e em dia"+(CL.at?" (conferido às "+CL.at.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})+")":"")+". O que você faz aqui aparece nos outros aparelhos em poucos segundos.";
-  if(CL.st==="needmcp") return "Falta uma permissão: toque em Permitir para o link do Claude usar o conector Supabase.";
+  if(CL.st==="needmcp") return CL.perm==="denied"?"O conector Supabase foi bloqueado para esta página. Toque em Permitir e ligue o Supabase no painel de permissões.":"Falta uma permissão: toque em Permitir para o link do Claude usar o conector Supabase.";
+  if(CL.st==="noconn") return "O conector Supabase não está conectado (ou a conexão expirou) na sua conta do claude.ai. Reconecte em Configurações → Conectores do claude.ai e volte aqui.";
   if(CL.st==="err") return navigator.onLine?"Não deu para falar com a nuvem agora; o app tenta de novo sozinho. Nada se perde.":"Sem internet. O progresso fica salvo aqui e sobe quando a conexão voltar.";
   return "Conectando…";
 }
 function clLbl(){
-  document.querySelectorAll(".cllbl").forEach(e=>{e.textContent=clText();e.className="cllbl "+(CL.st==="ok"?"ok":CL.st==="err"||CL.st==="needmcp"?"bad":"");});
+  document.querySelectorAll(".cllbl").forEach(e=>{e.textContent=clText();e.className="cllbl "+(CL.st==="ok"?"ok":CL.st==="err"||CL.st==="needmcp"||CL.st==="noconn"?"bad":"");});
   const c=document.querySelector(".clchip"); if(c) c.outerHTML=syncChip();
   const b=$("#clMcp"); if(b) b.hidden=CL.st!=="needmcp";
 }
@@ -3894,7 +3905,7 @@ function cfgSync(){
     </details></section>`;
 }
 async function clNew(){CL.code=newCode();CL.base=0;S.cloud=CL.code;clStore();save();await clPull();vConfigKeep();}
-function clOff(){if(!confirm("Desconectar este aparelho? O progresso continua salvo aqui e na nuvem.")) return;CL.code=null;CL.base=0;CL.st="off";clStore();clSnap(null);delete S.cloud;saveLocal();vConfigKeep();}
+async function clOff(){if((await modal(`<h3>Desconectar este aparelho?</h3><p class="muted">O progresso continua salvo aqui e na nuvem, mas este aparelho para de sincronizar.</p>`,[["cancel","Cancelar","btn ghost"],["ok","Desconectar","btn warn"]])).v!=="ok") return;CL.code=null;CL.base=0;CL.st="off";clStore();clSnap(null);delete S.cloud;saveLocal();vConfigKeep();}
 function seg(id,cur,opts){return `<div class="segtabs" role="radiogroup" id="${id}">${opts.map(([v,t])=>`<button role="radio" aria-checked="${v===cur}" aria-selected="${v===cur}" data-v="${v}">${t}</button>`).join("")}</div>`;}
 function vConfig(){
   $("#view").innerHTML=`<div class="stack"><h2>Configurações</h2><p class="muted">Ajustes deste app. O progresso é salvo sozinho a cada resposta.</p></div>

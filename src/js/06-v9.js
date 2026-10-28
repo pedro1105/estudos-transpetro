@@ -457,8 +457,9 @@ function icsBuild(){
   }
   return out+"END:VCALENDAR\r\n";
 }
-function icsDownload(){
+async function icsDownload(){
   const m=$("#icsMsg");
+  try{if(window.claude&&claude.use){const dl=await claude.use("downloads");if(dl){await dl.save({filename:"estudos-transpetro.ics",data:icsBuild()});if(m)m.textContent="Arquivo salvo. Abra-o no celular ou importe no Google Agenda (Configurações → Importar).";return;}}}catch(e){if(e&&e.code==="declined"){if(m)m.textContent="Download cancelado.";return;}}
   try{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([icsBuild()],{type:"text/calendar"}));a.download="estudos-transpetro.ics";document.body.appendChild(a);a.click();a.remove();if(m)m.textContent="Arquivo baixado. Abra-o no celular ou importe no Google Agenda (Configurações → Importar).";}
   catch(e){if(m)m.textContent="Este aparelho não permitiu o download.";}
 }
@@ -466,7 +467,7 @@ function gcalLink(){
   const [h,m]=(S.rem.h||"19:00").split(":").map(Number), st=new Date(), en=new Date();
   st.setHours(h,m,0,0); if(st<new Date()) st.setDate(st.getDate()+1); en.setTime(st.getTime()+2*3600e3);
   const f=d=>d.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
-  const det="Checklist do dia:\n1. Aquecimento: revisão espaçada (10 min)\n2. Teoria: resumo do assunto do dia (25 min)\n3. Questões do assunto do dia (25 min)\n4. Questões de outro assunto (25 min)\n5. Português ou Matemática\n6. Caderno de erros (10 min)\n7. Desafio do dia\n\nOs assuntos do dia estão na aba Hoje do app.";
+  const det="Abra o app na aba Hoje: a programação do dia mostra cada etapa com horário, área e dica.\n"+GH_URL;
   return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent("Estudo Transpetro")+"&dates="+f(st)+"/"+f(en)+"&ctz=America/Sao_Paulo&recur="+encodeURIComponent("RRULE:FREQ=DAILY;UNTIL=20261205T235959Z")+"&details="+encodeURIComponent(det);
 }
 const IS_PWA=location.protocol==="https:"&&/github\.io$/.test(location.hostname);

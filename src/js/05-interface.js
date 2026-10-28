@@ -184,7 +184,7 @@ function vVesp(){
       ${traps.length?`<h4>Pegadinhas</h4><ul class="res">${traps.map(([k,x])=>`<li class="trap">${md(x)}</li>`).join("")}</ul>`:""}
       <h4>Pontos-chave</h4><ul class="res">${pts.map(([k,x])=>`<li>${md(x)} <span class="muted">(${esc(CATS[k].n)})</span></li>`).join("")}</ul>
       ${notes.length?`<h4>Do seu caderno de erros</h4><ul class="res">${notes.map(q=>`<li>${esc(S.notes[q].t)} <span class="muted">(${esc(CATS[Q[q].c].n)})</span></li>`).join("")}</ul>`:""}
-      <div class="row"><button class="btn ghost sm" onclick="ttsSpeak(this.closest('details').querySelector('.stack').innerText,this)">Ouvir</button></div>
+      <div class="row"><button class="btn ghost sm" onclick="ttsSpeak(plain([...this.closest('details').querySelectorAll('h4,li')].map(x=>x.textContent).join('. ')),this)">Ouvir</button></div>
     </div></details>`;}).join("");
   $("#view").innerHTML=segNav("vesp",SEG_EST)+`
   <div class="stack"><h2>Revisão da véspera</h2><p class="muted">O essencial de cada bloco numa página: os assuntos em que você mais erra, as pegadinhas, um ponto-chave por seção e as notas do seu caderno de erros. Para os dias 04 e 05/12, sem conteúdo novo.</p></div>

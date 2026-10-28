@@ -79,13 +79,13 @@ function itemDone(k,i){if(i.chk) return i.chk(k)||!!(S.daily[k]&&S.daily[k][i.id
 function dayScore(k){const its=dayItems(dayPlan(k));return its.filter(i=>itemDone(k,i)).length/its.length;}
 
 /* ---------- Lembretes ---------- */
-function toast(t,b){
+function toast(t,b,goHoje){
   let el=$("#toast"); if(!el){el=document.createElement("div");el.id="toast";el.setAttribute("role","status");document.body.appendChild(el);}
-  el.innerHTML=`<strong>${esc(t)}</strong><span>${esc(b)}</span><button class="btn sm" onclick="this.parentNode.classList.remove('on');go('guia')">Ver checklist</button><button class="btn ghost sm" onclick="this.parentNode.classList.remove('on')">Fechar</button>`;
+  el.innerHTML=`<strong>${esc(t)}</strong><span>${esc(b)}</span>${goHoje?`<button class="btn sm" onclick="this.parentNode.classList.remove('on');go('guia')">Ver o dia</button>`:""}<button class="btn ghost sm" onclick="this.parentNode.classList.remove('on')">Fechar</button>`;
   el.classList.add("on");
 }
 function notify(t,b){
-  toast(t,b);
+  toast(t,b,true);
   try{ if("Notification" in window&&Notification.permission==="granted") new Notification(t,{body:b}); }catch(e){}
 }
 function remCheck(){
@@ -95,7 +95,7 @@ function remCheck(){
   if(now.getHours()*60+now.getMinutes()<h*60+m) return;
   const its=dayItems(dayPlan(k)), left=its.filter(i=>!itemDone(k,i)).length, due=srsDue().length;
   S.rem.last=k; save();
-  if(left||due) notify("Hora de estudar",`${left} ${left===1?"item":"itens"} do checklist de hoje em aberto${due?` e ${due} ${due===1?"questão":"questões"} para revisar`:""}.`);
+  if(left||due) notify("Hora de estudar",`${left} ${left===1?"etapa":"etapas"} da programação de hoje em aberto${due?` e ${due} ${due===1?"questão":"questões"} para revisar`:""}.`);
 }
 setInterval(remCheck,60000); setTimeout(remCheck,4000);
 async function remEnable(on){
@@ -104,6 +104,7 @@ async function remEnable(on){
   save(); vConfigKeep();
 }
 function notifState(){
+  if(window.claude&&window.claude.use) return "Aqui no claude.ai o aviso aparece dentro do app, com ele aberto.";
   if(!("Notification" in window)) return "Este navegador não mostra notificações do sistema; o aviso aparece dentro do app.";
   if(Notification.permission==="granted") return "Notificações do navegador permitidas.";
   if(Notification.permission==="denied") return "O navegador bloqueou as notificações; o aviso aparece dentro do app.";
@@ -136,9 +137,9 @@ function vCaderno(){
   const ids=Object.keys(S.notes).map(Number).filter(q=>Q[q]), k=todayK();
   const dueN=ids.filter(q=>S.notes[q].n&&S.notes[q].n<=k);
   const cnt=Object.keys(REASONS).map(r=>[r,ids.filter(q=>S.notes[q].r===r).length]);
-  const list=(cadFilter==="all"?ids:ids.filter(q=>S.notes[q].r===cadFilter)).sort((a,b)=>S.notes[b].d.localeCompare(S.notes[a].d));
+  const list=(cadFilter==="all"?ids:ids.filter(q=>S.notes[q].r===cadFilter)).sort((a,b)=>String(S.notes[b].d||"").localeCompare(String(S.notes[a].d||"")));
   const card=(qi,rev)=>{const q=Q[qi],n=S.notes[qi];return `<details class="rev" ${rev?"open":""}><summary><span class="mark bad">✗</span><span>${esc(q[1].length>100?q[1].slice(0,100)+"…":q[1])}</span></summary>
-    <div class="stack" style="margin-top:10px"><span class="qcat" style="color:var(--c-${CATS[q.c].b})">${esc(CATS[q.c].n)} · ${REASONS[n.r]} · anotada em ${fmtK(n.d)}</span>
+    <div class="stack" style="margin-top:10px"><span class="qcat" style="color:var(--c-${CATS[q.c].b})">${esc(CATS[q.c].n)} · ${REASONS[n.r]}${n.d?" · anotada em "+fmtK(n.d):""}</span>
     <p class="qtext" style="font-size:16px">${esc(q[1])}</p><p>Gabarito: <b>${esc(q[2][0])}</b></p>
     ${n.t?`<div class="rule"><b>Sua nota:</b> ${esc(n.t)}</div>`:""}<div class="expl">${esc(q[3])}</div>
     <div class="row">${rev?`<button class="btn sm" onclick="noteRev(${qi})">Revisei</button>`:`<span class="muted">${n.n?"Próxima revisão em "+fmtK(n.n):"Revisões concluídas"}</span>`}<button class="btn ghost sm" onclick="noteDel(${qi})">Apagar</button></div></div></details>`;};

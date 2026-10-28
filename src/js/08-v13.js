@@ -37,8 +37,12 @@ async function mcpReady(ask){
   if(!IN_CLAUDE) return false;
   if(CL.mcp) return true;
   try{
-    const perm=await window.claude.use("permissions");
-    if(perm){const st=await perm.state("mcp");if(st!=="granted"){if(!ask) return false;const r=await perm.request("mcp");if(r&&r.mcp&&r.mcp!=="granted") return false;}}
+    /* permissão por conector ("mcp:Supabase"): "prompt" já pode seguir, a primeira chamada pergunta */
+    const perm=await window.claude.use("permissions"), K="mcp:Supabase";
+    let st=perm?await perm.state(K).catch(()=>"unavailable"):"prompt";
+    if(st==="prompt"&&ask){const r=await perm.request([K]).catch(()=>null);if(r&&r[K])st=r[K];}
+    CL.perm=st;
+    if(st==="denied"||st==="unavailable") return false;
     CL.mcp=await window.claude.use("mcp"); return !!CL.mcp;
   }catch(e){return false;}
 }
@@ -46,7 +50,10 @@ async function rpcMcp(fn,args){
   const tag="$tp"+Math.random().toString(36).slice(2,8)+"$";
   const lit=v=>typeof v==="number"?String(Math.round(v)):tag+String(v).split(tag).join("")+tag;
   const params=fn!=="tp_save"?[lit(args.p_code)]:[lit(args.p_code),lit(args.p_s),lit(args.p_upd),lit(args.p_base)];
-  const res=await CL.mcp.callTool("Supabase","execute_sql",{project_id:SB_REF,query:`select public.${fn}(${params.join(",")})::text as r`},{cache:false});
+  let res;
+  try{res=await CL.mcp.callTool("Supabase","execute_sql",{project_id:SB_REF,query:`select public.${fn}(${params.join(",")})::text as r`},{cache:false});}
+  catch(e){const c=e&&e.code||"";if(["consent_required","denied","not_granted"].includes(c)){CL.perm="denied";CL.st="needmcp";throw new Error("needmcp");}
+    if(c==="server_not_connected"||c==="needs_reauth"){CL.st="noconn";throw new Error(c);}throw new Error(c||String(e&&e.message||e));}
   let p=res&&res.payload; if(p&&typeof p==="object"&&p.result) p=p.result; if(typeof p!=="string") p=JSON.stringify(p);
   const m=/<untrusted-data[^>]*>\s*([\s\S]*?)\s*<\/untrusted-data/.exec(p); const arr=JSON.parse(m?m[1]:p);
   const r=Array.isArray(arr)&&arr[0]?arr[0].r:null; return r?JSON.parse(r):null;
@@ -110,7 +117,7 @@ async function clPush(){
     const r=await rpc("tp_save",{p_code:CL.code,p_s:body,p_upd:upd,p_base:CL.base||0});
     if(r&&r.ok===false){CL.busy=false;return clPull();}
     CL.base=upd; clStore(); clSnap(JSON.parse(body)); CL.st="ok"; CL.at=new Date(); CL.err="";
-  }catch(e){CL.st=e.message==="needmcp"?"needmcp":"err";CL.err=String(e.message||e);}
+  }catch(e){CL.st=e.message==="needmcp"?"needmcp":(e.message==="server_not_connected"||e.message==="needs_reauth")?"noconn":"err";CL.err=String(e.message||e);}
   CL.busy=false; clLbl();
 }
 async function clPull(){
@@ -134,7 +141,7 @@ async function clPull(){
       else{clAdopt(remote,r.upd);CL.base=r.upd;clStore();clSnap(remote);}
     }else then="push";
     CL.st="ok"; CL.at=new Date(); CL.err="";
-  }catch(e){CL.st=e.message==="needmcp"?"needmcp":"err";CL.err=String(e.message||e);}
+  }catch(e){CL.st=e.message==="needmcp"?"needmcp":(e.message==="server_not_connected"||e.message==="needs_reauth")?"noconn":"err";CL.err=String(e.message||e);}
   CL.busy=false; clLbl();
   if(then==="push") clPush();
 }
@@ -148,7 +155,7 @@ async function clCheck(){
   if(CL.via==="mcp"&&Date.now()-(CL.lastMcp||0)<55000) return;
   if(CL.via==="mcp") CL.lastMcp=Date.now();
   try{const v=await rpc("tp_ver",{p_code:CL.code});if(v!==CL.base||(S.upd||0)>CL.base) clPull();else if(CL.st!=="ok"){CL.st="ok";CL.at=new Date();clLbl();}}
-  catch(e){CL.st=e.message==="needmcp"?"needmcp":"err";CL.err=String(e.message||e);clLbl();}
+  catch(e){CL.st=e.message==="needmcp"?"needmcp":(e.message==="server_not_connected"||e.message==="needs_reauth")?"noconn":"err";CL.err=String(e.message||e);clLbl();}
 }
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible") clPull();else if(CL.code&&CL.base&&(S.upd||0)>CL.base){clearTimeout(CL.t);clPush();}});
 window.addEventListener("online",()=>clPull());
@@ -161,14 +168,14 @@ async function clLink(code,ask){
   if(!codeOk(code)){toast("Código inválido","Copie o código inteiro, no formato tp-xxxx-xxxx-…");return;}
   CL.code=code; CL.base=0; clStore(); clLbl();
   let r=null;
-  try{r=await rpc("tp_get",{p_code:code},ask);}catch(e){CL.st=e.message==="needmcp"?"needmcp":"err";clLbl();toast("Sem conexão agora","O código foi guardado; a sincronização tenta de novo sozinha.");return;}
+  try{r=await rpc("tp_get",{p_code:code},ask);}catch(e){CL.st=e.message==="needmcp"?"needmcp":(e.message==="server_not_connected"||e.message==="needs_reauth")?"noconn":"err";clLbl();toast("Sem conexão agora","O código foi guardado; a sincronização tenta de novo sozinha.");return;}
   if(!r){S.cloud=code;save();toast("Sincronização ativada","Este aparelho passa a enviar o progresso para a nuvem.");return;}
   const remote=JSON.parse(r.s);
   if(!(hasProgress(S)&&hasProgress(remote))){clAdopt(remote,r.upd);CL.base=r.upd;clStore();clSnap(remote);}
   else{const m=mergeS(S,remote,null);clAdopt(m,Math.max(Date.now(),r.upd+1));CL.base=r.upd;clStore();await clPush();}
   toast("Aparelho conectado","O progresso agora é o mesmo nos aparelhos conectados.");
 }
-async function copyTxt(t,ok,sub){try{await navigator.clipboard.writeText(t);toast(ok,sub||"");}catch(e){prompt("Copie o texto:",t);}}
+async function copyTxt(t,ok,sub){try{await navigator.clipboard.writeText(t);toast(ok,sub||"");}catch(e){const p=modal(`<h3>Copie o texto</h3><p class="muted">Toque e segure no texto e escolha Copiar.</p><textarea rows="3" readonly onfocus="this.select()">${esc(t)}</textarea>`,[["ok","Fechar","btn"]]);setTimeout(()=>{const x=document.querySelector("dialog.tpdlg textarea");if(x){x.focus();x.select();}},50);await p;}}
 /* o painel entra no lugar do texto de status da sincronização antiga, dentro de "Backup e sincronização" */
 /* link #sync=código (abre o app já conectado) */
 (function(){const m=/[#&]sync=(tp-[a-z0-9-]+)/.exec(location.hash||"");if(!m) return;try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}if(m[1]!==CL.code) setTimeout(()=>clLink(m[1],true),400);})();
