@@ -4,6 +4,10 @@ let S={hist:[],stats:{},wrong:[],plan:{}};
 try{const r=localStorage.getItem(KEY); if(r) S=Object.assign(S,JSON.parse(r));}catch(e){}
 /* save() grava neste aparelho e avisa os módulos registrados em SAVE_HOOKS (sincronização, lembrete). */
 const SAVE_HOOKS=[];
+/* QID: identificação fixa de cada questão (montada no módulo 08); o histórico é remapeado por ela. */
+let QID=null;
+/* registro diário de acertos por assunto, para o painel semanal: S.qlog[dia][assunto]=[acertos,total] */
+function qlogAdd(c,ok){S.qlog=S.qlog||{};const k=dkey(new Date()),d=S.qlog[k]=S.qlog[k]||{},x=d[c]=d[c]||[0,0];x[1]++;if(ok)x[0]++;}
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function save(){S.upd=Date.now();saveLocal();SAVE_HOOKS.forEach(f=>{try{f();}catch(e){}});}
 
@@ -203,6 +207,7 @@ function vQuiz(){
   <div class="qhead">
     <button class="btn ghost sm qexit" onclick="go('pratica')" aria-label="Sair do simulado (ele continua salvo)">← Sair</button>
     <div class="stack" style="gap:2px"><strong>${esc(quiz.label)}</strong><span class="muted num">Questão ${k+1} de ${quiz.ids.length} · ${answered} respondidas</span></div>
+    <button class="btn ghost sm fzq" onclick="fzCycle()" aria-label="Tamanho da letra">Aa</button>
     ${quiz.limit?`<span class="timer num" id="timer">${fmt(remaining())}</span>`:""}
   </div>
   <article class="panel stack">
@@ -210,6 +215,7 @@ function vQuiz(){
     <p class="qtext">${esc(q[1])}</p>
     <div class="opts">${optsHtml}</div>
     ${locked?`<div class="expl"><strong>${a!==null&&ord[a]===0?"Correto.":"Resposta: "+L[ord.indexOf(0)]+"."}</strong> ${esc(q[3])}</div>${ord[a]!==0?noteForm(qi):""}`:""}
+    ${repBtn(qi)}
   </article>
   <div class="row" style="justify-content:space-between">
     <button class="btn ghost" ${k===0?"disabled":""} onclick="nav(-1)">Anterior</button>
@@ -238,11 +244,17 @@ function finish(){
   if(!quiz||quiz.finished) return;
   if(tick) clearInterval(tick);
   quiz.finished=true; quiz.elapsed=Math.round((Date.now()-quiz.start)/1000);
+  /* treino encerrado antes do fim: só as respondidas contam (em branco não vira erro) */
+  if(quiz.mode==="train"){
+    const keep=quiz.ids.map((_,k)=>k).filter(k=>quiz.ans[k]!==null);
+    if(!keep.length){quiz=null;go("pratica");return;}
+    if(keep.length<quiz.ids.length){["ids","ans","order","tq"].forEach(f=>{if(quiz[f]) quiz[f]=keep.map(k=>quiz[f][k]);});quiz.i=0;}
+  }
   const byB={}, wrongSet=new Set(S.wrong); let score=0;
   quiz.ids.forEach((qi,k)=>{
     const q=Q[qi], a=quiz.ans[k], ok=a!==null&&quiz.order[k][a]===0, b=CATS[q.c].b;
     byB[b]=byB[b]||{c:0,t:0}; byB[b].t++; if(ok){byB[b].c++;score++;}
-    S.stats[q.c]=S.stats[q.c]||{c:0,t:0}; S.stats[q.c].t++; if(ok) S.stats[q.c].c++;
+    S.stats[q.c]=S.stats[q.c]||{c:0,t:0}; S.stats[q.c].t++; if(ok) S.stats[q.c].c++; qlogAdd(q.c,ok);
     if(ok) wrongSet.delete(qi); else wrongSet.add(qi);
     if(a!==null||quiz.mode!=="train") srsUpdate(qi,ok);
   });
@@ -287,6 +299,7 @@ function vResult(){
         <p>Sua resposta: <b>${a===null?"em branco":L[a]+") "+esc(q[2][ord[a]])}</b></p>
         <p>Gabarito: <b>${L[ci]}) ${esc(q[2][0])}</b></p>
         <div class="expl">${esc(q[3])}</div>
+        ${repBtn(qi)}
         ${ok?"":noteForm(qi)}
       </div></details>`;}).join("");
   $("#view").innerHTML=`

@@ -316,14 +316,16 @@ vCaderno=function(){_vCaderno5();const h=$("#view h2");if(h&&Object.keys(S.notes
 
 /* ---------- 5. Pegadinhas da banca ---------- */
 let pegF="all";
+let pegN=12;
 function vPeg(){
-  const list=PEG.filter(p=>pegF==="all"||CATS[p[0]].b===pegF);
+  const all=PEG.filter(p=>pegF==="all"||CATS[p[0]].b===pegF), list=all.slice(0,pegN);
   $("#view").innerHTML=segNav("peg",SEG_EST)+`
   <div class="stack"><h2>Pegadinhas da banca</h2><p class="muted">A Cesgranrio troca uma palavra da definição certa. Leia as duas versões lado a lado e repare no detalhe que muda.</p>
   <div class="row" style="gap:8px;flex-wrap:wrap"><select id="pegF"><option value="all">Todos os blocos (${PEG.length})</option>${Object.entries(BLOCKS).map(([b,n])=>`<option value="${b}" ${pegF===b?"selected":""}>${esc(n)} (${PEG.filter(p=>CATS[p[0]].b===b).length})</option>`).join("")}</select><button class="btn sm" onclick="startErro()">Jogar Ache o erro</button></div></div>
   <div class="stack">${list.map(p=>{const d=pegDiff(p);return `<div class="panel stack peg" style="border-left:4px solid ${bcol(p[0])}"><span class="qcat" style="color:${bcol(p[0])}">${esc(CATS[p[0]].n)}</span>
-    <p class="pok"><span class="mark ok">✓</span> ${hlTok(p[1],d.a)}</p><p class="pbad"><span class="mark bad">✗</span> ${hlTok(p[2],d.b)}</p><p class="muted">${esc(p[3])}</p></div>`;}).join("")}</div>`;
-  $("#pegF").onchange=e=>{pegF=e.target.value;vPeg();};
+    <p class="pok"><span class="mark ok">✓</span> ${hlTok(p[1],d.a)}</p><p class="pbad"><span class="mark bad">✗</span> ${hlTok(p[2],d.b)}</p><p class="muted">${esc(p[3])}</p></div>`;}).join("")}</div>
+  ${all.length>list.length?`<div class="row"><button class="btn ghost" onclick="pegN+=12;const y=scrollY;vPeg();scrollTo({top:y})">Mostrar mais ${Math.min(12,all.length-list.length)} (faltam ${all.length-list.length})</button></div>`:""}`;
+  $("#pegF").onchange=e=>{pegF=e.target.value;pegN=12;vPeg();};
 }
 const toks=s=>s.split(" ");
 function pegDiff(p){const a=toks(p[1]),b=toks(p[2]);let i=0;while(i<a.length&&i<b.length&&a[i]===b[i])i++;let ja=a.length-1,jb=b.length-1;while(ja>=i&&jb>=i&&a[ja]===b[jb]){ja--;jb--;}const ra=[],rb=[];for(let k=i;k<=ja;k++)ra.push(k);for(let k=i;k<=jb;k++)rb.push(k);return {a:ra,b:rb};}
@@ -380,7 +382,7 @@ function duelAnswer(p){
   if(duel.lock)return; duel.lock=true;
   const k=duel.i, qi=duel.ids[k], ok=p!==null&&duel.order[k][p]===0, left=Math.max(0,duelLeft());
   duel.ans[k]=p; if(ok){duel.ok++;duel.pts+=100+Math.round(left*2);}
-  const c=Q[qi].c; S.stats[c]=S.stats[c]||{c:0,t:0}; S.stats[c].t++; if(ok)S.stats[c].c++; S.seen[qi]=todayK(); srsUpdate(qi,ok);
+  const c=Q[qi].c; S.stats[c]=S.stats[c]||{c:0,t:0}; S.stats[c].t++; if(ok)S.stats[c].c++; qlogAdd(c,ok); S.seen[qi]=todayK(); srsUpdate(qi,ok);
   if(!ok&&!S.wrong.includes(qi)) S.wrong.push(qi);
   addDay(1); save(); vDuel();
 }

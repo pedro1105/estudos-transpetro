@@ -281,7 +281,7 @@ vGuia=function(){
   foldGroup("ferr","Cronômetro e meta diária",[secBy("Cronômetro de estudo"),meta],null,"blocos de 50 min, sequência de dias");
   foldGroup("avis","Lembretes e avisos",[secBy("Lembrete diário"),secBy("Avisos com o app fechado")],null,"horário do aviso, Google Agenda");
   foldGroup("plan","Plano e método de estudo",[secBy("Plano até 06/12"),secBy("Método de estudo diário")],null,"as 4 fases e como estudar cada dia");
-  foldGroup("bkp","Backup e sincronização",[secBy("Backup e sincronização")],null,"copiar o progresso para outro aparelho");
+  foldGroup("bkp","Backup e sincronização",[secBy("Backup e sincronização")],null,"sincronização automática entre aparelhos e backup");
 };
 (function(){const st=document.createElement("style");st.textContent=`
 details.fold{padding:0}

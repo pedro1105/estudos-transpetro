@@ -11,6 +11,8 @@ function initState(){
   S.daily=S.daily||{}; S.srs=S.srs||{}; S.notes=S.notes||{}; S.rem=S.rem||{on:false,h:"19:00"};
   S.days=S.days||{}; S.seen=S.seen||{}; S.base=S.base||{}; S.goal=S.goal||30;
   (S.wrong||[]).forEach(qi=>{if(!S.srs[qi]) S.srs[qi]={b:0,d:todayK()};});
+  S.fold=S.fold||{}; S.gm=S.gm||{}; S.ct=S.ct||{}; S.fcl=S.fcl||{};
+  if(QID) remapState(S);
 }
 initState();
 
@@ -255,14 +257,14 @@ function rqTick(){
 function vReal(){
   if(!rq){go("pratica");return;}
   const nCard=rq.card.filter(x=>x!==null).length, diff=rq.ids.filter((_,i)=>rq.cad[i]!==null&&rq.card[i]!==null&&rq.cad[i]!==rq.card[i]).length, nFlag=rq.flag.filter(Boolean).length;
-  const head=`<div class="qhead"><button class="btn ghost sm qexit" onclick="go('pratica')">← Sair</button><div class="stack" style="gap:2px"><strong>Prova real · ${rq.src==="full"?"simulado completo":"Transpetro "+rq.src}</strong><span class="muted num">${rq.ids.length} questões · ${nCard} marcadas no cartão${nFlag?` · ${nFlag} para voltar`:""}</span></div><span class="timer num" id="rtimer">${fmt(rqLeft())}</span></div>
+  const head=`<div class="qhead"><button class="btn ghost sm qexit" onclick="go('pratica')">← Sair</button><div class="stack" style="gap:2px"><strong>Prova real · ${rq.src==="full"?"simulado completo":"Transpetro "+rq.src}</strong><span class="muted num">${rq.ids.length} questões · ${nCard} marcadas no cartão${nFlag?` · ${nFlag} para voltar`:""}</span></div><button class="btn ghost sm fzq" onclick="fzCycle()" aria-label="Tamanho da letra">Aa</button><span class="timer num" id="rtimer">${fmt(rqLeft())}</span></div>
   <div class="segtabs" role="tablist"><button role="tab" aria-selected="${rq.tab==="cad"}" onclick="rq.tab='cad';vRealKeep(true)">Caderno de questões</button><button role="tab" aria-selected="${rq.tab==="card"}" onclick="rq.tab='card';vRealKeep(true)">Cartão-resposta (${nCard}/${rq.ids.length})</button></div>`;
   let body;
   if(rq.tab==="cad"){
     body=`<div class="panel stack"><span class="muted">Ir para a questão (amarelo = voltar depois)</span><div class="qgrid">${rq.ids.map((_,j)=>`<button class="qnum ${rq.cad[j]!==null?"done":""} ${rq.flag[j]?"flag":""}" onclick="document.getElementById('rq${j}').scrollIntoView({behavior:'smooth'})">${j+1}</button>`).join("")}</div></div>
     <p class="muted">Marque aqui como rascunho, igual a riscar o caderno da prova. A nota vem só do cartão-resposta: transcreva antes do tempo acabar.</p>
     ${rq.ids.map((qi,j)=>{const q=Q[qi];return `<article class="panel stack" id="rq${j}"><div class="row" style="justify-content:space-between"><span class="qcat">Questão ${j+1}</span><button class="btn ghost sm rflag ${rq.flag[j]?"on":""}" data-j="${j}">${rq.flag[j]?"Marcada para voltar":"Voltar depois"}</button></div>
-      <p class="qtext">${esc(q[1])}</p><div class="opts">${rq.order[j].map((oi,pos)=>`<button class="opt ${rq.cad[j]===pos?"sel":""}" data-j="${j}" data-p="${pos}"><span class="l">${L[pos]}</span><span>${esc(q[2][oi])}</span></button>`).join("")}</div></article>`;}).join("")}
+      <p class="qtext">${esc(q[1])}</p><div class="opts">${rq.order[j].map((oi,pos)=>`<button class="opt ${rq.cad[j]===pos?"sel":""}" data-j="${j}" data-p="${pos}"><span class="l">${L[pos]}</span><span>${esc(q[2][oi])}</span></button>`).join("")}</div>${repBtn(qi)}</article>`;}).join("")}
     <div class="row"><button class="btn" onclick="rq.tab='card';vRealKeep(true)">Ir para o cartão-resposta</button></div>`;
   }else{
     body=`<div class="panel stack"><p class="muted">Preencha uma bolha por questão. Na prova real, cartão rasurado ou com duas marcas perde a questão; aqui você pode corrigir, mas treine marcar de primeira.</p>
@@ -354,7 +356,7 @@ function syncPush(){
 }
 function adoptRemote(d){
   try{S=Object.assign({hist:[],stats:{},wrong:[],plan:{}},JSON.parse(d.s));}catch(e){return;}
-  initState(); saveLocal(); applyTheme&&applyTheme();
+  initState(); saveLocal(); applyTheme&&applyTheme(); clKick();
   if(!["quiz","real","vf","match"].includes(current)){const y=window.scrollY;go(current);window.scrollTo({top:y});}
 }
 (async()=>{
@@ -379,7 +381,8 @@ function adoptRemote(d){
 function syncText(){
   if(SYNC.st==="ok") return "Sincronizado com a sua conta"+(SYNC.at?" às "+SYNC.at.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"")+". Abra o app em outro aparelho, com a mesma conta do claude.ai, e o progresso aparece lá.";
   if(SYNC.st==="err") return "Não foi possível sincronizar agora. O progresso continua salvo neste aparelho; tente de novo mais tarde ou use o código de backup.";
-  return SYNC.db?"Conectando à sua conta…":"Salvando só neste aparelho. Para sincronizar, abra o app conectado à sua conta do claude.ai, ou use o código de backup abaixo.";
+  if(SYNC.db) return "Conectando à sua conta…";
+  return window.claude&&window.claude.use?"Este aparelho ainda não está ligado à sua conta do claude.ai. Use a sincronização automática acima ou o código de backup abaixo.":"A conta do claude.ai só vale no link do claude.ai. Aqui, use a sincronização automática acima; o código de backup abaixo é a cópia manual.";
 }
 function syncLbl(){document.querySelectorAll(".synclbl").forEach(e=>{e.textContent=syncText();e.className="synclbl "+(SYNC.st==="ok"?"ok":SYNC.st==="err"?"bad":"");});}
 function syncPanel(){
