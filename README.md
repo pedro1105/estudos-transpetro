@@ -39,6 +39,12 @@ Ao publicar, troque a versão do cache em `sw.js`.
 - Limpeza: plano antigo de semanas (PLAN), SRS de intervalos fixos, vCrono antigo e funções duplicadas saíram. A cópia na conta do claude.ai agora junta em vez de substituir.
 - Testes: `node tests/v16.js`.
 
+## v18
+
+- +85 questões da Petrobras, Técnico de Suprimento de Bens e Serviços (Administração): 2018 (30), 2014 (35) e 2012 (20), em `src/js/07d-questoes-suprimento.js` (`Q18`, posições 1059–1143). Total 1.144.
+- Português e Matemática de 2018 e 2012 ficaram de fora por serem iguais às provas TAC. Também saíram Decreto 2.745, menus do Office 2003, planejamento estratégico, atendimento e PG.
+- Cache do service worker `transpetro-v18`. Teste: `tests/v18.js`.
+
 ## v17
 - `src/js/07c-questoes-tac.js`: 202 questões das provas do mesmo cargo (Técnico de Administração e Controle) — Petrobras 2018, 2014 e 2012 e BR Distribuidora 2015 e 2013 —, conferidas com o gabarito oficial e explicadas. Ficaram de fora questões que dependem do texto ou de figura, anuladas, Lei 8.666, Decreto 2.745, redação oficial, arquivologia e assuntos fora do edital. Entram no fim do banco (o progresso usa a posição).
 - Praticar > Outras provas: novo grupo "Mesmo cargo".
