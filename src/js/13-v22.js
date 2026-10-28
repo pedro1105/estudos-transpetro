@@ -80,7 +80,7 @@ details.lk summary .bh{min-width:0}
 
 /* Cada aparelho grava no progresso sincronizado a versão do app, onde abriu e quando,
    para dar para conferir pela nuvem se o celular está atualizado e sincronizando */
-const APP_V=22;
+const APP_V=23;
 function devMark(){
   let id="x";try{id=localStorage.getItem("transpetro26-dev");if(!id){id=Math.random().toString(36).slice(2,8);localStorage.setItem("transpetro26-dev",id);}}catch(e){}
   const ua=navigator.userAgent, m=(/Android [\d.]+/.exec(ua)||/iPhone|iPad|Windows|Mac OS X|CrOS|Linux/.exec(ua)||["?"])[0];
@@ -90,3 +90,6 @@ function devMark(){
 }
 const _clAdopt22=clAdopt; clAdopt=function(st,upd){_clAdopt22(st,upd);setTimeout(devMark,0);};
 setTimeout(devMark,1500);
+/* Áudio tem botão próprio no cabeçalho/menu: destaca ele, não a aba Estudar. */
+TABOF.audio="audio";
+const _go23=go; go=function(v){_go23(v);const b=$("#audBtn");if(b)b.setAttribute("aria-current",current==="audio"?"page":"false");};

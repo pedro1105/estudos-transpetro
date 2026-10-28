@@ -3926,7 +3926,7 @@ function vConfig(){
       <div class="row"><button class="btn sm" id="bkImp">Importar código</button><span class="muted" id="bkMsg"></span></div></div>
     ${instEvt?`<button class="btn" id="instBtn">Instalar o app neste aparelho</button>`:IS_PWA?"":`<a class="btn ghost sm" href="${GH_URL}" target="_blank" rel="noopener">Abrir a versão instalável (GitHub)</a>`}</section>
   ${aboutExam()}
-  <p class="muted">Versão 22 · ${QV().length.toLocaleString("pt-BR")} questões</p>`;
+  <p class="muted">Versão 23 · ${QV().length.toLocaleString("pt-BR")} questões</p>`;
   $("#stH").onchange=e=>{S.st.h=e.target.value||"19:00";save();};
   $("#stW").onchange=e=>{S.st.w=e.target.value||"09:00";save();};
   $("#goalSel").onchange=e=>{S.goal=+e.target.value;save();};
@@ -4703,7 +4703,7 @@ details.lk summary .bh{min-width:0}
 
 /* Cada aparelho grava no progresso sincronizado a versão do app, onde abriu e quando,
    para dar para conferir pela nuvem se o celular está atualizado e sincronizando */
-const APP_V=22;
+const APP_V=23;
 function devMark(){
   let id="x";try{id=localStorage.getItem("transpetro26-dev");if(!id){id=Math.random().toString(36).slice(2,8);localStorage.setItem("transpetro26-dev",id);}}catch(e){}
   const ua=navigator.userAgent, m=(/Android [\d.]+/.exec(ua)||/iPhone|iPad|Windows|Mac OS X|CrOS|Linux/.exec(ua)||["?"])[0];
@@ -4713,6 +4713,9 @@ function devMark(){
 }
 const _clAdopt22=clAdopt; clAdopt=function(st,upd){_clAdopt22(st,upd);setTimeout(devMark,0);};
 setTimeout(devMark,1500);
+/* Áudio tem botão próprio no cabeçalho/menu: destaca ele, não a aba Estudar. */
+TABOF.audio="audio";
+const _go23=go; go=function(v){_go23(v);const b=$("#audBtn");if(b)b.setAttribute("aria-current",current==="audio"?"page":"false");};
 
 if("serviceWorker" in navigator&&location.protocol==="https:"){const sw=navigator.serviceWorker;let had=!!sw.controller;sw.register("sw.js").then(r=>{document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")r.update().catch(()=>{});});}).catch(()=>{});sw.addEventListener("controllerchange",()=>{if(had)swUpdated();had=true;});}
 go("guia");

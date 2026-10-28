@@ -62,7 +62,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   await p.evaluate(() => go('config'));
   ok('painel de notificações', await p.locator('#view h3:has-text("Notificações com o app fechado")').count() === 1);
   ok('plano de push com datas futuras', await p.evaluate(() => { const pl = pushPlan(); return pl.length >= 10 && pl.every(x => x.t > Date.now() && x.ti && x.b); }));
-  ok('versão 22', /Versão 22/.test(await p.locator('#view').textContent()));
+  ok('versão 23', /Versão 23/.test(await p.locator('#view').textContent()));
 
   // atalhos do ícone
   const p2 = await ctx.newPage(); await p2.goto(file + '?a=wrong'); await p2.waitForTimeout(300);
