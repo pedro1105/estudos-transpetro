@@ -13,7 +13,6 @@ function auCats(src){
   if(src.startsWith("b:")) return Object.keys(CATS).filter(c=>CATS[c].b===src.slice(2));
   return CATS[src]?[src]:auDayCats();
 }
-function auSrcName(src){return src==="dia"?"Assuntos de hoje":src==="fracos"?"Meus 3 assuntos mais fracos":src==="esp"?"Todas as específicas":src.startsWith("b:")?BLOCKS[src.slice(2)]:CATS[src]?CATS[src].n:"";}
 function auItemsRes(cs,maxSec){const out=[];cs.forEach(c=>(RES[c]||[]).slice(0,maxSec||99).forEach(([t,it])=>out.push({k:"Resumo",lb:CATS[c].n+" · "+t,show:[t,it.map(plain).join(" ")],segs:[{t:CATS[c].n+". "+t+". "+it.map(plain).join(" "),w:1500}]})));return out;}
 function auItemsQ(cs,n){
   const due=new Set(srsDue()), pool=QI().filter(i=>cs.includes(Q[i].c)&&!AU_NOAUDIO.test(Q[i][1])&&Q[i][1].length<420);
@@ -57,7 +56,7 @@ async function auLoop(run){
     }
     AU.i++; AU.seg=0; S.au.n=(S.au.n||0)+1;
   }
-  if(AU&&AU.run===run){AU.play=false;auLock(false);auDraw();save();}
+  if(AU&&AU.run===run){AU.play=false;auLock(false);auDraw();save();sndMedia();}
 }
 function auStart(){const it=auBuild();if(!it.length){toast("Nada para tocar","Escolha outros assuntos ou outro modo.");return;}AU={items:it,i:0,seg:0,play:false,run:0};auPlay();}
 function auPlay(){
@@ -66,7 +65,7 @@ function auPlay(){
   if(AU.i>=AU.items.length){AU.i=0;AU.seg=0;}
   AU.play=true; AU.run++; auLock(true); auTimerArm(); auMedia(); auLoop(AU.run); auDraw();
 }
-function auPause(){if(!AU)return;AU.play=false;AU.run++;clearTimeout(AU.tw);try{speechSynthesis.cancel();}catch(e){}sndDuck(false);auLock(false);auDraw();}
+function auPause(){if(!AU)return;AU.play=false;AU.run++;clearTimeout(AU.tw);try{speechSynthesis.cancel();}catch(e){}sndDuck(false);auLock(false);auDraw();sndMedia();}
 function auSkip(d){if(!AU)return;const was=AU.play;auPause();AU.i=Math.min(AU.items.length-1,Math.max(0,AU.i+d));AU.seg=0;if(was)auPlay();else auDraw();}
 /* tela ligada e escura enquanto toca (a voz do aparelho para com a tela apagada) */
 let auWL=null;
@@ -74,9 +73,10 @@ async function auLock(on){try{if(on&&!auWL&&navigator.wakeLock){auWL=await navig
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&AU&&AU.play)auLock(true);});
 /* desligar sozinho */
 let auTT=null;
-function auTimerArm(){clearTimeout(auTT);const m=auCfg().timer;if(m)auTT=setTimeout(()=>{auPause();sndStop();toast("Áudio pausado","O tempo que você escolheu terminou.");},m*60000);}
+function auTimerArm(){clearTimeout(auTT);const m=auCfg().timer;if(m)auTT=setTimeout(()=>{auPause();sndStop(8000);toast("Áudio pausado","O tempo que você escolheu terminou.");},m*60000);}
 function auMedia(){
   if(!("mediaSession" in navigator)||!AU) return;
+  if(!AU.play&&SND.k){sndMedia();return;}
   try{const it=AU.items[AU.i]||{};navigator.mediaSession.metadata=new MediaMetadata({title:(it.k||"Estudo")+": "+(it.lb||""),artist:"Estudos Transpetro 2026",album:AU_MODES.find(m=>m[0]===auCfg().mode)[1]});
     navigator.mediaSession.setActionHandler("play",()=>{if(!AU.play)auPlay();});navigator.mediaSession.setActionHandler("pause",auPause);
     navigator.mediaSession.setActionHandler("nexttrack",()=>auSkip(1));navigator.mediaSession.setActionHandler("previoustrack",()=>auSkip(-1));}catch(e){}
@@ -112,9 +112,9 @@ const SNDS=[
  ["piano","Piano calmo","Notas soltas de piano com eco, bem espaçadas."]
 ];
 const SND_SR=22050, SND_CACHE={};
-let SND={k:null,vol:.6,duck:false};
-try{const o=JSON.parse(localStorage.getItem("transpetro26-snd")||"{}");if(o.vol!=null)SND.vol=o.vol;if(o.k)SND.last=o.k;}catch(e){}
-function sndSave(){try{localStorage.setItem("transpetro26-snd",JSON.stringify({vol:SND.vol,k:SND.k||SND.last}));}catch(e){}}
+let SND={k:null,duck:false};
+try{const o=JSON.parse(localStorage.getItem("transpetro26-snd")||"{}");if(o.k)SND.last=o.k;}catch(e){}
+function sndSave(){try{localStorage.setItem("transpetro26-snd",JSON.stringify({k:SND.k||SND.last}));}catch(e){}}
 function wavBlob(chs,sr){
   const n=chs[0].length,nc=chs.length,buf=new ArrayBuffer(44+n*nc*2),v=new DataView(buf),w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
   w(0,"RIFF");v.setUint32(4,36+n*nc*2,true);w(8,"WAVE");w(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,nc,true);
@@ -174,21 +174,38 @@ async function sndUrl(k){
   const ch=k==="rain"?sndRain(20):k==="waves"?sndWaves(24):k==="pad"?await sndPad(32):k==="piano"?await sndPiano(40):sndNoise(k,20);
   /* mesmo volume percebido para todos os sons */
   let sq=0,pk=0,n=0;ch.forEach(x=>{for(let i=0;i<x.length;i+=3){sq+=x[i]*x[i];n++;const a=Math.abs(x[i]);if(a>pk)pk=a;}});
-  const g=Math.min(.12/Math.sqrt(sq/n||1e-9),.92/(pk||1));ch.forEach(x=>{for(let i=0;i<x.length;i++)x[i]*=g;});
+  const g=Math.min(.09/Math.sqrt(sq/n||1e-9),.92/(pk||1));ch.forEach(x=>{for(let i=0;i<x.length;i++)x[i]*=g;});
   return SND_CACHE[k]=URL.createObjectURL(wavBlob(ch,SND_SR));
 }
-function sndEl(){let el=$("#sndEl");if(!el){el=document.createElement("audio");el.id="sndEl";el.loop=true;el.preload="auto";document.body.appendChild(el);}return el;}
-function sndVolApply(){const el=$("#sndEl");if(el)el.volume=Math.max(0,Math.min(1,SND.vol*(SND.duck?.45:1)));}
+function sndEl(){let el=$("#sndEl");if(!el){el=document.createElement("audio");el.id="sndEl";el.loop=true;el.preload="auto";el.setAttribute("playsinline","");document.body.appendChild(el);
+  /* pausa pelo fone, pela central de mídia ou por uma ligação: a tela acompanha */
+  el.addEventListener("pause",()=>{if(SND.k&&!SND.fading&&!SND.busy){SND.paused=SND.k;SND.k=null;sndDrawAll();}});
+  el.addEventListener("play",()=>{if(!SND.k&&SND.paused){SND.k=SND.paused;SND.paused=null;sndDrawAll();}});}return el;}
+/* o volume é o do aparelho (botões do celular); o app só abaixa o som enquanto a voz fala */
+let sndFadeT=null;
+function sndVolTo(to,ms){const el=$("#sndEl");if(!el)return Promise.resolve();clearInterval(sndFadeT);const from=el.volume,t0=Date.now();
+  return new Promise(res=>{if(!ms){try{el.volume=to;}catch(e){}res();return;}sndFadeT=setInterval(()=>{const k=Math.min(1,(Date.now()-t0)/ms);try{el.volume=from+(to-from)*k;}catch(e){}if(k>=1){clearInterval(sndFadeT);res();}},50);});}
+function sndVolApply(){sndVolTo(SND.duck?.4:1,300);}
 function sndDuck(on){SND.duck=on;sndVolApply();}
 async function sndPlay(k){
   if(SND.k===k){sndStop();return;}
   SND.k=k; SND.busy=k; sndDrawAll();
-  try{const url=await sndUrl(k); if(SND.k!==k) return; const el=sndEl(); el.src=url; sndVolApply(); await el.play();
-    if("mediaSession" in navigator&&!(AU&&AU.play)) try{navigator.mediaSession.metadata=new MediaMetadata({title:SNDS.find(s=>s[0]===k)[1],artist:"Sons para estudar · Transpetro 2026"});}catch(e){}
+  try{const url=await sndUrl(k); if(SND.k!==k) return; const el=sndEl(); el.src=url; SND.paused=null; try{el.volume=0;}catch(e){} await el.play(); sndVolTo(SND.duck?.4:1,1500); sndMedia();
   }catch(e){SND.k=null;toast("Não deu para tocar","Toque de novo no som. Se continuar, confira se o aparelho não está no modo silencioso.");}
   SND.busy=null; SND.last=k; sndSave(); sndDrawAll(); auTimerArm();
 }
-function sndStop(){const el=$("#sndEl");if(el){el.pause();}SND.k=null;sndSave();sndDrawAll();}
+function sndStop(fade){const el=$("#sndEl");SND.paused=null;
+  if(el&&fade&&!el.paused){SND.fading=true;sndVolTo(0,fade).then(()=>{if(!SND.k)el.pause();SND.fading=false;});}else if(el){SND.fading=true;el.pause();SND.fading=false;}
+  SND.k=null;sndSave();sndDrawAll();}
+/* botões do fone e da tela bloqueada também controlam o som quando a voz não está tocando */
+function sndMedia(){
+  if(!("mediaSession" in navigator)||(AU&&AU.play)||!SND.k) return;
+  try{navigator.mediaSession.metadata=new MediaMetadata({title:SNDS.find(s=>s[0]===SND.k)[1],artist:"Sons para estudar · Transpetro 2026"});
+    navigator.mediaSession.setActionHandler("play",()=>{const el=sndEl();el.play().catch(()=>{});});
+    navigator.mediaSession.setActionHandler("pause",()=>{const el=$("#sndEl");if(el)el.pause();});
+    navigator.mediaSession.setActionHandler("nexttrack",()=>{const i=SNDS.findIndex(s=>s[0]===(SND.k||SND.last));sndPlay(SNDS[(i+1)%SNDS.length][0]);});
+    navigator.mediaSession.setActionHandler("previoustrack",null);}catch(e){}
+}
 function sndDrawAll(){
   document.querySelectorAll(".sndbtn").forEach(b=>{const on=b.dataset.k===SND.k;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on);const st=b.querySelector(".sst");if(st)st.textContent=SND.busy===b.dataset.k?"preparando…":on?"tocando · toque para parar":"";});
   sndBar();
@@ -220,11 +237,11 @@ function vAudio(){
   <section class="panel stack"><h3>Sons para concentrar</h3>
     <p class="muted">Gerados aqui mesmo, sem internet e sem gastar dados. Tocam junto com a voz (que abaixa o som enquanto fala) e continuam nas outras telas, por exemplo enquanto você faz questões.</p>
     <div class="sndgrid">${SNDS.map(([k,t,d])=>`<button class="sndbtn ${SND.k===k?"on":""}" data-k="${k}" aria-pressed="${SND.k===k}" onclick="sndPlay('${k}')"><b>${t}</b><span class="muted">${d}</span><span class="sst"></span></button>`).join("")}</div>
-    <div class="cfgrow"><label for="sndVol">Volume do som</label><input type="range" id="sndVol" min="0" max="1" step=".05" value="${SND.vol}"></div>
+    <p class="muted">O volume é o do celular: use os botões de volume do aparelho. Enquanto a voz do estudo fala, o som abaixa sozinho. Pelo fone ou pela tela bloqueada dá para pausar e, no botão de próxima, trocar de som.</p>
     <details class="rev"><summary><span class="mark">♪</span><span>Qual escolher e outras opções de música</span></summary><div class="stack" style="margin-top:8px">
       <p><b>No trem ou metrô:</b> ruído marrom, porque ele cobre o ronco grave do vagão. Volume baixo a médio: o som serve para abafar o ambiente, não para competir com ele.</p>
       <p><b>Para ler resumo ou fazer questões:</b> ruído rosa, chuva ou ambiente lo-fi. <b>Evite música com letra</b>: palavras cantadas disputam atenção com a leitura e atrapalham a memorização.</p>
-      <p><b>Para ouvir o estudo em áudio:</b> deixe o som baixo (30% a 40%), só para tirar o barulho de fundo.</p>
+      <p><b>Para ouvir o estudo em áudio:</b> deixe o volume do celular num nível em que a voz fique clara; o som de fundo já toca mais baixo que ela.</p>
       <p><b>Se preferir música de verdade</b> (precisa de internet): lo-fi sem letra, piano calmo, trilhas instrumentais ou barroco lento.</p>
       <div class="row" style="gap:6px;flex-wrap:wrap">
         <a class="btn ghost sm" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=lofi+hip+hop+radio+beats+to+study">Lo-fi para estudar (YouTube)</a>
@@ -236,7 +253,6 @@ function vAudio(){
   document.querySelectorAll("input[name=auMode]").forEach(r=>r.onchange=()=>{c.mode=r.value;save();document.querySelectorAll(".aumode").forEach(l=>l.classList.toggle("on",l.querySelector("input").checked));});
   const sv=(id,f,num)=>{const e=$("#"+id);if(e)e.onchange=()=>{c[f]=num?+e.value:e.value;save();if(f==="timer")auTimerArm();};};
   sv("auSrc","src"); sv("auRate","rate",1); sv("auPause","pause",1); sv("auTimer","timer",1);
-  const vol=$("#sndVol"); if(vol) vol.oninput=()=>{SND.vol=+vol.value;sndVolApply();sndSave();};
   auDraw(); sndDrawAll();
 }
 VIEWS.audio=()=>vAudio(); TABOF.audio="cont";
@@ -271,7 +287,6 @@ VIEWS.afc=()=>go("audio");
 .sndbtn.on{border-color:var(--petrol);background:var(--petrol-soft)}
 .sndbtn:focus-visible{outline:2px solid var(--petrol)}
 .sst{color:var(--petrol);font-weight:600}
-input[type=range]#sndVol{width:100%;max-width:240px;accent-color:var(--petrol)}
 #sndBar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(72px + env(safe-area-inset-bottom));z-index:40;display:flex;gap:2px;background:var(--petrol);color:#fff;border-radius:999px;padding:4px;box-shadow:0 4px 14px rgba(0,0,0,.2);max-width:calc(100vw - 32px)}
 #sndBar button{all:unset;cursor:pointer;padding:6px 12px;border-radius:999px;font:600 13px var(--f-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #sndBar .sbx{background:rgba(255,255,255,.18)}

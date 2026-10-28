@@ -1,28 +1,5 @@
 /* ===== v9: conteúdo novo ===== */
 /* explicações completas para as questões de cálculo */
-const EXPL={
-"O número de anagramas da palavra PETRO é":"PETRO tem 5 letras, todas diferentes. Anagrama é permutação simples: P5 = 5! = 5 × 4 × 3 × 2 × 1 = 120. Pegadinha: se houvesse letras repetidas (como em ARARA), seria preciso dividir pelo fatorial das repetições.",
-"Se 2^(x + 1) = 16, então x vale":"Escreva os dois lados na mesma base: 16 = 2⁴. Com bases iguais, iguale os expoentes: x + 1 = 4, logo x = 3. Confira: 2^(3+1) = 2⁴ = 16.",
-"Uma escada de 10 m está apoiada em uma parede, formando 30° com o chão. A altura atingida na parede é":"A altura é o cateto oposto ao ângulo de 30°, e a escada é a hipotenusa. Seno = oposto ÷ hipotenusa, então altura = 10 × sen 30° = 10 × 1/2 = 5 m. Guarde: sen 30° = 1/2, cos 60° = 1/2, sen 45° = cos 45° = √2/2.",
-"30% de 40% de 500 é igual a":"Porcentagem de porcentagem se multiplica: 0,30 × 0,40 = 0,12, ou seja, 12% de 500 = 60. Pegadinha: somar as taxas (70%) daria 350, que está errado.",
-"Se f(x) = 3x − 2, então f(4) é igual a":"Substitua x por 4: f(4) = 3 × 4 − 2 = 12 − 2 = 10. Faça a multiplicação antes da subtração.",
-"Um aparelho custa R$ 800,00 e é vendido com 15% de desconto à vista. O preço à vista é de":"Desconto de 15% significa pagar 85% do preço: 800 × 0,85 = 680. Conta de cabeça: 10% de 800 = 80; 5% = 40; desconto = 120; 800 − 120 = 680.",
-"Um preço passou de R$ 80,00 para R$ 92,00. O aumento percentual foi de":"Variação percentual = aumento ÷ valor inicial. Aumento = 92 − 80 = 12; 12 ÷ 80 = 0,15 = 15%. Pegadinha: dividir por 92 (valor final) dá cerca de 13%, que está errado.",
-"Após um desconto de 25%, um produto passou a custar R$ 150,00. O preço original era":"Depois do desconto sobram 75% do preço: 0,75 × P = 150, logo P = 150 ÷ 0,75 = 200. Pegadinha: somar 25% a 150 dá 187,50, porque o desconto incide sobre o preço original, não sobre o final.",
-"Dois descontos sucessivos de 10% e 20% equivalem a um desconto único de":"Descontos sucessivos se multiplicam: sobra 0,90 × 0,80 = 0,72 do preço, ou seja, desconto único de 28%. Pegadinha: somar as taxas dá 30%, que está errado.",
-"Um investimento de R$ 1.000,00 a juros compostos de 10% ao ano atinge, ao fim de 3 anos, o montante de":"Montante composto M = C × (1 + i)ⁿ = 1.000 × 1,1³. Faça por etapas: 1.000 → 1.100 → 1.210 → 1.331. Em juros simples seriam só R$ 1.300,00.",
-"Um palete PBR (1,00 m × 1,20 m) ocupa uma área de":"Área do retângulo = comprimento × largura = 1,00 × 1,20 = 1,20 m². O palete PBR é o padrão brasileiro de 1,00 m × 1,20 m; o europeu (PEB/Euro) mede 0,80 m × 1,20 m.",
-"No Excel, a célula A1 contém 10 e B1 contém 0. A fórmula =A1/B1 retorna o erro":"Dividir por zero (ou por célula vazia) gera #DIV/0!. Outros erros: #N/D (valor não encontrado no PROCV), #NOME? (nome de função errado), #REF! (referência apagada), #VALOR! (tipo de dado errado). Para tratar, use =SEERRO(A1/B1;0).",
-"O valor de x na equação 3x − 7 = 2x + 5 é":"Passe os termos com x para um lado e os números para o outro, trocando o sinal: 3x − 2x = 5 + 7, logo x = 12. Confira: 3 × 12 − 7 = 29 e 2 × 12 + 5 = 29.",
-"A soma das raízes da equação 2x² − 8x + 6 = 0 é":"Pelas relações de Girard, soma = −b/a e produto = c/a. Aqui a = 2, b = −8, c = 6: soma = 8/2 = 4 e produto = 6/2 = 3. As raízes são 1 e 3. Não precisa de Bhaskara.",
-"Se log₂ x = 5, então x vale":"Logaritmo é expoente: logₐ x = c significa aᶜ = x. Então x = 2⁵ = 32.",
-"De quantas maneiras 4 pessoas podem se sentar em 4 cadeiras enfileiradas?":"Todas as pessoas são ordenadas em todos os lugares: permutação simples, 4! = 4 × 3 × 2 × 1 = 24. Se fosse uma mesa redonda, seria (4 − 1)! = 6.",
-"Em uma urna há 5 bolas vermelhas e 3 azuis. Retirando-se uma bola ao acaso, a probabilidade de ela ser azul é":"Probabilidade = casos favoráveis ÷ casos possíveis = 3 azuis ÷ 8 bolas = 3/8 (37,5%). A de ser vermelha é 5/8; as duas somam 1.",
-"A área de um triângulo com base de 10 cm e altura de 6 cm é":"A área do triângulo é metade da área do retângulo de mesma base e altura: A = b × h ÷ 2 = 10 × 6 ÷ 2 = 30 cm². Pegadinha: esquecer de dividir por 2 dá 60.",
-"O volume de uma caixa d'água em forma de cubo com aresta de 2 m é":"Volume do cubo = aresta³ = 2 × 2 × 2 = 8 m³. Como 1 m³ = 1.000 litros, a caixa comporta 8.000 litros.",
-"A hipotenusa de um triângulo retângulo com catetos de 5 cm e 12 cm mede":"Pitágoras: hipotenusa² = 5² + 12² = 25 + 144 = 169, logo hipotenusa = 13. Decore os ternos 3-4-5, 5-12-13 e 8-15-17.",
-"Se f(x) = 2x² − 3, o valor de f(−2) é":"Substitua x por −2 e eleve ao quadrado primeiro: (−2)² = 4. Depois 2 × 4 − 3 = 5. Pegadinha: fazer −2² = −4 daria −11."
-};
 
 /* flashcards de Português e Matemática */
 const FC2=[
@@ -195,7 +172,6 @@ const ORD=[
 ];
 
 /* ===== v9: ritmo, perdas, caderno em PDF, pegadinhas, jogos novos, avisos fora do app ===== */
-Q.forEach(q=>{const e=EXPL[q[1]];if(e)q[3]=e;});
 Q9.forEach(q=>{q.c=q[0];Q.push(q);});
 FC.push(...FC2);
 LEI.push(...LEI2);

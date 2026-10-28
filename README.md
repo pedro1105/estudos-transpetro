@@ -39,6 +39,14 @@ Ao publicar, troque a versão do cache em `sw.js`.
 - Limpeza: plano antigo de semanas (PLAN), SRS de intervalos fixos, vCrono antigo e funções duplicadas saíram. A cópia na conta do claude.ai agora junta em vez de substituir.
 - Testes: `node tests/v16.js`.
 
+## v21 (revisão geral)
+
+- Questões: as 459 autorais e as de provas foram conferidas (integridade, gabarito, lei vigente). As correções que eram aplicadas em tempo de execução (`FIX` de alternativas, `EXPL` e `fx` de explicações) foram embutidas nos próprios dados; o banco resultante é idêntico, byte a byte, e o app ficou 42 KB menor.
+- Áudio (`src/js/11-v16.js`): sem controle de volume dentro do app, vale o volume do aparelho. A voz abaixa o som com fade, o timer desliga com fade de 8 s, e os botões do fone/tela bloqueada pausam o som e trocam para o próximo quando a voz não está tocando. Removida `auSrcName` (sem uso).
+- `src/js/12-v21.js`: etapa "Recuperar ontem" quando o resumo do dia anterior ficou pendente; 07/11 usa a prova Petrobras 2018 TAC; aviso "Versão nova do app pronta" com botão Atualizar (GitHub).
+- Service worker `transpetro-v21`: instala buscando os arquivos sem o cache HTTP (`cache:"reload"`) e procura versão nova sempre que o app volta à tela.
+- Testes: `node tests/v21.js` e `node tests/crawl.js` (clica em todos os botões de todas as telas em 390, 820 e 1366 px).
+
 ## v20
 
 - +41 questões da Petrobras 2010, Técnico de Administração e Controle (conhecimentos específicos), em `src/js/07f-questoes-tac2010.js` (`Q20`, posições 1239–1279), no grupo "Mesmo cargo". Total 1.280.

@@ -22,8 +22,12 @@ head_add = ('<meta name="theme-color" content="#FFFFFF"><link rel="manifest" hre
             '<meta name="apple-mobile-web-app-title" content="Transpetro">')
 gh = app.replace('</style></head>', '</style>' + head_add + '</head>', 1)
 i = gh.rindex('\ngo("guia");')
-gh = (gh[:i] + '\nif("serviceWorker" in navigator&&location.protocol==="https:")'
-      '{navigator.serviceWorker.register("sw.js").catch(()=>{});}' + gh[i:])
+# o service worker procura versão nova a cada abertura e sempre que o app volta para a tela;
+# quando a nova assume, o app avisa (swUpdated) em vez de continuar rodando a antiga sem dizer nada
+gh = (gh[:i] + '\nif("serviceWorker" in navigator&&location.protocol==="https:"){'
+      'const sw=navigator.serviceWorker;let had=!!sw.controller;'
+      'sw.register("sw.js").then(r=>{document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")r.update().catch(()=>{});});}).catch(()=>{});'
+      'sw.addEventListener("controllerchange",()=>{if(had)swUpdated();had=true;});}' + gh[i:])
 # No GitHub o script vai num arquivo próprio: o navegador guarda o código já compilado
 # (cache de bytecode do V8) e as próximas aberturas ficam mais rápidas.
 a, b = gh.rindex('<script>\n'), gh.rindex('</script>')

@@ -10,12 +10,6 @@ function startSrc(s){
   makeQuiz(ids,"train","Cesgranrio · "+s,0);
 }
 
-/* ---------- 12. v10: correções de explicação ---------- */
-(function(){
-  const fx={"Segundo a Lei 13.303/2016, nas licitações das empresas estatais deve ser adotado preferencialmente, para a aquisição de bens e serviços comuns, o":"Art. 32, IV: adoção preferencial do pregão para bens e serviços comuns. A lei cita a Lei 10.520/2002, que foi revogada; hoje o pregão segue a Lei 14.133/2021, mas a preferência pelo pregão continua na Lei 13.303."};
-  Q.forEach(q=>{if(fx[q[1]]) q[3]=fx[q[1]];});
-})();
-
 /* ---------- 13. v10: cronograma dia a dia ---------- */
 // [foco, assunto da teoria, o que estudar, assunto das questões extras, gerais (cat), tema das gerais, especial]
 const AG={

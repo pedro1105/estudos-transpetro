@@ -48,7 +48,8 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   }
   await p.evaluate(() => go('audio')); await p.locator('.sndbtn[data-k="rain"]').click(); await p.waitForTimeout(800);
   ok('som toca', await p.evaluate(() => SND.k === 'rain' && !document.querySelector('#sndEl').paused));
-  ok('voz abaixa o som', await p.evaluate(() => { const v = document.querySelector('#sndEl').volume; sndDuck(true); const d = document.querySelector('#sndEl').volume; sndDuck(false); return d < v; }));
+  ok('voz abaixa o som', await p.evaluate(async () => { const el = document.querySelector('#sndEl'), w = ms => new Promise(r => setTimeout(r, ms)); await w(1700); const v = el.volume; sndDuck(true); await w(450); const d = el.volume; sndDuck(false); await w(450); return v > .95 && d < .5 && el.volume > .95; }));
+  ok('sem controle de volume no app', await p.evaluate(() => !document.querySelector('#sndVol, input[type=range]')));
   await p.evaluate(() => go('pratica'));
   ok('barrinha do som em outra tela', await p.locator('#sndBar').isVisible());
   await p.locator('#sndBar .sbx').click(); ok('parar pela barrinha', await p.evaluate(() => !SND.k && document.querySelector('#sndEl').paused) && await p.locator('#sndBar').count() === 0);
