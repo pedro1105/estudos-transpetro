@@ -39,6 +39,11 @@ Ao publicar, troque a versão do cache em `sw.js`.
 - Limpeza: plano antigo de semanas (PLAN), SRS de intervalos fixos, vCrono antigo e funções duplicadas saíram. A cópia na conta do claude.ai agora junta em vez de substituir.
 - Testes: `node tests/v16.js`.
 
+## v20
+
+- +41 questões da Petrobras 2010, Técnico de Administração e Controle (conhecimentos específicos), em `src/js/07f-questoes-tac2010.js` (`Q20`, posições 1239–1279), no grupo "Mesmo cargo". Total 1.280.
+- Cache do service worker `transpetro-v20`. Teste: `tests/v20.js`.
+
 ## v19
 
 - +95 questões do mesmo cargo (TAC): BR Distribuidora 2011 (29), Innova 2012 (34) e Termobahia 2012 (32), em `src/js/07e-questoes-tac2.js` (`Q19`, posições 1144–1238), no grupo "Mesmo cargo". Total 1.239.

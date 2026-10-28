@@ -15,7 +15,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
     return { n: sup.length, first: sup[0], last: sup[sup.length - 1], total: Q.length, bad, srcs: ['BR Distribuidora 2011', 'Innova 2012', 'Termobahia 2012'].map(y => srcCount(y + ' TAC')), ids: new Set(QID).size === QID.length };
   });
   ok('95 questões novas', r.n === 95, r.n);
-  ok('entram no fim do banco (1144..1238)', r.first === 1144 && r.last === 1238 && r.total === 1239, r.first + '..' + r.last);
+  ok('entram no fim do banco (1144..1238)', r.first === 1144 && r.last === 1238 && r.total >= 1239, r.first + '..' + r.last);
   ok('todas íntegras', r.bad.length === 0, r.bad.join(','));
   ok('contagem por prova 29/34/32', r.srcs.join('/') === '29/34/32', r.srcs.join('/'));
   ok('códigos únicos', r.ids);
