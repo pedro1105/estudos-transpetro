@@ -1,11 +1,11 @@
-const C="transpetro-v23";
+const C="transpetro-v24";
 const FILES=["./","index.html","app.js","manifest.json","icons/icon-192.png","icons/icon-512.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(FILES.map(f=>new Request(f,{cache:"reload"})))));self.skipWaiting();});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C&&k!=="tp26-rem").map(k=>caches.delete(k)))));self.clients.claim();});
 /* arquivos do próprio app: abre na hora pelo cache e atualiza em segundo plano (vale na próxima abertura);
    o resto (Supabase etc.) vai direto para a rede */
 self.addEventListener("fetch",e=>{
-  if(e.request.method!=="GET"||new URL(e.request.url).origin!==location.origin) return;
+  if(e.request.method!=="GET"||new URL(e.request.url).origin!==location.origin||new URL(e.request.url).pathname.includes("/carreira/")) return; /* /carreira/ tem service worker próprio */
   e.respondWith(caches.open(C).then(c=>c.match(e.request,{ignoreSearch:true}).then(m=>{
     const net=fetch(e.request).then(r=>{if(r.ok)c.put(e.request,r.clone());return r;});
     if(m){e.waitUntil(net.catch(()=>{}));return m;}

@@ -75,3 +75,11 @@ Ao publicar, troque a versão do cache em `sw.js`.
 - `src/js/07c-questoes-tac.js`: 202 questões das provas do mesmo cargo (Técnico de Administração e Controle) — Petrobras 2018, 2014 e 2012 e BR Distribuidora 2015 e 2013 —, conferidas com o gabarito oficial e explicadas. Ficaram de fora questões que dependem do texto ou de figura, anuladas, Lei 8.666, Decreto 2.745, redação oficial, arquivologia e assuntos fora do edital. Entram no fim do banco (o progresso usa a posição).
 - Praticar > Outras provas: novo grupo "Mesmo cargo".
 - Testes: `node tests/v17.js`.
+
+## Carreira em Dados 2027 (`carreira/`)
+
+App separado (plano de carreira em dados), publicado em https://pedro1105.github.io/estudos-transpetro/carreira/ e também no claude.ai.
+
+- `carreira/src/app.html` é a página do claude.ai; `python3 carreira/build.py` gera `carreira/index.html` com manifest, ícones e service worker próprios (escopo `/carreira/`, cache `carreira-vN`).
+- Sincroniza pela mesma tabela `progress` e pelas mesmas funções `tp_get`/`tp_save`/`tp_ver`, com códigos `cd-…` (os da Transpetro são `tp-…`).
+- O `sw.js` da raiz ignora `/carreira/` (v24).
