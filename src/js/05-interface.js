@@ -102,7 +102,6 @@ function aboutExam(){
 
 /* ---------- Cronômetro de estudo (50 + 10) ---------- */
 S.slog=S.slog||{};
-let pomoT=null;
 function pomoLeft(){return S.pomo?Math.round(S.pomo.dur-(Date.now()-S.pomo.start)/1000):0;}
 function pomoLog(min){if(!S.pomo||S.pomo.kind!=="est"||min<1) return;S.slog=S.slog||{};const k=dkey(new Date(S.pomo.start));S.slog[k]=S.slog[k]||{};S.slog[k][S.pomo.cat]=(S.slog[k][S.pomo.cat]||0)+Math.round(min);}
 function pomoStart(kind){
@@ -142,7 +141,7 @@ const _vLinks=vLinks; vLinks=function(){_vLinks();$("#view").insertAdjacentHTML(
 let ttsQ=[];
 const TTS_OK="speechSynthesis" in window;
 function ttsStop(){ttsQ=[];if(TTS_OK)try{speechSynthesis.cancel();}catch(e){} document.querySelectorAll(".ttsbtn").forEach(b=>b.textContent="Ouvir");}
-function plain(s){return String(s).replace(/\*\*(.+?)\*\*/g,"$1").replace(/^! /,"Atenção, pegadinha: ").replace(/×/g," versus ").replace(/≥/g," maior ou igual a ").replace(/≤/g," menor ou igual a ").replace(/→/g,", ").replace(/÷/g," dividido por ").replace(/\//g," por ");}
+function plain(s){return String(s).replace(/\*\*(.+?)\*\*/g,"$1").replace(/([\d)²³]|\b[A-Za-z]{1,3}\b)\s*[×·]\s*(?=[\d(√]|\b[A-Za-z]{1,3}\b)/g,"$1 vezes ").replace(/√/g," raiz de ").replace(/²/g," ao quadrado").replace(/³/g," ao cubo").replace(/(\d)\s*%/g,"$1 por cento").replace(/\s=\s/g," igual a ").replace(/^! /,"Atenção, pegadinha: ").replace(/×/g," versus ").replace(/≥/g," maior ou igual a ").replace(/≤/g," menor ou igual a ").replace(/→/g,", ").replace(/÷/g," dividido por ").replace(/\//g," por ");}
 function ttsSpeak(text,btn){
   if(!TTS_OK) return;
   if(speechSynthesis.speaking&&btn&&btn.textContent==="Parar"){ttsStop();return;}
@@ -207,7 +206,6 @@ vStats=function(){
     ${tl.length?`<h3>Tempo médio por questão</h3>${tl.map(x=>`<div class="row" style="justify-content:space-between"><span>${esc(x.date)} · ${esc(x.label)}</span><span class="num ${x.avgT>240?"badt":""}">${fmt(x.avgT)}</span></div>`).join("")}`:""}</div>`;
   if(fc) fc.insertAdjacentHTML("afterend",html); else v.insertAdjacentHTML("beforeend",html);
 };
-const _vCrono=vCrono; vCrono=function(){_vCrono();$("#view").insertAdjacentHTML("afterbegin",segNav("crono",SEG_PROG));};
 
 /* ---------- Praticar: simulado adaptativo ---------- */
 function startAdaptive(){

@@ -274,24 +274,7 @@ function vResult(){
 function bar(name,c,t){const p=t?Math.round(c/t*100):0;return `<div class="bar"><span style="min-width:0">${esc(name)}</span><div class="track"><div class="fill ${p<50?"low":p<70?"mid":""}" style="width:${p}%"></div></div><span class="num" style="text-align:right">${p}%</span></div>`;}
 
 /* ---------- Cronograma ---------- */
-function vCrono(){
-  const segs=PLAN.map(w=>{const n=w.tasks.length,d=w.tasks.filter((_,i)=>S.plan[w.id+"-"+i]).length;return `<div class="seg"><i style="width:${d/n*100}%"></i></div>`;}).join("");
-  const total=PLAN.reduce((s,w)=>s+w.tasks.length,0), done=Object.values(S.plan).filter(Boolean).length;
-  $("#view").innerHTML=`
-  <div class="stack">
-    <h2>Cronograma até 06/12</h2>
-    <p class="muted">Pensado para cerca de 2 h nos dias úteis e 4 h no fim de semana. Cada semana fecha com prática no app. Marque o que concluir.</p>
-  </div>
-  <div class="panel stack">
-    <div class="row" style="justify-content:space-between"><strong>Progresso</strong><span class="num">${done}/${total} tarefas</span></div>
-    <div class="pipe">${segs}</div><div class="pipe-lbl">${PLAN.map(w=>`<span>${w.t.replace("Semana ","S")}</span>`).join("")}</div>
-  </div>
-  ${PLAN.map(w=>`<section class="panel week">
-    <header><h3>${w.t} · ${esc(w.f)}</h3><span class="muted num">${w.d}</span></header>
-    <div>${w.tasks.map((t,i)=>{const id=w.id+"-"+i,ck=!!S.plan[id];return `<div class="task ${ck?"done":""}"><input type="checkbox" id="${id}" ${ck?"checked":""}><label for="${id}">${esc(t[0])} <span class="tchip">${t[1]}</span></label></div>`;}).join("")}</div>
-  </section>`).join("")}`;
-  document.querySelectorAll(".task input").forEach(c=>c.onchange=()=>{S.plan[c.id]=c.checked;save();vCronoKeep();});
-}
+function vCrono(){} /* tela do cronograma: 07b-v10-v12.js */
 function vCronoKeep(){const y=window.scrollY;vCrono();window.scrollTo({top:y});}
 
 /* ---------- Desempenho ---------- */

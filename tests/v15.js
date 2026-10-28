@@ -58,23 +58,11 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   await sw(-30); ok('toque curto não muda', await p.evaluate(() => quiz.i === 0));
   ok('sem tutor fora do claude.ai', await p.locator('.tutor').count() === 0);
 
-  // flashcards em áudio
-  await p.evaluate(() => go('jogos'));
-  ok('card de áudio em Jogos', await p.locator('#view h3:has-text("Flashcards em áudio")').count() === 1);
-  await p.evaluate(() => go('afc'));
-  await p.evaluate(() => { window.speechSynthesis.speak = u => setTimeout(() => u.onend && u.onend(), 30); });
-  await p.selectOption('#afcPause', '3'); await p.locator('#view button:has-text("Começar")').click(); await p.waitForTimeout(200);
-  ok('áudio mostra cartão', await p.locator('.afccard').count() === 1);
-  await p.locator('#view button:has-text("Pausar")').click();
-  ok('pausa', await p.evaluate(() => !afc.play));
-  await p.locator('#view button[aria-label="Próximo"]').click();
-  ok('próximo cartão', await p.evaluate(() => afc.i === 1));
-
   // configurações: push explica a versão do GitHub
   await p.evaluate(() => go('config'));
   ok('painel de notificações', await p.locator('#view h3:has-text("Notificações com o app fechado")').count() === 1);
   ok('plano de push com datas futuras', await p.evaluate(() => { const pl = pushPlan(); return pl.length >= 10 && pl.every(x => x.t > Date.now() && x.ti && x.b); }));
-  ok('versão 15', /Versão 15/.test(await p.locator('#view').textContent()));
+  ok('versão 16', /Versão 16/.test(await p.locator('#view').textContent()));
 
   // atalhos do ícone
   const p2 = await ctx.newPage(); await p2.goto(file + '?a=wrong'); await p2.waitForTimeout(300);
@@ -95,7 +83,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   await p3.locator('.tutq .opt').first().click();
   ok('questão parecida corrigida', await p3.locator('.tutq .expl').count() === 1);
 
-  for (const v of ['edital', 'stats', 'afc', 'config']) { await p.evaluate(v => go(v), v); ok('tela ' + v + ' sem rolagem lateral', await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)); }
+  for (const v of ['edital', 'stats', 'audio', 'config']) { await p.evaluate(v => go(v), v); ok('tela ' + v + ' sem rolagem lateral', await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)); }
   ok('sem erros JS', errs.length === 0, errs.join(' | '));
   await b.close();
   console.log(fails ? `\n${fails} FALHA(S)` : '\nTudo certo');

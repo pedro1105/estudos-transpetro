@@ -189,63 +189,9 @@ function runShortcut(){
   let a=null;try{a=new URLSearchParams(location.search).get("a");}catch(e){}
   if(!a) return;
   try{history.replaceState(null,"",location.pathname+location.hash);}catch(e){}
-  if(a==="wrong") startWrong(); else if(a==="daily") startDaily(); else if(a==="sim") startExam("mini"); else if(a==="afc") go("afc");
+  if(a==="wrong") startWrong(); else if(a==="daily") startDaily(); else if(a==="sim") startExam("mini"); else if(a==="afc"||a==="audio") go("audio");
 }
 setTimeout(runShortcut,0);
-
-/* ---------- 31. v15: flashcards em áudio (mãos livres) ---------- */
-let afc=null;
-function afcSpeak(t,rate){return new Promise(res=>{if(!TTS_OK){res();return;}const vs=speechSynthesis.getVoices(),v=vs.find(v=>/pt[-_]BR/i.test(v.lang))||vs.find(v=>/^pt/i.test(v.lang));
-  const u=new SpeechSynthesisUtterance(t);u.lang="pt-BR";if(v)u.voice=v;u.rate=rate;u.onend=u.onerror=()=>res();speechSynthesis.speak(u);});}
-const afcWait=ms=>new Promise(r=>{afc.timer=setTimeout(r,ms);});
-async function afcLoop(run){
-  while(afc&&afc.run===run&&afc.i<afc.ids.length){
-    const f=FC[afc.ids[afc.i]]; afc.side=0; afcDraw();
-    await afcSpeak(f[1],afc.rate); if(!afc||afc.run!==run) return;
-    await afcWait(afc.pause*1000); if(!afc||afc.run!==run) return;
-    afc.side=1; afcDraw(); await afcSpeak(f[2],afc.rate); if(!afc||afc.run!==run) return;
-    await afcWait(1500); if(!afc||afc.run!==run) return;
-    afc.i++; S.gm.afcN=(S.gm.afcN||0)+1;
-  }
-  if(afc&&afc.run===run){afc.play=false;afcDraw();save();}
-}
-function afcPlay(){if(!afc)return;if(afc.play){afcPause();return;}afc.play=true;afc.run=(afc.run||0)+1;if(afc.i>=afc.ids.length)afc.i=0;afcLoop(afc.run);afcDraw();}
-function afcPause(){if(!afc)return;afc.play=false;afc.run++;clearTimeout(afc.timer);try{speechSynthesis.cancel();}catch(e){}afcDraw();}
-function afcSkip(d){if(!afc)return;const was=afc.play;afcPause();afc.i=Math.min(afc.ids.length-1,Math.max(0,afc.i+d));afc.side=0;if(was)afcPlay();else afcDraw();}
-function afcStart(){
-  const sel=$("#afcSel").value; S.gm.lastAfc=sel; S.gm.afcRate=+$("#afcRate").value; S.gm.afcPause=+$("#afcPause").value; save();
-  const ids=shuffle(FC.map((f,i)=>i).filter(i=>inSel(sel,FC[i][0])));
-  ids.sort((a,b)=>(S.fcl[FC[a][1]]||0)-(S.fcl[FC[b][1]]||0));
-  afc={ids,i:0,side:0,play:false,rate:S.gm.afcRate,pause:S.gm.afcPause,run:0}; afcPlay();
-}
-function afcDraw(){
-  if(current!=="afc") return;
-  const box=$("#afcBox"); if(!box) return;
-  if(!afc){box.innerHTML="";return;}
-  const f=FC[afc.ids[afc.i]];
-  box.innerHTML=`<div class="panel stack afccard"><span class="muted num">Cartão ${afc.i+1} de ${afc.ids.length} · ${esc(CATS[f[0]].n)}</span>
-    <p class="afcf">${esc(f[1])}</p><p class="afcb ${afc.side?"on":""}">${afc.side?esc(f[2]):"…"}</p></div>
-    <div class="row" style="gap:8px;justify-content:center"><button class="btn ghost" onclick="afcSkip(-1)" aria-label="Anterior">⏮</button>
-    <button class="btn" onclick="afcPlay()">${afc.play?"Pausar":"Tocar"}</button><button class="btn ghost" onclick="afcSkip(1)" aria-label="Próximo">⏭</button></div>`;
-  if("mediaSession" in navigator) try{navigator.mediaSession.metadata=new MediaMetadata({title:f[1],artist:"Flashcards · Transpetro 2026"});
-    navigator.mediaSession.setActionHandler("play",afcPlay);navigator.mediaSession.setActionHandler("pause",afcPause);
-    navigator.mediaSession.setActionHandler("nexttrack",()=>afcSkip(1));navigator.mediaSession.setActionHandler("previoustrack",()=>afcSkip(-1));}catch(e){}
-}
-function vAfc(){
-  const g=S.gm;
-  $("#view").innerHTML=`<div class="row"><button class="btn ghost sm" onclick="afcPause();go('jogos')">← Jogos</button></div>
-  <div class="stack"><h2>Flashcards em áudio</h2><p class="muted">O app lê o conceito, espera você responder em voz alta ou de cabeça e lê a resposta. Bom para o ônibus, a caminhada ou a louça. Os cartões que você ainda não domina vêm primeiro.</p></div>
-  ${TTS_OK?`<section class="panel stack"><div class="cfgrow"><label for="afcSel">Baralho</label>${gameSel("afcSel",g.lastAfc||"esp")}</div>
-    <div class="cfgrow"><label for="afcRate">Velocidade</label><select id="afcRate">${[[.8,"Devagar"],[1,"Normal"],[1.2,"Rápida"],[1.4,"Muito rápida"]].map(([v,t])=>`<option value="${v}" ${v===(g.afcRate||1)?"selected":""}>${t}</option>`).join("")}</select></div>
-    <div class="cfgrow"><label for="afcPause">Tempo para pensar</label><select id="afcPause">${[3,5,8,12].map(v=>`<option value="${v}" ${v===(g.afcPause||5)?"selected":""}>${v} segundos</option>`).join("")}</select></div>
-    <button class="btn" onclick="afcStart()">${afc?"Recomeçar":"Começar"}</button></section><div id="afcBox" class="stack"></div>`
-  :`<p class="panel">Este navegador não tem leitura em voz alta. Tente pelo Chrome ou pelo Safari.</p>`}`;
-  afcDraw();
-}
-VIEWS.afc=()=>vAfc(); TABOF.afc="jogos";
-const _vJogos15=vJogos;
-vJogos=function(){_vJogos15();const g=$("#view .grid2");if(!g||!TTS_OK)return;
-  g.insertAdjacentHTML("beforeend",`<div class="panel mode"><span class="tag">Mãos livres</span><h3>Flashcards em áudio</h3><p class="muted">Ouça conceito, pausa e resposta, sem olhar a tela. Funciona com fone e com a tela bloqueada em muitos celulares.</p><button class="btn" onclick="go('afc')">Ouvir</button>${S.gm.afcN?`<span class="muted num">${S.gm.afcN} cartões ouvidos</span>`:""}</div>`);};
 
 /* ---------- 32. v15: notificações push com o app fechado (versão do GitHub) ---------- */
 const VAPID_PUB="BKi1rhDT9AgD0pBxEUEAbBgg3QQ7BsTD1T_G3ZMsg6oBK4SjLUHcgeSrwF7Ol1g4wT8i9Cj5kPZ3o-10VSsgSew";
@@ -329,7 +275,4 @@ svg.evo{width:100%;height:auto;max-width:560px;display:block}
 .fcn{background:var(--petrol-soft);color:var(--petrol);width:100%;display:grid;place-items:center;border-radius:6px;font-size:12px;font-weight:700;min-height:20px}
 .tutor .tutxt{white-space:pre-wrap;margin:0}
 .tutq{border-top:1px solid var(--line);padding-top:10px}
-.afccard{text-align:center;min-height:180px;justify-content:center}
-.afcf{font:600 22px/1.3 var(--f-head,var(--f-body));margin:0}
-.afcb{font-size:18px;color:var(--muted);margin:0}.afcb.on{color:var(--ink)}
 `;document.head.appendChild(st);})();

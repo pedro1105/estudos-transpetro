@@ -16,16 +16,10 @@ function initState(){
 }
 initState();
 
-/* ---------- Revisão espaçada (1, 3, 7 e 15 dias) ---------- */
+/* ---------- Revisão espaçada: questões usam FSRS (10-v15.js); o caderno de erros, 1, 3, 7 e 15 dias ---------- */
 const SRS_INT=[1,3,7,15];
 function srsDue(){const k=todayK();return Object.keys(S.srs).filter(q=>S.srs[q].d<=k&&Q[q]).map(Number);}
-function srsUpdate(qi,ok){
-  const s=S.srs[qi];
-  if(!ok){S.srs[qi]={b:0,d:addDaysK(1)};return;}
-  if(!s||s.d>todayK()) return;
-  s.b++;
-  if(s.b>=SRS_INT.length) delete S.srs[qi]; else s.d=addDaysK(SRS_INT[s.b]);
-}
+function srsUpdate(){}
 
 /* ---------- Fases e plano do dia ---------- */
 const PHASES=[
@@ -111,7 +105,6 @@ function notifState(){
   return "Ao ativar, o navegador pode pedir permissão para notificar.";
 }
 
-function vGuiaKeep(){const y=window.scrollY;vGuia();window.scrollTo({top:y});}
 
 /* ---------- Caderno de erros ---------- */
 const REASONS={nao:"Não sabia",conf:"Confundi conceitos",rap:"Li rápido / pegadinha",conta:"Errei a conta"};
@@ -294,8 +287,14 @@ function syncPush(){
     syncLbl();
   },2000);
 }
+/* cópia na conta do claude.ai: se os dois lados têm progresso, junta (não substitui) */
 function adoptRemote(d){
-  try{S=Object.assign({hist:[],stats:{},wrong:[],plan:{}},JSON.parse(d.s));}catch(e){return;}
+  let r; try{r=JSON.parse(d.s);}catch(e){return;}
+  const keepCloud=S.cloud;
+  const both=hasProgress(S)&&hasProgress(r);
+  S=Object.assign({hist:[],stats:{},wrong:[],plan:{}},both?mergeS(S,r,null):r);
+  if(!S.cloud&&keepCloud) S.cloud=keepCloud;
+  if(both){S.upd=Date.now();setTimeout(syncPush,0);}
   initState(); saveLocal(); applyTheme&&applyTheme(); clKick();
   if(!["quiz","real","vf","match"].includes(current)){const y=window.scrollY;go(current);window.scrollTo({top:y});}
 }

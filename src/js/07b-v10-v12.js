@@ -149,7 +149,7 @@ vCrono=function(){
       ${open?`<div class="tlist">${tlHTML(k,its,"ag-"+k+"-",k===t)}</div>${(()=>{const m=its.find(i=>i.auto);return m?`<p class="muted">${esc(m.t)}${k<=t?` · ${S.days[k]||0} respondidas`:""}</p>`:"";})()}`:""}
     </section>`;
   };
-  $("#view").innerHTML=`
+  $("#view").innerHTML=segNav("crono",SEG_PROG)+`
   <div class="stack"><h2>Cronograma até 06/12</h2>
   <p class="muted">A programação de cada dia, com horários, a área do app e o que fazer. Toque no dia para abrir; o dia de hoje é o mesmo da tela Hoje.</p></div>
   <div class="panel row" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
@@ -158,10 +158,8 @@ vCrono=function(){
   </div>
   ${foldHTML("plano","Plano até 06/12 e método de estudo","as 4 fases e como estudar cada dia",planMethod(),false)}
   ${agWeeks().map((w,i)=>`<div class="stack" style="gap:8px"><h3 class="agwk">Semana ${i+1} · ${fmtK(w[0])} a ${fmtK(w[w.length-1])}</h3>${w.map(card).join("")}</div>`).join("")}
-  ${Object.values(S.plan||{}).some(Boolean)?`<section class="panel stack"><h3>Lista de conteúdos por semana (antiga)</h3><p class="muted">Mantida para quem já marcou tarefas nela.</p>
-  ${PLAN.map(w=>`<details><summary>${esc(w.t)} · ${esc(w.f)} <span class="muted num">${w.d}</span></summary>${w.tasks.map((x,i)=>{const id=w.id+"-"+i,ck=!!S.plan[id];return `<div class="task ${ck?"done":""}"><input type="checkbox" class="oldp" id="${id}" ${ck?"checked":""}><label for="${id}">${esc(x[0])} <span class="tchip">${x[1]}</span></label></div>`;}).join("")}</details>`).join("")}</section>`:""}`;
+`;
   document.querySelectorAll(".agday .tl input").forEach(c=>c.onchange=()=>{const k=c.dataset.k;S.daily[k]=S.daily[k]||{};S.daily[k][c.dataset.i]=c.checked;save();vCronoKeep();});
-  document.querySelectorAll(".task input.oldp").forEach(c=>c.onchange=()=>{S.plan[c.id]=c.checked;save();vCronoKeep();});
 };
 (function(){const st=document.createElement("style");st.textContent=`
 .agday{padding:10px 14px;gap:8px}.agday.today{outline:2px solid var(--petrol)}.agday.miss .agdate b{color:var(--amber)}

@@ -207,7 +207,6 @@ SEG_EST.length=0; SEG_EST.push(...SEG_EST2);
 const NV={peg:()=>vPeg(),duel:()=>vDuel(),erro:()=>vErro(),ord:()=>vOrd()};
 const NVTAB={peg:"cont",duel:"jogos",erro:"jogos",ord:"jogos"};
 Object.assign(VIEWS,NV); Object.assign(TABOF,NVTAB);
-const qOf=i=>Q[i];
 const bcol=c=>`var(--c-${CATS[c].b})`;
 
 /* ---------- 1. Ritmo no simulado e aviso de 3 minutos ---------- */

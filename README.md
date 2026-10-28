@@ -33,3 +33,8 @@ Ao publicar, troque a versão do cache em `sw.js`.
 - Push: o app grava a inscrição e o plano dos próximos 14 dias pela função `tp_push`; a Edge Function `supabase/functions/tp-push` roda a cada 15 min (pg_cron) e envia o que venceu. Chaves VAPID e chave do cron ficam na tabela `push_cfg` (sem acesso público).
 - GitHub: o script vai em `app.js` (cache de código compilado) e o service worker abre pelo cache e atualiza em segundo plano.
 - Testes: `node tests/v15.js` e `node tests/claude.js` (sincronização dentro do claude.ai, com o conector simulado).
+
+## v16
+- `src/js/11-v16.js`: tela Áudio (estudo falado em sequência: mix do dia, resumo, questões, flashcards e pegadinhas; botões do fone via Media Session; tela acesa com Wake Lock e modo bolso; desligar sozinho) e sons para concentrar gerados no próprio app (ruídos marrom, rosa e branco, chuva, ondas, ambiente lo-fi e piano), tocados por um `<audio>` em loop que abaixa enquanto a voz fala.
+- Limpeza: plano antigo de semanas (PLAN), SRS de intervalos fixos, vCrono antigo e funções duplicadas saíram. A cópia na conta do claude.ai agora junta em vez de substituir.
+- Testes: `node tests/v16.js`.
