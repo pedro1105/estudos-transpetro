@@ -216,7 +216,7 @@ function finish(){
     byB[b]=byB[b]||{c:0,t:0}; byB[b].t++; if(ok){byB[b].c++;score++;}
     S.stats[q.c]=S.stats[q.c]||{c:0,t:0}; S.stats[q.c].t++; if(ok) S.stats[q.c].c++; qlogAdd(q.c,ok);
     if(ok) wrongSet.delete(qi); else wrongSet.add(qi);
-    if(a!==null||quiz.mode!=="train") srsUpdate(qi,ok);
+    if(a!==null||quiz.mode!=="train") srsUpdate(qi,ok,quiz.tq&&quiz.tq[k]?quiz.tq[k]/1000:0);
   });
   Object.keys(S.srs).forEach(q=>wrongSet.add(+q));
   S.wrong=[...wrongSet].filter(q=>S.srs[q]);

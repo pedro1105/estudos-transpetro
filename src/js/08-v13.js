@@ -9,7 +9,7 @@ function remapState(st){
   const old=st.qv; st.qv=QID;
   if(!Array.isArray(old)||old.join()===QID.join()) return false;
   const mp=i=>{const id=old[i];if(id===undefined||QID[i]===id) return i;return QPOS[id]!==undefined?QPOS[id]:i;};
-  ["srs","seen","notes"].forEach(f=>{if(!st[f]) return;const o={};Object.keys(st[f]).forEach(k=>{o[mp(+k)]=st[f][k];});st[f]=o;});
+  ["srs","seen","notes","qerr"].forEach(f=>{if(!st[f]) return;const o={};Object.keys(st[f]).forEach(k=>{o[mp(+k)]=st[f][k];});st[f]=o;});
   st.wrong=(st.wrong||[]).map(mp);
   return true;
 }
@@ -73,13 +73,14 @@ async function rpc0(fn,args,ask){
 
 /* Junta dois progressos. base = última versão sincronizada (quando existe): contadores somam só o que
    cada lado acrescentou; sem base, fica o maior. Listas de dias, questões vistas e notas se unem. */
-const ADD_PATHS=/^(stats\.[^.]+\.[ct]|days\.[^.]+|ct\.[^.]+\.[sn]|slog\.[^.]+\.[^.]+|qlog\.[^.]+\.[^.]+\.[01])$/;
+const ADD_PATHS=/^(stats\.[^.]+\.[ct]|days\.[^.]+|ct\.[^.]+\.[sn]|qerr\.[^.]+|slog\.[^.]+\.[^.]+|qlog\.[^.]+\.[^.]+\.[01])$/;
 function deq(a,b){return JSON.stringify(a)===JSON.stringify(b);}
 function merge3(base,a,b,path,newer){
   if(deq(a,b)) return a;
   if(a===undefined) return b; if(b===undefined) return a;
   if(base!==undefined&&deq(a,base)) return b;
   if(base!==undefined&&deq(b,base)) return a;
+  if(/^srs\.[^.]+$/.test(path)&&a&&b&&typeof a==="object"&&typeof b==="object") return (a.l||"")>(b.l||"")?a:(b.l||"")>(a.l||"")?b:(newer==="a"?a:b);
   if(typeof a==="number"&&typeof b==="number"&&ADD_PATHS.test(path)) return typeof base==="number"?a+b-base:Math.max(a,b);
   if(Array.isArray(a)&&Array.isArray(b)&&/^qlog\./.test(path)) return [0,1].map(i=>merge3(base&&base[i],a[i],b[i],path+"."+i,newer));
   if(a&&b&&typeof a==="object"&&typeof b==="object"&&!Array.isArray(a)&&!Array.isArray(b)){
