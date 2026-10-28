@@ -99,9 +99,9 @@ async function remEnable(on){
 }
 function notifState(){
   if(window.claude&&window.claude.use) return "Aqui no claude.ai o aviso aparece dentro do app, com ele aberto.";
-  if(!("Notification" in window)) return "Este navegador não mostra notificações do sistema; o aviso aparece dentro do app.";
+  if(!("Notification" in window)) return "Este navegador não mostra notificações do sistema, então o aviso aparece dentro do app, com ele aberto.";
   if(Notification.permission==="granted") return "Notificações do navegador permitidas.";
-  if(Notification.permission==="denied") return "O navegador bloqueou as notificações; o aviso aparece dentro do app.";
+  if(Notification.permission==="denied") return "O navegador bloqueou as notificações, então o aviso aparece dentro do app, com ele aberto.";
   return "Ao ativar, o navegador pode pedir permissão para notificar.";
 }
 
@@ -138,7 +138,7 @@ function vCaderno(){
     <div class="row">${rev?`<button class="btn sm" onclick="noteRev(${qi})">Revisei</button>`:`<span class="muted">${n.n?"Próxima revisão em "+fmtK(n.n):"Revisões concluídas"}</span>`}<button class="btn ghost sm" onclick="noteDel(${qi})">Apagar</button></div></div></details>`;};
   $("#view").innerHTML=`
   <div><button class="btn ghost sm" onclick="go('pratica')">← Praticar</button></div>
-  <div class="stack"><h2>Caderno de erros</h2><p class="muted">Cada erro anotado volta para revisão 1, 3, 7 e 15 dias depois. Para anotar, use o quadro que aparece abaixo de cada questão errada no treino e na correção.</p></div>
+  <div class="stack"><h2>Caderno de erros</h2><p class="muted">Cada questão errada volta na revisão espaçada, no dia em que você estaria começando a esquecer. Para anotar, use o quadro que aparece abaixo de cada questão errada no treino e na correção.</p></div>
   ${ids.length?`<div class="panel stack"><h3>Por que você erra</h3>${cnt.map(([r,c])=>bar(REASONS[r]+` (${c})`,c,ids.length)).join("")}<p class="muted">Muitos “li rápido”: circule EXCETO e NÃO antes de ler as alternativas. Muitos “errei a conta”: refaça as contas à mão no treino de Matemática.</p></div>
   <section class="stack"><h3>Para revisar hoje (${dueN.length})</h3>${dueN.length?dueN.map(q=>card(q,true)).join(""):'<p class="muted">Nada para hoje.</p>'}</section>
   <section class="stack"><div class="row" style="justify-content:space-between"><h3>Todas as notas (${ids.length})</h3>

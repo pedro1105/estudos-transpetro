@@ -147,7 +147,7 @@ vCrono=function(){
   <div class="stack"><h2>Cronograma até 06/12</h2>
   <p class="muted">A programação de cada dia, com horários, a área do app e o que fazer. Toque no dia para abrir; o dia de hoje é o mesmo da tela Hoje.</p></div>
   <div class="panel row" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
-    <span><b class="num">${left}</b> dias até a prova</span><span><b class="num">${full}</b> de <b class="num">${past.length}</b> dias anteriores completos</span>
+    <span><b class="num">${left}</b> dias até a prova</span><span><b class="num">${full}</b> de <b class="num">${past.length}</b> ${past.length===1?"dia anterior completo":"dias anteriores completos"}</span>
     ${AG[t]?`<button class="btn sm" onclick="document.getElementById('ag-${t}').scrollIntoView({block:'center'})">Ir para hoje</button>`:""}
   </div>
   ${foldHTML("plano","Plano até 06/12 e método de estudo","as 4 fases e como estudar cada dia",planMethod(),false)}

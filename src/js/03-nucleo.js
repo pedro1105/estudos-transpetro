@@ -82,13 +82,13 @@ function vPratica(){
   <h2>Escolha o modo</h2>
   <div class="grid2">
     <div class="panel mode hl"><span class="tag">Recomendado</span><h3>Treino adaptativo</h3><p class="muted">20 questões: 12 dos seus 5 assuntos mais fracos (${weakCats(5).map(k=>esc(CATS[k].n)).join(", ")}), 4 de outras específicas e 4 de Português e Matemática. Prioriza as que você nunca viu.</p><button class="btn" onclick="startAdaptive()">Começar</button></div>
-    <div class="panel mode"><span class="tag">Igual à prova</span><h3>Simulado completo</h3><p class="muted">60 questões no formato da prova, 4 h cronometradas, correção só no final e verificação das notas de corte. Puxa primeiro as questões que você nunca viu (${nv} inéditas no banco).</p><button class="btn" onclick="startExam('full')">Iniciar simulado</button></div>
+    <div class="panel mode"><span class="tag">Igual à prova</span><h3>Simulado completo</h3><p class="muted">60 questões no formato da prova, 4 h cronometradas, correção só no final e verificação das notas de corte. Puxa primeiro as questões que você nunca viu (${nv.toLocaleString("pt-BR")} inéditas no banco).</p><button class="btn" onclick="startExam('full')">Iniciar simulado</button></div>
     <div class="panel mode"><span class="tag">50 minutos</span><h3>Mini simulado</h3><p class="muted">20 questões com a mesma proporção entre os blocos, priorizando as inéditas. Bom para dias de semana.</p><button class="btn" onclick="startExam('mini')">Iniciar mini</button></div>
     <div class="panel mode"><span class="tag">Correção imediata</span><h3>Treino por assunto</h3><p class="muted">Até 15 questões de um tema, com gabarito comentado a cada resposta.</p>
       <label for="selCat" class="muted">Assunto</label><select id="selCat"><option value="src:all">Só questões de provas anteriores (${QV().filter(q=>q[4]).length})</option>${blk}${opts}</select>
       <label class="row muted chk" style="gap:8px"><input type="checkbox" id="onlyNew" style="width:18px;height:18px;accent-color:var(--petrol)"> Só questões que ainda não respondi</label>
       <button class="btn ghost" onclick="startTrain()">Treinar</button></div>
-    <div class="panel mode"><span class="tag">${srsDue().length} para hoje · ${Object.keys(S.srs).length} na revisão</span><h3>Revisar erradas</h3><p class="muted">Revisão espaçada: cada questão errada volta 1, 3, 7 e 15 dias depois. Acertou nas quatro, ela sai da fila; errou, recomeça.</p><button class="btn ghost" ${S.wrong.length||Object.keys(S.srs).length?"":"disabled"} onclick="startWrong()">Revisar</button></div>
+    <div class="panel mode"><span class="tag">${srsDue().length} para hoje · ${Object.keys(S.srs).length} na revisão</span><h3>Revisar erradas</h3><p class="muted">Revisão espaçada: cada questão errada volta no dia em que você estaria começando a esquecer. Acertou, o intervalo cresce; errou, ela volta amanhã.</p><button class="btn ghost" ${S.wrong.length||Object.keys(S.srs).length?"":"disabled"} onclick="startWrong()">Revisar</button></div>
     <div class="panel mode"><span class="tag">${Object.keys(S.notes).length} notas</span><h3>Caderno de erros</h3><p class="muted">Seus erros com o motivo (não sabia, confundiu, leu rápido, errou a conta) e o que lembrar da próxima vez.</p><button class="btn ghost" onclick="go('caderno')">Abrir caderno</button></div>
   </div>
   ${foldHTML("prat","Provas reais e treinos especiais","Transpetro, Petrobras e BB; modo prova real; ritmo; lei seca",especiais,true)}`;
@@ -341,7 +341,7 @@ function gameSel(id,def){
 function vJogos(){
   const g=S.gm, known=Object.values(S.fcl).filter(x=>x>=2).length;
   $("#view").innerHTML=`
-  <div class="stack"><h2>Jogos</h2><p class="muted">Rodadas curtas para fixar conceitos, siglas, prazos e fórmulas. Bons para o celular, no ônibus ou no intervalo.</p></div>
+  <div class="stack"><h2>Jogos</h2><p class="muted">Rodadas curtas para fixar conceitos, siglas, prazos e fórmulas. Boas para o celular, no ônibus ou no intervalo.</p></div>
   <div class="grid2">
     <div class="panel mode"><span class="tag">${known} de ${FC.length} dominados</span><h3>Flashcards</h3><p class="muted">Veja o conceito, tente lembrar e vire o cartão. Os que você não sabia voltam primeiro na próxima vez.</p>
       <label class="muted" for="selFc">Baralho</label>${gameSel("selFc",g.lastFc||"esp")}

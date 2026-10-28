@@ -17,7 +17,7 @@ const STEP_HOW={
   q2:"Misturar temas treina reconhecer o assunto sem aviso, como na prova.",
   src:"Questões reais de outra prova da Cesgranrio: repare no jeito da banca perguntar.",
   lei:"Jogue Lei seca em Jogos e depois faça o treino artigo por artigo.",
-  ger:"Contas à mão, sem calculadora. Em Português, sublinhe a palavra-chave do enunciado.",
+  ger:"Português: sublinhe a palavra-chave do enunciado. Matemática: contas à mão, sem calculadora.",
   rev:"Pegadinhas dos assuntos da semana e uma rodada de Flashcards em Jogos.",
   cad:"Releia as notas que voltaram hoje e escreva o que lembrar da próxima vez.",
   res:"Só leitura leve, sem questões novas.",
@@ -153,7 +153,7 @@ function vConfig(){
       <label class="row" style="gap:8px"><input type="checkbox" id="remOn" ${S.rem.on?"checked":""} style="width:18px;height:18px;accent-color:var(--petrol)"> Avisar às</label>
       <input type="time" id="remH" value="${S.rem.h}">
       <button class="btn ghost sm" onclick="notify('Lembrete de teste','É assim que o aviso diário aparece.')">Testar</button></div>
-    <p class="muted">${notifState()} Este aviso aparece com o app aberto.</p>
+    <p class="muted">${notifState()}</p>
     <details class="rev"><summary><span class="mark">⏰</span><span>Avisos com o app fechado (agenda do celular)</span></summary>${outsidePanel().replace(/^<section class="panel stack" id="outSec"><h3>Avisos com o app fechado<\/h3>/,'<div class="stack" id="outSec" style="margin-top:10px">').replace(/<\/section>$/,"</div>")}</details></section>
   <section class="panel stack"><h3>Aparência</h3>
     <span class="muted">Tema</span>${seg("thSeg",theme,[["auto","Automático"],["light","Claro"],["dark","Escuro"]])}
@@ -167,7 +167,7 @@ function vConfig(){
       <div class="row"><button class="btn sm" id="bkImp">Importar código</button><span class="muted" id="bkMsg"></span></div></div>
     ${instEvt?`<button class="btn" id="instBtn">Instalar o app neste aparelho</button>`:IS_PWA?"":`<a class="btn ghost sm" href="${GH_URL}" target="_blank" rel="noopener">Abrir a versão instalável (GitHub)</a>`}</section>
   ${aboutExam()}
-  <p class="muted">Versão 21 · ${QV().length} questões</p>`;
+  <p class="muted">Versão 22 · ${QV().length.toLocaleString("pt-BR")} questões</p>`;
   $("#stH").onchange=e=>{S.st.h=e.target.value||"19:00";save();};
   $("#stW").onchange=e=>{S.st.w=e.target.value||"09:00";save();};
   $("#goalSel").onchange=e=>{S.goal=+e.target.value;save();};

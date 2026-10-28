@@ -274,7 +274,7 @@ function vLei(){
     return;
   }
   const id=lei.ids[lei.i], L2=LEI[id], a=lei.ans[lei.i];
-  $("#view").innerHTML=`<div class="qhead"><strong>Lei seca · ${lei.i+1} de ${lei.ids.length}</strong><button class="btn ghost sm" onclick="go('jogos')">Sair</button></div>
+  $("#view").innerHTML=`<div class="qhead"><button class="btn ghost sm" onclick="go('jogos')">← Sair</button><div class="stack" style="gap:2px"><strong>Lei seca</strong><span class="muted num">Trecho ${lei.i+1} de ${lei.ids.length}</span></div></div>
   <article class="panel stack"><span class="qcat">${esc(L2[0]==="LGPD"?"LGPD (Lei 13.709/2018)":L2[0]==="14.133"?"Lei 14.133/2021":"Lei 13.303/2016")} · ${esc(L2[1])}</span>
   <p class="qtext">${esc(L2[2]).replace("___",a===null?'<span class="gap">______</span>':`<b class="hl2">${esc(L2[3])}</b>`)}</p>
   <div class="opts">${lei.order[lei.i].map((o,p)=>{let c="opt";if(a!==null){c+=" locked";if(o===L2[3])c+=" right";else if(o===a)c+=" wrong";}return `<button class="${c}" data-p="${p}"><span class="l">${L[p]}</span><span>${esc(o)}</span></button>`;}).join("")}</div></article>

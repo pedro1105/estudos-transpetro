@@ -39,6 +39,14 @@ Ao publicar, troque a versão do cache em `sw.js`.
 - Limpeza: plano antigo de semanas (PLAN), SRS de intervalos fixos, vCrono antigo e funções duplicadas saíram. A cópia na conta do claude.ai agora junta em vez de substituir.
 - Testes: `node tests/v16.js`.
 
+## v22 (layout, design e textos)
+
+- `src/js/13-v22.js`: campos de texto e hora no tema do app (e controles nativos no escuro), botão Áudio com nome no menu lateral do PC, abas de Estudar/Progresso numa linha com rolagem no celular, cabeçalho de questões e jogos numa linha com "← Sair" em todos, cartões em 3 colunas no PC, tabelas dos resumos sem quebrar palavra, marcas do edital visíveis, links alinhados, destaque único nas pegadinhas, gráfico de revisões sem estourar no celular. Estilos injetados no fim do `body` (o `<style>` da página fica no body e venceria no empate).
+- Corrigido: "Ordene as fases" mostrava as etapas letra por letra (opção sem letra ocupava só a coluna de 32 px).
+- Textos: revisão espaçada descrita como FSRS em todo o app, plural de "dia anterior completo", milhar em "1.260", dica de Português/Matemática separada, aviso de notificação sem repetição, vírgulas em pegadinhas, "Lei nº" nas questões da Petrobras Suprimento, alternativas de associação padronizadas ("I – R, II – S").
+- Sincronização: cada aparelho grava em `S.devs[id]` a versão do app, onde abriu (GitHub, claude.ai) e quando, para conferir pela nuvem.
+- Cache do service worker `transpetro-v22`.
+
 ## v21 (revisão geral)
 
 - Questões: as 459 autorais e as de provas foram conferidas (integridade, gabarito, lei vigente). As correções que eram aplicadas em tempo de execução (`FIX` de alternativas, `EXPL` e `fx` de explicações) foram embutidas nos próprios dados; o banco resultante é idêntico, byte a byte, e o app ficou 42 KB menor.
