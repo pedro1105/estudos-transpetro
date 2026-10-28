@@ -114,6 +114,10 @@ dayItems=function(p){
   if(a[4]) it.push({id:"ger",t:`${n++}. ${a[4]==="port"?"Português":"Matemática"} (25 min): ${a[5]}`,act:`startTrainCat('${a[4]}')`,lbl:"Treinar"});
   if(sp==="rev") it.push({id:"rev",t:`${n++}. Revisão da semana (30 min): flashcards e pegadinhas dos assuntos da semana`,act:"go('peg')",lbl:"Abrir"});
   if(!it.find(x=>x.id==="cor")) it.push({id:"cad",t:`${n++}. Caderno de erros (10 min): anotar o motivo de cada erro do dia`,act:"go('caderno')",lbl:"Abrir"});
+  if(p.k>="2026-10-28"){
+    it.push({id:"dch",t:`${n++}. Desafio do dia (10 min): 5 questões rápidas dos seus pontos fracos`,act:"startDaily()",lbl:"Jogar",chk:k=>!!(S.gm.dch&&S.gm.dch.last===k)});
+    it.push({id:"prog",t:`${n++}. Fechamento (5 min): conferir o acerto do dia e onde está perdendo pontos`,act:"go('stats')",lbl:"Ver"});
+  }
   it.push({id:"meta",t:`Meta: ${S.goal} questões respondidas no dia`,auto:true});
   return it;
 };
@@ -142,20 +146,21 @@ vCrono=function(){
         <span class="agfoco"><b>${esc(a[0])}</b>${a[4]&&a[5]?`<i class="muted">+ ${a[4]==="port"?"Português":"Matemática"}: ${esc(a[5])}</i>`:""}</span>
         <span class="agst">${tp[0]!=="Conteúdo"?`<span class="pill ${tp[1]}">${tp[0]}</span>`:""}<span class="muted num">${st}</span></span>
       </button>
-      ${open?`<div class="stack" style="gap:4px">${its.map(i=>{const ck=itemDone(k,i);return `<div class="task ${ck?"done":""}"><input type="checkbox" data-k="${k}" data-i="${i.id}" id="ag-${k}-${i.id}" ${ck?"checked":""} ${i.auto?"disabled":""}><label for="ag-${k}-${i.id}">${esc(i.t)}${i.auto?` <span class="tchip">automático · ${S.days[k]||0}/${S.goal}</span>`:""}</label>${i.act&&k>=t?`<button class="btn ghost sm" onclick="${i.act}">${i.lbl}</button>`:""}</div>`;}).join("")}</div>`:""}
+      ${open?`<div class="tlist">${tlHTML(k,its,"ag-"+k+"-",k===t)}</div>${(()=>{const m=its.find(i=>i.auto);return m?`<p class="muted">${esc(m.t)}${k<=t?` · ${S.days[k]||0} respondidas`:""}</p>`:"";})()}`:""}
     </section>`;
   };
   $("#view").innerHTML=`
   <div class="stack"><h2>Cronograma até 06/12</h2>
-  <p class="muted">O que fazer em cada dia, do primeiro ao último. Dias úteis: cerca de 2 h (aquecimento, teoria, questões do assunto, Português ou Matemática e caderno de erros). Fins de semana e feriados: simulado ou dia mais longo. Toque no dia para ver as tarefas e os botões que abrem cada atividade. É o mesmo checklist da aba Hoje.</p></div>
+  <p class="muted">A programação de cada dia, com horários, a área do app e o que fazer. Toque no dia para abrir; o dia de hoje é o mesmo da tela Hoje.</p></div>
   <div class="panel row" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
     <span><b class="num">${left}</b> dias até a prova</span><span><b class="num">${full}</b> de <b class="num">${past.length}</b> dias anteriores completos</span>
     ${AG[t]?`<button class="btn sm" onclick="document.getElementById('ag-${t}').scrollIntoView({block:'center'})">Ir para hoje</button>`:""}
   </div>
+  ${foldHTML("plano","Plano até 06/12 e método de estudo","as 4 fases e como estudar cada dia",planMethod(),false)}
   ${agWeeks().map((w,i)=>`<div class="stack" style="gap:8px"><h3 class="agwk">Semana ${i+1} · ${fmtK(w[0])} a ${fmtK(w[w.length-1])}</h3>${w.map(card).join("")}</div>`).join("")}
-  <section class="panel stack"><h3>Lista de conteúdos por semana (antiga)</h3><p class="muted">Mantida para quem já marcou tarefas nela.</p>
-  ${PLAN.map(w=>`<details><summary>${esc(w.t)} · ${esc(w.f)} <span class="muted num">${w.d}</span></summary>${w.tasks.map((x,i)=>{const id=w.id+"-"+i,ck=!!S.plan[id];return `<div class="task ${ck?"done":""}"><input type="checkbox" class="oldp" id="${id}" ${ck?"checked":""}><label for="${id}">${esc(x[0])} <span class="tchip">${x[1]}</span></label></div>`;}).join("")}</details>`).join("")}</section>`;
-  document.querySelectorAll(".agday .task input").forEach(c=>c.onchange=()=>{const k=c.dataset.k;S.daily[k]=S.daily[k]||{};S.daily[k][c.dataset.i]=c.checked;save();vCronoKeep();});
+  ${Object.values(S.plan||{}).some(Boolean)?`<section class="panel stack"><h3>Lista de conteúdos por semana (antiga)</h3><p class="muted">Mantida para quem já marcou tarefas nela.</p>
+  ${PLAN.map(w=>`<details><summary>${esc(w.t)} · ${esc(w.f)} <span class="muted num">${w.d}</span></summary>${w.tasks.map((x,i)=>{const id=w.id+"-"+i,ck=!!S.plan[id];return `<div class="task ${ck?"done":""}"><input type="checkbox" class="oldp" id="${id}" ${ck?"checked":""}><label for="${id}">${esc(x[0])} <span class="tchip">${x[1]}</span></label></div>`;}).join("")}</details>`).join("")}</section>`:""}`;
+  document.querySelectorAll(".agday .tl input").forEach(c=>c.onchange=()=>{const k=c.dataset.k;S.daily[k]=S.daily[k]||{};S.daily[k][c.dataset.i]=c.checked;save();vCronoKeep();});
   document.querySelectorAll(".task input.oldp").forEach(c=>c.onchange=()=>{S.plan[c.id]=c.checked;save();vCronoKeep();});
 };
 (function(){const st=document.createElement("style");st.textContent=`
@@ -266,23 +271,6 @@ RES.mat.push(["Trigonometria",["No triângulo retângulo: **sen = oposto ÷ hipo
 
 /* ---------- 17. v12: telas mais limpas (seções secundárias recolhíveis) ---------- */
 S.fold=S.fold||{};
-function foldGroup(key,title,nodes,anchor,sub){
-  nodes=nodes.filter(Boolean); if(!nodes.length) return;
-  const d=document.createElement("details"); d.className="panel fold"; d.dataset.k=key; d.open=!!S.fold[key];
-  d.innerHTML=`<summary><span>${esc(title)}</span>${sub?`<span class="muted">${esc(sub)}</span>`:""}</summary><div class="stack foldin"></div>`;
-  const at=anchor||nodes.find(n=>n.isConnected); if(!at) return; at.before(d);
-  const box=d.querySelector(".foldin"); nodes.forEach(n=>{n.classList.remove("panel");n.classList.add("inner");box.appendChild(n);});
-}
-const secBy=(t)=>[...document.querySelectorAll("#view > section, #view > div, #view > details")].find(e=>{const h=e.querySelector("h2,h3");return h&&h.textContent.trim().startsWith(t);});
-const _vGuia12=vGuia;
-vGuia=function(){
-  _vGuia12();
-  const meta=[...document.querySelectorAll("#view > section")].find(e=>{const h=e.querySelector("h3");return h&&h.textContent.trim()==="Hoje";});
-  foldGroup("ferr","Cronômetro e meta diária",[secBy("Cronômetro de estudo"),meta],null,"blocos de 50 min, sequência de dias");
-  foldGroup("avis","Lembretes e avisos",[secBy("Lembrete diário"),secBy("Avisos com o app fechado")],null,"horário do aviso, Google Agenda");
-  foldGroup("plan","Plano e método de estudo",[secBy("Plano até 06/12"),secBy("Método de estudo diário")],null,"as 4 fases e como estudar cada dia");
-  foldGroup("bkp","Backup e sincronização",[secBy("Backup e sincronização")],null,"sincronização automática entre aparelhos e backup");
-};
 (function(){const st=document.createElement("style");st.textContent=`
 details.fold{padding:0}
 details.fold>summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:14px 44px 14px 16px;position:relative;font-weight:600}

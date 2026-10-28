@@ -86,20 +86,8 @@ vResult=function(){
 };
 
 /* ---------- Hoje (antigo Início + Orientação) ---------- */
-const _vGuia=vGuia;
-vGuia=function(){
-  _vGuia();
-  const v=$("#view");
-  v.insertAdjacentHTML("afterbegin",runBanner());
-  const first=v.querySelector("section.panel");
-  if(first) first.insertAdjacentHTML("afterend",pomoPanel()+todayPanel());
-  v.insertAdjacentHTML("beforeend",aboutExam());
-  const gs=$("#goalSel"); if(gs) gs.onchange=()=>{S.goal=+gs.value;save();vGuiaKeep();};
-  pomoWire();
-  const ib=$("#instBtn"); if(ib) ib.onclick=async()=>{if(!instEvt)return;instEvt.prompt();try{await instEvt.userChoice;}catch(e){}instEvt=null;ib.remove();};
-};
 let instEvt=null;
-window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();instEvt=e;if(current==="guia"||current==="home"){const s=$("#syncSec");if(s&&!$("#instBtn"))s.insertAdjacentHTML("beforeend",'<button class="btn" id="instBtn">Instalar o app no aparelho</button>');const ib=$("#instBtn");if(ib)ib.onclick=async()=>{instEvt.prompt();instEvt=null;ib.remove();};}});
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();instEvt=e;if(current==="config")vConfigKeep();});
 function aboutExam(){
   return `<details class="panel about"><summary><h3>Como a prova funciona</h3></summary><div class="stack" style="margin-top:12px">
     <div class="grid2">

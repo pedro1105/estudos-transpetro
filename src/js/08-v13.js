@@ -37,20 +37,26 @@ async function mcpReady(ask){
   if(!IN_CLAUDE) return false;
   if(CL.mcp) return true;
   try{
-    if(!ask){const perm=await window.claude.use("permissions");if(perm){const st=await perm.state("mcp");if(st!=="granted") return false;}}
+    const perm=await window.claude.use("permissions");
+    if(perm){const st=await perm.state("mcp");if(st!=="granted"){if(!ask) return false;const r=await perm.request("mcp");if(r&&r.mcp&&r.mcp!=="granted") return false;}}
     CL.mcp=await window.claude.use("mcp"); return !!CL.mcp;
   }catch(e){return false;}
 }
 async function rpcMcp(fn,args){
   const tag="$tp"+Math.random().toString(36).slice(2,8)+"$";
   const lit=v=>typeof v==="number"?String(Math.round(v)):tag+String(v).split(tag).join("")+tag;
-  const params=fn==="tp_get"?[lit(args.p_code)]:[lit(args.p_code),lit(args.p_s),lit(args.p_upd),lit(args.p_base)];
+  const params=fn!=="tp_save"?[lit(args.p_code)]:[lit(args.p_code),lit(args.p_s),lit(args.p_upd),lit(args.p_base)];
   const res=await CL.mcp.callTool("Supabase","execute_sql",{project_id:SB_REF,query:`select public.${fn}(${params.join(",")})::text as r`},{cache:false});
   let p=res&&res.payload; if(p&&typeof p==="object"&&p.result) p=p.result; if(typeof p!=="string") p=JSON.stringify(p);
   const m=/<untrusted-data[^>]*>\s*([\s\S]*?)\s*<\/untrusted-data/.exec(p); const arr=JSON.parse(m?m[1]:p);
   const r=Array.isArray(arr)&&arr[0]?arr[0].r:null; return r?JSON.parse(r):null;
 }
+/* no claude.ai, o último erro de sincronização fica no banco da página, para diagnóstico */
+function clLog(e){try{if(!SYNC.db||!SYNC.uid||Date.now()-(CL.logAt||0)<60000) return;CL.logAt=Date.now();SYNC.db.doc("data/users/"+SYNC.uid+"/synclog").set({err:String(e&&e.message||e).slice(0,300),via:CL.via,st:CL.st,at:Date.now(),code:!!CL.code});}catch(x){}}
 async function rpc(fn,args,ask){
+  try{return await rpc0(fn,args,ask);}catch(e){clLog(e);throw e;}
+}
+async function rpc0(fn,args,ask){
   if(CL.via==="fetch"){
     try{
       const r=await fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(args)});
@@ -131,12 +137,23 @@ async function clPull(){
   CL.busy=false; clLbl();
   if(then==="push") clPush();
 }
-function clKick(){if(!CL.code&&S.cloud){CL.code=S.cloud;clStore();}if(!CL.code) return;clearTimeout(CL.t);CL.t=setTimeout(CL.base?clPush:clPull,3000);}
+function clKick(){if(!CL.code&&S.cloud){CL.code=S.cloud;clStore();}if(!CL.code) return;clearTimeout(CL.t);CL.t=setTimeout(CL.base?clPush:clPull,2000);}
 SAVE_HOOKS.push(clKick);
-document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible") clPull();});
-setInterval(()=>{if(document.visibilityState==="visible"&&!(quiz&&!quiz.finished&&current==="quiz")) clPull();},90000);
+/* Atualização quase ao vivo: a cada 15 s (60 s pelo conector do Claude) pergunta só a versão da nuvem
+   (tp_ver, poucos bytes) e baixa o progresso inteiro apenas quando ela mudou. */
+async function clCheck(){
+  if(!CL.code&&S.cloud){CL.code=S.cloud;clStore();}
+  if(!CL.code||CL.busy||document.visibilityState!=="visible") return;
+  if(CL.via==="mcp"&&Date.now()-(CL.lastMcp||0)<55000) return;
+  if(CL.via==="mcp") CL.lastMcp=Date.now();
+  try{const v=await rpc("tp_ver",{p_code:CL.code});if(v!==CL.base||(S.upd||0)>CL.base) clPull();else if(CL.st!=="ok"){CL.st="ok";CL.at=new Date();clLbl();}}
+  catch(e){CL.st=e.message==="needmcp"?"needmcp":"err";CL.err=String(e.message||e);clLbl();}
+}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible") clPull();else if(CL.code&&CL.base&&(S.upd||0)>CL.base){clearTimeout(CL.t);clPush();}});
+window.addEventListener("online",()=>clPull());
+setInterval(clCheck,15000);
 
-/* Conectar este aparelho a um código: pergunta o que fazer quando os dois lados já têm progresso. */
+/* Conectar este aparelho a um código: se os dois lados já têm progresso, junta os dois sozinho. */
 const hasProgress=st=>!!st&&((st.hist||[]).length>0||Object.keys(st.seen||{}).length>0);
 async function clLink(code,ask){
   code=String(code||"").trim().toLowerCase();
@@ -146,67 +163,18 @@ async function clLink(code,ask){
   try{r=await rpc("tp_get",{p_code:code},ask);}catch(e){CL.st=e.message==="needmcp"?"needmcp":"err";clLbl();toast("Sem conexão agora","O código foi guardado; a sincronização tenta de novo sozinha.");return;}
   if(!r){S.cloud=code;save();toast("Sincronização ativada","Este aparelho passa a enviar o progresso para a nuvem.");return;}
   const remote=JSON.parse(r.s);
-  let pick="cloud";
-  if(hasProgress(S)&&hasProgress(remote)) pick=await askMerge(remote);
-  if(pick==="cancel"){CL.code=null;clStore();clLbl();return;}
-  if(pick==="cloud"){clAdopt(remote,r.upd);CL.base=r.upd;clStore();clSnap(remote);}
-  else if(pick==="local"){S.cloud=code;S.upd=Math.max(Date.now(),r.upd+1);saveLocal();CL.base=r.upd;clStore();await clPush();}
+  if(!(hasProgress(S)&&hasProgress(remote))){clAdopt(remote,r.upd);CL.base=r.upd;clStore();clSnap(remote);}
   else{const m=mergeS(S,remote,null);clAdopt(m,Math.max(Date.now(),r.upd+1));CL.base=r.upd;clStore();await clPush();}
   toast("Aparelho conectado","O progresso agora é o mesmo nos aparelhos conectados.");
 }
-function askMerge(remote){
-  const n=st=>Object.keys(st.seen||{}).length, h=st=>(st.hist||[]).length;
-  return modal(`<h3>Os dois lados já têm progresso</h3>
-    <p class="muted">Neste aparelho: <b class="num">${n(S)}</b> questões respondidas, <b class="num">${h(S)}</b> simulados e treinos. Na nuvem: <b class="num">${n(remote)}</b> questões, <b class="num">${h(remote)}</b> simulados e treinos.</p>
-    <p class="muted">Juntar soma o que cada lado tem: questões vistas, revisões, caderno de erros, dias de estudo e histórico. Nas contagens por assunto fica a maior das duas.</p>`,
-    [["merge","Juntar os dois (recomendado)","btn"],["cloud","Usar só o da nuvem","btn ghost"],["local","Usar só o deste aparelho","btn ghost"],["cancel","Cancelar","btn ghost"]]).then(r=>r.v);
-}
-function clOff(){if(!confirm("Desconectar este aparelho? O progresso continua salvo aqui e na nuvem.")) return;CL.code=null;CL.base=0;CL.st="off";clStore();clSnap(null);delete S.cloud;saveLocal();clLbl();vGuiaKeep();}
-function clText(){
-  if(!CL.code) return "Desligada. Ative para usar o mesmo progresso no PC, no celular e nos dois links do app.";
-  if(CL.st==="ok") return "Sincronizado"+(CL.at?" às "+CL.at.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"")+". Todo aparelho conectado com este código recebe o mesmo progresso.";
-  if(CL.st==="needmcp") return "Nesta versão do claude.ai, a sincronização precisa da sua permissão para usar o conector Supabase. Toque em “Permitir”.";
-  if(CL.st==="err") return navigator.onLine?"Não foi possível sincronizar agora; o app tenta de novo sozinho. O progresso continua salvo neste aparelho.":"Sem internet. O progresso fica salvo aqui e sobe quando a conexão voltar.";
-  return "Conectando…";
-}
-function clLbl(){document.querySelectorAll(".cllbl").forEach(e=>{e.textContent=clText();e.className="cllbl "+(CL.st==="ok"?"ok":CL.st==="err"||CL.st==="needmcp"?"bad":"");});const b=$("#clMcp");if(b)b.hidden=CL.st!=="needmcp";}
-function clPanel(){
-  const link=CL.code?GH_URL+"#sync="+CL.code:"";
-  return `<div class="stack clbox"><h3>Sincronização automática</h3>
-    <p class="cllbl">${esc(clText())}</p>
-    ${CL.code?`<div class="stack" style="gap:8px">
-      <span class="muted">Código deste progresso (guarde, é a chave de acesso):</span>
-      <code class="clcode num">${esc(CL.code)}</code>
-      <div class="row" style="gap:8px;flex-wrap:wrap">
-        <button class="btn sm" id="clMcp" ${CL.st==="needmcp"?"":"hidden"}>Permitir</button>
-        <button class="btn ghost sm" id="clCopy">Copiar código</button>
-        <button class="btn ghost sm" id="clLinkCopy">Copiar link do app instalável já conectado</button>
-        <button class="btn ghost sm" id="clNow">Sincronizar agora</button>
-        <button class="btn ghost sm" id="clOff">Desconectar</button>
-      </div>
-      <p class="muted">No celular, abra o link copiado no Chrome: o app já entra conectado. No link do claude.ai, cole o código em “Já tenho um código”.</p></div>`
-    :`<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn sm" id="clOn">Ativar sincronização</button></div>`}
-    <details class="rev"><summary><span class="mark">⇄</span><span>Já tenho um código</span></summary>
-      <div class="stack" style="margin-top:10px"><input id="clIn" placeholder="tp-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx" autocomplete="off" autocapitalize="off" spellcheck="false"><div class="row"><button class="btn sm" id="clGo">Conectar este aparelho</button></div></div>
-    </details></div>`;
-}
-function clWire(){
-  const on=$("#clOn"); if(on) on.onclick=async()=>{CL.code=newCode();CL.base=0;S.cloud=CL.code;clStore();save();vGuiaKeep();await clPush();if(CL.st==="needmcp"){vGuiaKeep();}};
-  const cp=$("#clCopy"); if(cp) cp.onclick=()=>copyTxt(CL.code,"Código copiado");
-  const lk=$("#clLinkCopy"); if(lk) lk.onclick=()=>copyTxt(GH_URL+"#sync="+CL.code,"Link copiado","Abra no celular ou no PC para conectar o app instalável.");
-  const nw=$("#clNow"); if(nw) nw.onclick=async()=>{CL.st="";clLbl();await clPull();};
-  const off=$("#clOff"); if(off) off.onclick=clOff;
-  const mc=$("#clMcp"); if(mc) mc.onclick=async()=>{CL.via="mcp";if(await mcpReady(true)){CL.st="";clLbl();await clPull();}};
-  const go2=$("#clGo"); if(go2) go2.onclick=async()=>{await clLink($("#clIn").value,true);vGuiaKeep();};
-}
 async function copyTxt(t,ok,sub){try{await navigator.clipboard.writeText(t);toast(ok,sub||"");}catch(e){prompt("Copie o texto:",t);}}
 /* o painel entra no lugar do texto de status da sincronização antiga, dentro de "Backup e sincronização" */
-const _syncPanel13=syncPanel;
-syncPanel=function(){return _syncPanel13().replace(/<h3>Backup e sincronização<\/h3>/,'<h3 class="vh">Backup e sincronização</h3>'+clPanel()+'<h3 class="muted" style="font-size:14px;margin-top:6px">Conta do claude.ai e código de backup</h3>');};
-const _syncWire13=syncWire; syncWire=function(){_syncWire13();clWire();};
 /* link #sync=código (abre o app já conectado) */
 (function(){const m=/[#&]sync=(tp-[a-z0-9-]+)/.exec(location.hash||"");if(!m) return;try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}if(m[1]!==CL.code) setTimeout(()=>clLink(m[1],true),400);})();
 setTimeout(clPull,1200);
+/* no claude.ai a sincronização liga sozinha: se depois de carregar a conta ainda não houver código,
+   cria um; ele vai junto no progresso da conta e chega aos outros aparelhos com o mesmo login */
+if(IN_CLAUDE) setTimeout(()=>{if(SYNC.st==="ok"&&!CL.code&&!S.cloud){CL.code=newCode();CL.base=0;S.cloud=CL.code;clStore();save();}},8000);
 
 /* ---------- 20. v13: janela de diálogo simples ---------- */
 function modal(html,buttons){
@@ -253,7 +221,7 @@ const FZK="transpetro26-fz", FZS=[1,1.12,1.25,1.4,.92];
 let fz=1; try{fz=+localStorage.getItem(FZK)||1;}catch(e){}
 function fzApply(){document.documentElement.style.setProperty("--fz",fz);const b=$("#fzBtn");if(b)b.innerHTML=`<span aria-hidden="true">Aa</span><span class="tlbl">Letra ${Math.round(fz*100)}%</span>`;document.querySelectorAll(".fzq").forEach(x=>x.title="Letra "+Math.round(fz*100)+"%");}
 function fzCycle(){const i=FZS.indexOf(fz);fz=FZS[(i+1)%FZS.length];try{localStorage.setItem(FZK,fz);}catch(e){}fzApply();toast("Tamanho da letra: "+Math.round(fz*100)+"%","Toque de novo para mudar.");}
-(function(){const t=$("#themeBtn");if(!t) return;const b=document.createElement("button");b.className="themebtn fzbtn";b.id="fzBtn";b.type="button";b.setAttribute("aria-label","Tamanho da letra");b.onclick=fzCycle;t.after(b);fzApply();})();
+fzApply();
 
 /* ---------- 23. v13: resumo semanal ---------- */
 /* semana de segunda a domingo; os blocos usam o histórico de simulados/treinos (S.hist) e
@@ -296,7 +264,7 @@ vStats=function(){
   _vStats13();
   const seg=$("#view .segtabs"), h=$("#view h2"), at=(h||seg);
   const k=todayK(), a=monday(k);
-  at.insertAdjacentHTML("afterend",weekPanel(a,"Resumo da semana")+repPanel());
+  at.insertAdjacentHTML("afterend",weekPanel(a,"Resumo da semana")+prioPanel()+repPanel());
 };
 function weekCard(){
   const k=todayK(), wd=kDate(k).getDay();
@@ -305,16 +273,6 @@ function weekCard(){
   if(S.wkSeen===a) return "";
   return `<div class="wkwrap">${weekPanel(a,wd===0?"Resumo da semana":"Resumo da semana passada").replace('<div class="row" style="justify-content:space-between"><h3>',`<div class="row" style="justify-content:space-between"><button class="linkbtn wkx" onclick="S.wkSeen='${a}';save();vGuiaKeep()" aria-label="Fechar o resumo">Fechar</button><h3>`)}</div>`;
 }
-const _vGuia13=vGuia;
-vGuia=function(){
-  _vGuia13();
-  const v=$("#view"), first=v.querySelector(":scope > section.panel, :scope > div.panel");
-  const card=weekCard(); if(card&&first) first.insertAdjacentHTML("afterend",card);
-  if(!CL.code&&!S.clHint){
-    const at=v.querySelector(":scope > section.panel"); if(at) at.insertAdjacentHTML("afterend",`<div class="rule row clhint" style="justify-content:space-between;gap:8px"><span>Use o mesmo progresso no PC, no celular e nos dois links: ative a sincronização automática.</span><span class="row" style="gap:6px"><button class="btn sm" id="clHintGo">Ativar</button><button class="btn ghost sm" onclick="S.clHint=1;save();vGuiaKeep()">Agora não</button></span></div>`);
-    const g=$("#clHintGo"); if(g) g.onclick=()=>{const d=$('#view details.fold[data-k="bkp"]');if(d){d.open=true;d.scrollIntoView({behavior:"smooth"});}};
-  }
-};
 
 (function(){const st=document.createElement("style");st.textContent=`
 #view{zoom:var(--fz,1)}

@@ -417,13 +417,6 @@ function dailyIds(){
   return out;
 }
 function startDaily(){makeQuiz(dailyIds(),"train","Desafio do dia",0);quiz.daily=true;}
-function dailyPanel(){
-  const d=S.gm.dch||{}, done=d.last===todayK();
-  const y=new Date();y.setDate(y.getDate()-1);const alive=done||d.last===dkey(y), st=alive?(d.streak||0):0;
-  return `<section class="panel stack"><div class="row" style="justify-content:space-between"><h3>Desafio do dia</h3><span class="streak num">${st} ${st===1?"dia seguido":"dias seguidos"}</span></div>
-  <p class="muted">${done?`Feito hoje: ${d.score}/5. Volte amanhã para manter a sequência (recorde: ${d.best||st} dias).`:"5 questões rápidas: 3 dos seus assuntos mais fracos, 1 de Português ou Matemática e 1 específica. Leva uns 10 minutos."}</p>
-  ${done?"":`<div><button class="btn" onclick="startDaily()">Fazer o desafio</button></div>`}</section>`;
-}
 
 /* ---------- Telas existentes: novos atalhos ---------- */
 const _vJogos5=vJogos;
@@ -487,14 +480,6 @@ function outsidePanel(){
   <div class="row" style="gap:8px;flex-wrap:wrap"><a class="btn ghost sm" href="${gcalLink()}" target="_blank" rel="noopener">Criar lembrete diário no Google Agenda</a>${IS_PWA?`<button class="btn sm" onclick="icsDownload()">Baixar agenda com as tarefas (.ics)</button>`:`<a class="btn ghost sm" href="https://pedro1105.github.io/estudos-transpetro/" target="_blank" rel="noopener">Abrir a versão do GitHub</a>`}</div>
   <span class="muted" id="icsMsg">${IS_PWA&&"periodicSync" in (window.ServiceWorkerRegistration?ServiceWorkerRegistration.prototype:{})?"No Android, com o app instalado, o celular também tenta avisar sozinho no horário do lembrete (o sistema decide o momento exato).":""}</span></section>`;
 }
-const _vGuia5=vGuia;
-vGuia=function(){
-  _vGuia5();
-  const v=$("#view"), first=v.querySelector("section.panel");
-  if(first) first.insertAdjacentHTML("afterend",dailyPanel());
-  const rem=$("#remOn"); const sec=rem&&rem.closest("section");
-  if(sec){const p=sec.querySelector("p.muted");if(p)p.textContent=notifState()+" Este aviso aparece com o app aberto. Para avisos com o app fechado, veja o quadro abaixo.";sec.insertAdjacentHTML("afterend",outsidePanel());}
-};
 /* lembrete pelo service worker (versão instalada) */
 async function swRemSync(){
   if(!IS_PWA||!("serviceWorker" in navigator)) return;

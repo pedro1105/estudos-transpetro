@@ -11,7 +11,7 @@ function initState(){
   S.daily=S.daily||{}; S.srs=S.srs||{}; S.notes=S.notes||{}; S.rem=S.rem||{on:false,h:"19:00"};
   S.days=S.days||{}; S.seen=S.seen||{}; S.base=S.base||{}; S.goal=S.goal||30;
   (S.wrong||[]).forEach(qi=>{if(!S.srs[qi]) S.srs[qi]={b:0,d:todayK()};});
-  S.fold=S.fold||{}; S.gm=S.gm||{}; S.ct=S.ct||{}; S.fcl=S.fcl||{};
+  S.st=Object.assign({h:"19:00",w:"09:00"},S.st||{}); S.fold=S.fold||{}; S.gm=S.gm||{}; S.ct=S.ct||{}; S.fcl=S.fcl||{};
   if(QID) remapState(S);
 }
 initState();
@@ -75,7 +75,7 @@ function dayItems(p){
   it.push({id:"meta",t:`Meta diária: ${S.goal} questões respondidas`,auto:true});
   return it;
 }
-function itemDone(k,i){return i.auto?(S.days[k]||0)>=S.goal:!!(S.daily[k]&&S.daily[k][i.id]);}
+function itemDone(k,i){if(i.chk) return i.chk(k)||!!(S.daily[k]&&S.daily[k][i.id]);return i.auto?(S.days[k]||0)>=S.goal:!!(S.daily[k]&&S.daily[k][i.id]);}
 function dayScore(k){const its=dayItems(dayPlan(k));return its.filter(i=>itemDone(k,i)).length/its.length;}
 
 /* ---------- Lembretes ---------- */
@@ -101,7 +101,7 @@ setInterval(remCheck,60000); setTimeout(remCheck,4000);
 async function remEnable(on){
   S.rem.on=on; S.rem.last=null;
   if(on&&"Notification" in window&&Notification.permission==="default"){try{await Notification.requestPermission();}catch(e){}}
-  save(); vGuiaKeep();
+  save(); vConfigKeep();
 }
 function notifState(){
   if(!("Notification" in window)) return "Este navegador não mostra notificações do sistema; o aviso aparece dentro do app.";
@@ -110,67 +110,6 @@ function notifState(){
   return "Ao ativar, o navegador pode pedir permissão para notificar.";
 }
 
-/* ---------- Orientação ---------- */
-function vGuia(){
-  const k=todayK(), p=dayPlan(k), its=dayItems(p), done=its.filter(i=>itemDone(k,i)).length;
-  const last14=[...Array(14)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);const kk=dkey(d);return {kk,s:kk<"2026-10-27"?null:dayScore(kk)};});
-  const full=(()=>{let n=0,d=new Date();if(dayScore(dkey(d))<1)d.setDate(d.getDate()-1);while(dkey(d)>="2026-10-27"&&dayScore(dkey(d))>=1){n++;d.setDate(d.getDate()-1);}return n;})();
-  const due=srsDue().length;
-  $("#view").innerHTML=`
-  <div class="stack"><h2>Hoje</h2><p class="muted">Seu plano do dia, montado a partir dos seus pontos fracos e da fase do cronograma. Marque cada etapa ao terminar.</p></div>
-  <section class="panel stack">
-    <div class="row" style="justify-content:space-between"><h3>Hoje, ${fmtK(k)}${p.ph?` · fase ${PHASES.indexOf(p.ph)+1}: ${esc(p.ph.t)}`:""}</h3><span class="streak num">${full} ${full===1?"dia completo":"dias completos"} seguidos</span></div>
-    <div class="row" style="justify-content:space-between"><span><b class="num">${done}</b> de <b class="num">${its.length}</b> etapas</span>${done===its.length?'<span class="pill ok">Dia concluído</span>':""}</div>
-    <div class="track"><div class="fill" style="width:${done/its.length*100}%"></div></div>
-    ${due?`<div class="rule row" style="justify-content:space-between"><span><b class="num">${due}</b> ${due===1?"questão errada volta":"questões erradas voltam"} hoje na revisão espaçada.</span><button class="btn sm" onclick="startWrong()">Revisar agora</button></div>`:""}
-    <div class="stack" style="gap:6px">${its.map(i=>{const ck=itemDone(k,i);return `<div class="task ${ck?"done":""}"><input type="checkbox" id="dl-${i.id}" ${ck?"checked":""} ${i.auto?"disabled":""}><label for="dl-${i.id}">${esc(i.t)}${i.auto?` <span class="tchip">automático · ${S.days[k]||0}/${S.goal}</span>`:""}</label>${i.act?`<button class="btn ghost sm" onclick="${i.act}">${i.lbl}</button>`:""}</div>`;}).join("")}</div>
-    <div class="stack" style="gap:6px"><span class="muted">Últimos 14 dias</span><div class="days14">${last14.map(x=>`<span class="d14 ${x.s===null?"na":x.s>=1?"full":x.s>=.5?"half":x.s>0?"low":""}" title="${fmtK(x.kk)}"><i>${x.kk.slice(8)}</i></span>`).join("")}</div></div>
-  </section>
-  <section class="panel stack">
-    <h3>Assuntos de prioridade</h3>
-    <p class="muted">Os 5 assuntos específicos com pior acerto até agora (assunto ainda sem questões conta como médio). Eles recebem 60% do tempo a partir da fase 2.</p>
-    <div class="row" style="gap:6px;flex-wrap:wrap">${weakCats(5).map(c=>{const pc=pct(S.stats[c]);return `<button class="chipbtn" onclick="openTopic('${c}')">${esc(CATS[c].n)}${pc!==null?` · ${pc}%`:""}</button>`;}).join("")}</div>
-  </section>
-  <section class="panel stack">
-    <h3>Lembrete diário</h3>
-    <div class="row" style="gap:10px;flex-wrap:wrap">
-      <label class="row" style="gap:8px"><input type="checkbox" id="remOn" ${S.rem.on?"checked":""} style="width:18px;height:18px;accent-color:var(--petrol)"> Avisar às</label>
-      <input type="time" id="remH" value="${S.rem.h}">
-      <button class="btn ghost sm" onclick="notify('Lembrete de teste','É assim que o aviso diário aparece.')">Testar</button>
-    </div>
-    <p class="muted">${notifState()} O aviso só dispara com o app aberto (no navegador ou no celular), porque uma página não consegue acordar o aparelho sozinha. Para receber o alerta mesmo com o app fechado, use um alarme no celular ou eventos na sua agenda.</p>
-  </section>
-  <section class="stack">
-    <h2>Plano até 06/12</h2>
-    <div class="phases">${PHASES.map((f,i)=>`<div class="panel phase ${p.ph===f?"cur":""}"><span class="tag">Fase ${i+1} · ${fmtK(f.a)} a ${fmtK(f.b)}${p.ph===f?" · agora":""}</span><h3>${esc(f.t)}</h3><p class="muted">${esc(f.d)}</p></div>`).join("")}</div>
-    <div class="rule">Toda semana, confira a previsão de nota na aba Progresso. Se o acerto nas específicas não subir por duas semanas seguidas, mude o método naquele assunto (mais teoria ou mais questões comentadas), e não só a quantidade de horas.</div>
-    <div><button class="btn ghost sm" onclick="go('crono')">Ver o cronograma dia a dia até a prova</button></div>
-  </section>
-  <section class="stack">
-    <h2>Método de estudo diário</h2>
-    <p class="muted">Questões em 70% do tempo e teoria em 30%. Tentar lembrar a resposta antes de conferir fixa mais do que reler o resumo.</p>
-    <ol class="steps">
-      <li><b>Aquecimento, 10 min:</b> revise as questões erradas (Revisar erradas) ou faça um V ou F.</li>
-      <li><b>Teoria curta, 30 min:</b> leia o resumo de um assunto em Conteúdos. Feche e escreva de memória 3 a 5 pontos principais.</li>
-      <li><b>Questões, 45 min:</b> 30 min do mesmo assunto e 15 de outro assunto ou de Português e Matemática. Misturar temas treina você a reconhecer o assunto sem aviso, como na prova.</li>
-      <li><b>Caderno de erros, 10 min:</b> para cada erro, anote por que errou: não sabia, confundiu, leu rápido ou errou a conta. O app traz as notas de volta depois de 1, 3, 7 e 15 dias.</li>
-    </ol>
-    <h3>Regras que fazem diferença</h3>
-    <ul class="res">
-      <li>Estude em blocos de 50 minutos com 10 de pausa, longe do celular.</li>
-      <li>A Cesgranrio cobra a definição do livro (Chiavenato, Ballou, Viana, Martins e Alt, Dias). Quando duas alternativas parecerem certas, fique com a mais próxima da definição clássica.</li>
-      <li>Faça as contas de Matemática e Matemática Financeira à mão: na prova, calculadora é proibida.</li>
-      <li>Ensine em voz alta o que estudou, como se explicasse a um colega. Onde você travar é o que precisa rever.</li>
-      <li>Durma de 7 a 8 horas. A memória do dia se consolida no sono, e virar noite custa mais do que rende.</li>
-      <li>Na prova, errar não desconta: nunca deixe questão em branco.</li>
-    </ul>
-  </section>
-  ${syncPanel()}`;
-  its.forEach(i=>{const c=$("#dl-"+i.id); if(c&&!i.auto) c.onchange=()=>{S.daily[k]=S.daily[k]||{};S.daily[k][i.id]=c.checked;save();vGuiaKeep();};});
-  $("#remOn").onchange=e=>remEnable(e.target.checked);
-  $("#remH").onchange=e=>{S.rem.h=e.target.value||"19:00";S.rem.last=null;save();};
-  syncWire(); syncLbl();
-}
 function vGuiaKeep(){const y=window.scrollY;vGuia();window.scrollTo({top:y});}
 
 /* ---------- Caderno de erros ---------- */
@@ -385,17 +324,6 @@ function syncText(){
   return window.claude&&window.claude.use?"Este aparelho ainda não está ligado à sua conta do claude.ai. Use a sincronização automática acima ou o código de backup abaixo.":"A conta do claude.ai só vale no link do claude.ai. Aqui, use a sincronização automática acima; o código de backup abaixo é a cópia manual.";
 }
 function syncLbl(){document.querySelectorAll(".synclbl").forEach(e=>{e.textContent=syncText();e.className="synclbl "+(SYNC.st==="ok"?"ok":SYNC.st==="err"?"bad":"");});}
-function syncPanel(){
-  return `<section class="panel stack" id="syncSec"><h3>Backup e sincronização</h3>
-    <p class="synclbl">${esc(syncText())}</p>
-    <details class="rev"><summary><span class="mark">⇄</span><span>Copiar o progresso por código (sem conta)</span></summary>
-    <div class="stack" style="margin-top:10px">
-      <p class="muted">No aparelho antigo, gere e copie o código. No novo, cole o código e importe. A importação substitui o progresso do aparelho novo.</p>
-      <div class="row"><button class="btn ghost sm" id="bkGen">Gerar código</button><button class="btn ghost sm" id="bkCopy">Copiar</button></div>
-      <textarea id="bkTxt" rows="3" placeholder="Cole aqui o código de backup"></textarea>
-      <div class="row"><button class="btn sm" id="bkImp">Importar código</button><span class="muted" id="bkMsg"></span></div>
-    </div></details></section>`;
-}
 function syncWire(){
   const g=$("#bkGen"); if(!g) return;
   g.onclick=()=>{$("#bkTxt").value="TP26:"+btoa(unescape(encodeURIComponent(JSON.stringify(S))));$("#bkMsg").textContent="Código gerado.";};

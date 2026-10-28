@@ -12,7 +12,7 @@ App de estudo para a prova Transpetro PSP Nível Médio 2026.3, Ênfase 1 (Admin
   - `01-questoes.js` banco principal; `07a-questoes-outras-provas.js` questões de outras provas Cesgranrio.
   - `02-conteudos.js` resumos, lições de base, flashcards e cronograma original.
   - `03-nucleo.js` estado, navegação (`VIEWS`/`TABOF`), simulados, correção.
-  - `04` a `07b` telas e recursos acrescentados por versão; `08-v13.js` identificação fixa das questões, sincronização, reportar erro, letra e resumo semanal.
+  - `04` a `07b` telas e recursos acrescentados por versão; `08-v13.js` identificação fixa das questões, sincronização, reportar erro, letra e resumo semanal; `09-v14.js` tela Hoje (programação com horários), Configurações.
 - `build.py` gera `dist/app.html` (claude.ai) e `index.html` (GitHub Pages, com service worker).
 
 Regras do banco de questões: nunca remover nem reordenar itens de `Q`; para tirar uma questão de circulação, marque `q.hid=1`.

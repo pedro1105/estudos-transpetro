@@ -42,51 +42,11 @@ function go(v){
   const tab=TABOF[v]||v;
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===tab));
   document.body.classList.toggle("focus",v==="quiz"||v==="real");
+  const cb=document.getElementById("cfgBtn"); if(cb) cb.setAttribute("aria-current",v==="config"?"page":"false");
   VIEWS[v]();
   window.scrollTo({top:0});
 }
 
-/* ---------- Início ---------- */
-function vHome(){
-  const nEsp=QV().filter(q=>!["port","mat"].includes(CATS[q.c].b)).length;
-  const last=S.hist[0];
-  const gk=todayK(), gits=dayItems(dayPlan(gk)), gdone=gits.filter(i=>itemDone(gk,i)).length;
-  $("#view").innerHTML=`
-  <div class="rule row" style="justify-content:space-between"><span><b>Plano de hoje:</b> <span class="num">${gdone} de ${gits.length}</span> etapas feitas${srsDue().length?` · ${srsDue().length} para revisar`:""}</span><button class="btn sm" onclick="go('guia')">Abrir Orientação</button></div>
-  ${todayPanel()}
-  <section class="stack">
-    <h2>Como a prova funciona</h2>
-    <div class="grid2">
-      <div class="panel fact"><span class="k">Questões</span><span class="v num">60</span><span class="muted">40 específicas + 10 de Português + 10 de Matemática, 5 alternativas cada</span></div>
-      <div class="panel fact"><span class="k">Duração</span><span class="v num">4 h</span><span class="muted">Saída só após 2 h. Chegar 1 h antes do início</span></div>
-      <div class="panel fact"><span class="k">Vagas + cadastro (RJ)</span><span class="v num">48</span><span class="muted">3 vagas imediatas; 29 na ampla concorrência</span></div>
-    </div>
-    <div class="rule stack">
-      <strong>O que elimina</strong>
-      <span>Menos de 20 acertos nas específicas, menos de 10 nas gerais, ou zero em Português ou em Matemática.</span>
-      <strong>O que classifica</strong>
-      <span>Passa para a fase seguinte quem estiver no ranking das <b>específicas</b> até 2 vezes o total de vagas + cadastro da modalidade. A nota final é a soma das duas fases. As 40 específicas decidem quem segue.</span>
-    </div>
-  </section>
-  <section class="stack">
-    <h2>Onde concentrar o estudo</h2>
-    <div class="grid2">
-      <div class="panel stack"><h3>Logística, compras e contratos</h3><p class="muted">O maior bloco do edital, com duas leis (13.303 e 14.133). Merece a maior fatia de horas.</p></div>
-      <div class="panel stack"><h3>Finanças e contabilidade</h3><p class="muted">Ponto que pede mais tempo: comece pela teoria básica e faça muitas questões com conta à mão.</p></div>
-      <div class="panel stack"><h3>Processos administrativos</h3><p class="muted">RH, SGI, patrimônio, manutenção e indicadores ESG. Conteúdo conceitual, rende com resumo e questões.</p></div>
-      <div class="panel stack"><h3>Informática</h3><p class="muted">Windows 11, Office 2024, segurança e LGPD. ADS ajuda; foque em atalhos e Excel.</p></div>
-    </div>
-  </section>
-  <section class="stack">
-    <h2>O que tem no app</h2>
-    <div class="grid2">
-      <div class="panel mode"><span class="tag">${Object.keys(RES).length} assuntos</span><h3>Conteúdos</h3><p class="muted">Resumo de cada tópico do edital e ${BASE.length} lições de revisão da escola.${(()=>{const n=Object.values(S.read||{}).filter(Boolean).length;return n?` Você já leu ${n}.`:"";})()}</p><button class="btn ghost" onclick="go('cont')">Estudar</button></div>
-      <div class="panel mode"><span class="tag">${QV().length} questões</span><h3>Praticar</h3><p class="muted">${nEsp} específicas, ${QV().filter(q=>q.c==="port").length} de Português e ${QV().filter(q=>q.c==="mat").length} de Matemática. Simulado completo, mini simulado e treino por assunto.${last?` Último resultado: ${last.score}/${last.total} (${esc(last.label)}).`:""}</p><button class="btn" onclick="go('pratica')">Praticar</button></div>
-      <div class="panel mode"><span class="tag">${FC.length} cartões</span><h3>Jogos</h3><p class="muted">Flashcards, verdadeiro ou falso contra o relógio e associação de termos.</p><button class="btn ghost" onclick="go('jogos')">Jogar</button></div>
-    </div>
-  </section>`;
-  const gs=$("#goalSel"); if(gs) gs.onchange=()=>{S.goal=+gs.value;save();vHome();};
-}
 
 /* ---------- Praticar ---------- */
 /* Grupo recolhível; o estado aberto/fechado fica em S.fold[chave]. */
@@ -594,18 +554,6 @@ function streak(){
   if(!S.days[dkey(d)]) d.setDate(d.getDate()-1);
   while(S.days[dkey(d)]){n++; d.setDate(d.getDate()-1);}
   return n;
-}
-function todayPanel(){
-  const t=S.days[dkey(new Date())]||0, g=S.goal, st=streak();
-  const week=[...Array(7)].map((_,i)=>{const d=new Date(); d.setDate(d.getDate()-6+i); const v=S.days[dkey(d)]||0; return {v,l:"DSTQQSS"[d.getDay()],h:Math.min(100,v/g*100)};});
-  return `<section class="panel stack">
-    <div class="row" style="justify-content:space-between"><h3>Hoje</h3><span class="streak num">${st} ${st===1?"dia seguido":"dias seguidos"}</span></div>
-    <div class="row" style="justify-content:space-between"><span><b class="num">${t}</b> de <b class="num">${g}</b> questões da meta diária</span>${t>=g?'<span class="pill ok">Meta cumprida</span>':""}</div>
-    <div class="track"><div class="fill" style="width:${Math.min(100,t/g*100)}%"></div></div>
-    <div class="week7">${week.map(w=>`<div class="wd"><div class="wbar"><i style="height:${w.h}%"></i></div><span>${w.l}</span></div>`).join("")}</div>
-    <label class="row muted" for="goalSel" style="gap:8px">Meta diária <select id="goalSel">${[10,20,30,40,60].map(v=>`<option value="${v}" ${v===g?"selected":""}>${v} questões</option>`).join("")}</select></label>
-    <p class="muted">Contam as questões de simulados, treinos, revisão da escola e do V ou F. A sequência aumenta a cada dia com pelo menos uma questão.</p>
-  </section>`;
 }
 
 /* ---------- Revisão da escola ---------- */

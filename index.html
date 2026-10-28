@@ -1447,51 +1447,11 @@ function go(v){
   const tab=TABOF[v]||v;
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===tab));
   document.body.classList.toggle("focus",v==="quiz"||v==="real");
+  const cb=document.getElementById("cfgBtn"); if(cb) cb.setAttribute("aria-current",v==="config"?"page":"false");
   VIEWS[v]();
   window.scrollTo({top:0});
 }
 
-/* ---------- Início ---------- */
-function vHome(){
-  const nEsp=QV().filter(q=>!["port","mat"].includes(CATS[q.c].b)).length;
-  const last=S.hist[0];
-  const gk=todayK(), gits=dayItems(dayPlan(gk)), gdone=gits.filter(i=>itemDone(gk,i)).length;
-  $("#view").innerHTML=`
-  <div class="rule row" style="justify-content:space-between"><span><b>Plano de hoje:</b> <span class="num">${gdone} de ${gits.length}</span> etapas feitas${srsDue().length?` · ${srsDue().length} para revisar`:""}</span><button class="btn sm" onclick="go('guia')">Abrir Orientação</button></div>
-  ${todayPanel()}
-  <section class="stack">
-    <h2>Como a prova funciona</h2>
-    <div class="grid2">
-      <div class="panel fact"><span class="k">Questões</span><span class="v num">60</span><span class="muted">40 específicas + 10 de Português + 10 de Matemática, 5 alternativas cada</span></div>
-      <div class="panel fact"><span class="k">Duração</span><span class="v num">4 h</span><span class="muted">Saída só após 2 h. Chegar 1 h antes do início</span></div>
-      <div class="panel fact"><span class="k">Vagas + cadastro (RJ)</span><span class="v num">48</span><span class="muted">3 vagas imediatas; 29 na ampla concorrência</span></div>
-    </div>
-    <div class="rule stack">
-      <strong>O que elimina</strong>
-      <span>Menos de 20 acertos nas específicas, menos de 10 nas gerais, ou zero em Português ou em Matemática.</span>
-      <strong>O que classifica</strong>
-      <span>Passa para a fase seguinte quem estiver no ranking das <b>específicas</b> até 2 vezes o total de vagas + cadastro da modalidade. A nota final é a soma das duas fases. As 40 específicas decidem quem segue.</span>
-    </div>
-  </section>
-  <section class="stack">
-    <h2>Onde concentrar o estudo</h2>
-    <div class="grid2">
-      <div class="panel stack"><h3>Logística, compras e contratos</h3><p class="muted">O maior bloco do edital, com duas leis (13.303 e 14.133). Merece a maior fatia de horas.</p></div>
-      <div class="panel stack"><h3>Finanças e contabilidade</h3><p class="muted">Ponto que pede mais tempo: comece pela teoria básica e faça muitas questões com conta à mão.</p></div>
-      <div class="panel stack"><h3>Processos administrativos</h3><p class="muted">RH, SGI, patrimônio, manutenção e indicadores ESG. Conteúdo conceitual, rende com resumo e questões.</p></div>
-      <div class="panel stack"><h3>Informática</h3><p class="muted">Windows 11, Office 2024, segurança e LGPD. ADS ajuda; foque em atalhos e Excel.</p></div>
-    </div>
-  </section>
-  <section class="stack">
-    <h2>O que tem no app</h2>
-    <div class="grid2">
-      <div class="panel mode"><span class="tag">${Object.keys(RES).length} assuntos</span><h3>Conteúdos</h3><p class="muted">Resumo de cada tópico do edital e ${BASE.length} lições de revisão da escola.${(()=>{const n=Object.values(S.read||{}).filter(Boolean).length;return n?` Você já leu ${n}.`:"";})()}</p><button class="btn ghost" onclick="go('cont')">Estudar</button></div>
-      <div class="panel mode"><span class="tag">${QV().length} questões</span><h3>Praticar</h3><p class="muted">${nEsp} específicas, ${QV().filter(q=>q.c==="port").length} de Português e ${QV().filter(q=>q.c==="mat").length} de Matemática. Simulado completo, mini simulado e treino por assunto.${last?` Último resultado: ${last.score}/${last.total} (${esc(last.label)}).`:""}</p><button class="btn" onclick="go('pratica')">Praticar</button></div>
-      <div class="panel mode"><span class="tag">${FC.length} cartões</span><h3>Jogos</h3><p class="muted">Flashcards, verdadeiro ou falso contra o relógio e associação de termos.</p><button class="btn ghost" onclick="go('jogos')">Jogar</button></div>
-    </div>
-  </section>`;
-  const gs=$("#goalSel"); if(gs) gs.onchange=()=>{S.goal=+gs.value;save();vHome();};
-}
 
 /* ---------- Praticar ---------- */
 /* Grupo recolhível; o estado aberto/fechado fica em S.fold[chave]. */
@@ -2000,18 +1960,6 @@ function streak(){
   while(S.days[dkey(d)]){n++; d.setDate(d.getDate()-1);}
   return n;
 }
-function todayPanel(){
-  const t=S.days[dkey(new Date())]||0, g=S.goal, st=streak();
-  const week=[...Array(7)].map((_,i)=>{const d=new Date(); d.setDate(d.getDate()-6+i); const v=S.days[dkey(d)]||0; return {v,l:"DSTQQSS"[d.getDay()],h:Math.min(100,v/g*100)};});
-  return `<section class="panel stack">
-    <div class="row" style="justify-content:space-between"><h3>Hoje</h3><span class="streak num">${st} ${st===1?"dia seguido":"dias seguidos"}</span></div>
-    <div class="row" style="justify-content:space-between"><span><b class="num">${t}</b> de <b class="num">${g}</b> questões da meta diária</span>${t>=g?'<span class="pill ok">Meta cumprida</span>':""}</div>
-    <div class="track"><div class="fill" style="width:${Math.min(100,t/g*100)}%"></div></div>
-    <div class="week7">${week.map(w=>`<div class="wd"><div class="wbar"><i style="height:${w.h}%"></i></div><span>${w.l}</span></div>`).join("")}</div>
-    <label class="row muted" for="goalSel" style="gap:8px">Meta diária <select id="goalSel">${[10,20,30,40,60].map(v=>`<option value="${v}" ${v===g?"selected":""}>${v} questões</option>`).join("")}</select></label>
-    <p class="muted">Contam as questões de simulados, treinos, revisão da escola e do V ou F. A sequência aumenta a cada dia com pelo menos uma questão.</p>
-  </section>`;
-}
 
 /* ---------- Revisão da escola ---------- */
 let baseCur=null, baseAns={};
@@ -2061,7 +2009,7 @@ function initState(){
   S.daily=S.daily||{}; S.srs=S.srs||{}; S.notes=S.notes||{}; S.rem=S.rem||{on:false,h:"19:00"};
   S.days=S.days||{}; S.seen=S.seen||{}; S.base=S.base||{}; S.goal=S.goal||30;
   (S.wrong||[]).forEach(qi=>{if(!S.srs[qi]) S.srs[qi]={b:0,d:todayK()};});
-  S.fold=S.fold||{}; S.gm=S.gm||{}; S.ct=S.ct||{}; S.fcl=S.fcl||{};
+  S.st=Object.assign({h:"19:00",w:"09:00"},S.st||{}); S.fold=S.fold||{}; S.gm=S.gm||{}; S.ct=S.ct||{}; S.fcl=S.fcl||{};
   if(QID) remapState(S);
 }
 initState();
@@ -2125,7 +2073,7 @@ function dayItems(p){
   it.push({id:"meta",t:`Meta diária: ${S.goal} questões respondidas`,auto:true});
   return it;
 }
-function itemDone(k,i){return i.auto?(S.days[k]||0)>=S.goal:!!(S.daily[k]&&S.daily[k][i.id]);}
+function itemDone(k,i){if(i.chk) return i.chk(k)||!!(S.daily[k]&&S.daily[k][i.id]);return i.auto?(S.days[k]||0)>=S.goal:!!(S.daily[k]&&S.daily[k][i.id]);}
 function dayScore(k){const its=dayItems(dayPlan(k));return its.filter(i=>itemDone(k,i)).length/its.length;}
 
 /* ---------- Lembretes ---------- */
@@ -2151,7 +2099,7 @@ setInterval(remCheck,60000); setTimeout(remCheck,4000);
 async function remEnable(on){
   S.rem.on=on; S.rem.last=null;
   if(on&&"Notification" in window&&Notification.permission==="default"){try{await Notification.requestPermission();}catch(e){}}
-  save(); vGuiaKeep();
+  save(); vConfigKeep();
 }
 function notifState(){
   if(!("Notification" in window)) return "Este navegador não mostra notificações do sistema; o aviso aparece dentro do app.";
@@ -2160,67 +2108,6 @@ function notifState(){
   return "Ao ativar, o navegador pode pedir permissão para notificar.";
 }
 
-/* ---------- Orientação ---------- */
-function vGuia(){
-  const k=todayK(), p=dayPlan(k), its=dayItems(p), done=its.filter(i=>itemDone(k,i)).length;
-  const last14=[...Array(14)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);const kk=dkey(d);return {kk,s:kk<"2026-10-27"?null:dayScore(kk)};});
-  const full=(()=>{let n=0,d=new Date();if(dayScore(dkey(d))<1)d.setDate(d.getDate()-1);while(dkey(d)>="2026-10-27"&&dayScore(dkey(d))>=1){n++;d.setDate(d.getDate()-1);}return n;})();
-  const due=srsDue().length;
-  $("#view").innerHTML=`
-  <div class="stack"><h2>Hoje</h2><p class="muted">Seu plano do dia, montado a partir dos seus pontos fracos e da fase do cronograma. Marque cada etapa ao terminar.</p></div>
-  <section class="panel stack">
-    <div class="row" style="justify-content:space-between"><h3>Hoje, ${fmtK(k)}${p.ph?` · fase ${PHASES.indexOf(p.ph)+1}: ${esc(p.ph.t)}`:""}</h3><span class="streak num">${full} ${full===1?"dia completo":"dias completos"} seguidos</span></div>
-    <div class="row" style="justify-content:space-between"><span><b class="num">${done}</b> de <b class="num">${its.length}</b> etapas</span>${done===its.length?'<span class="pill ok">Dia concluído</span>':""}</div>
-    <div class="track"><div class="fill" style="width:${done/its.length*100}%"></div></div>
-    ${due?`<div class="rule row" style="justify-content:space-between"><span><b class="num">${due}</b> ${due===1?"questão errada volta":"questões erradas voltam"} hoje na revisão espaçada.</span><button class="btn sm" onclick="startWrong()">Revisar agora</button></div>`:""}
-    <div class="stack" style="gap:6px">${its.map(i=>{const ck=itemDone(k,i);return `<div class="task ${ck?"done":""}"><input type="checkbox" id="dl-${i.id}" ${ck?"checked":""} ${i.auto?"disabled":""}><label for="dl-${i.id}">${esc(i.t)}${i.auto?` <span class="tchip">automático · ${S.days[k]||0}/${S.goal}</span>`:""}</label>${i.act?`<button class="btn ghost sm" onclick="${i.act}">${i.lbl}</button>`:""}</div>`;}).join("")}</div>
-    <div class="stack" style="gap:6px"><span class="muted">Últimos 14 dias</span><div class="days14">${last14.map(x=>`<span class="d14 ${x.s===null?"na":x.s>=1?"full":x.s>=.5?"half":x.s>0?"low":""}" title="${fmtK(x.kk)}"><i>${x.kk.slice(8)}</i></span>`).join("")}</div></div>
-  </section>
-  <section class="panel stack">
-    <h3>Assuntos de prioridade</h3>
-    <p class="muted">Os 5 assuntos específicos com pior acerto até agora (assunto ainda sem questões conta como médio). Eles recebem 60% do tempo a partir da fase 2.</p>
-    <div class="row" style="gap:6px;flex-wrap:wrap">${weakCats(5).map(c=>{const pc=pct(S.stats[c]);return `<button class="chipbtn" onclick="openTopic('${c}')">${esc(CATS[c].n)}${pc!==null?` · ${pc}%`:""}</button>`;}).join("")}</div>
-  </section>
-  <section class="panel stack">
-    <h3>Lembrete diário</h3>
-    <div class="row" style="gap:10px;flex-wrap:wrap">
-      <label class="row" style="gap:8px"><input type="checkbox" id="remOn" ${S.rem.on?"checked":""} style="width:18px;height:18px;accent-color:var(--petrol)"> Avisar às</label>
-      <input type="time" id="remH" value="${S.rem.h}">
-      <button class="btn ghost sm" onclick="notify('Lembrete de teste','É assim que o aviso diário aparece.')">Testar</button>
-    </div>
-    <p class="muted">${notifState()} O aviso só dispara com o app aberto (no navegador ou no celular), porque uma página não consegue acordar o aparelho sozinha. Para receber o alerta mesmo com o app fechado, use um alarme no celular ou eventos na sua agenda.</p>
-  </section>
-  <section class="stack">
-    <h2>Plano até 06/12</h2>
-    <div class="phases">${PHASES.map((f,i)=>`<div class="panel phase ${p.ph===f?"cur":""}"><span class="tag">Fase ${i+1} · ${fmtK(f.a)} a ${fmtK(f.b)}${p.ph===f?" · agora":""}</span><h3>${esc(f.t)}</h3><p class="muted">${esc(f.d)}</p></div>`).join("")}</div>
-    <div class="rule">Toda semana, confira a previsão de nota na aba Progresso. Se o acerto nas específicas não subir por duas semanas seguidas, mude o método naquele assunto (mais teoria ou mais questões comentadas), e não só a quantidade de horas.</div>
-    <div><button class="btn ghost sm" onclick="go('crono')">Ver o cronograma dia a dia até a prova</button></div>
-  </section>
-  <section class="stack">
-    <h2>Método de estudo diário</h2>
-    <p class="muted">Questões em 70% do tempo e teoria em 30%. Tentar lembrar a resposta antes de conferir fixa mais do que reler o resumo.</p>
-    <ol class="steps">
-      <li><b>Aquecimento, 10 min:</b> revise as questões erradas (Revisar erradas) ou faça um V ou F.</li>
-      <li><b>Teoria curta, 30 min:</b> leia o resumo de um assunto em Conteúdos. Feche e escreva de memória 3 a 5 pontos principais.</li>
-      <li><b>Questões, 45 min:</b> 30 min do mesmo assunto e 15 de outro assunto ou de Português e Matemática. Misturar temas treina você a reconhecer o assunto sem aviso, como na prova.</li>
-      <li><b>Caderno de erros, 10 min:</b> para cada erro, anote por que errou: não sabia, confundiu, leu rápido ou errou a conta. O app traz as notas de volta depois de 1, 3, 7 e 15 dias.</li>
-    </ol>
-    <h3>Regras que fazem diferença</h3>
-    <ul class="res">
-      <li>Estude em blocos de 50 minutos com 10 de pausa, longe do celular.</li>
-      <li>A Cesgranrio cobra a definição do livro (Chiavenato, Ballou, Viana, Martins e Alt, Dias). Quando duas alternativas parecerem certas, fique com a mais próxima da definição clássica.</li>
-      <li>Faça as contas de Matemática e Matemática Financeira à mão: na prova, calculadora é proibida.</li>
-      <li>Ensine em voz alta o que estudou, como se explicasse a um colega. Onde você travar é o que precisa rever.</li>
-      <li>Durma de 7 a 8 horas. A memória do dia se consolida no sono, e virar noite custa mais do que rende.</li>
-      <li>Na prova, errar não desconta: nunca deixe questão em branco.</li>
-    </ul>
-  </section>
-  ${syncPanel()}`;
-  its.forEach(i=>{const c=$("#dl-"+i.id); if(c&&!i.auto) c.onchange=()=>{S.daily[k]=S.daily[k]||{};S.daily[k][i.id]=c.checked;save();vGuiaKeep();};});
-  $("#remOn").onchange=e=>remEnable(e.target.checked);
-  $("#remH").onchange=e=>{S.rem.h=e.target.value||"19:00";S.rem.last=null;save();};
-  syncWire(); syncLbl();
-}
 function vGuiaKeep(){const y=window.scrollY;vGuia();window.scrollTo({top:y});}
 
 /* ---------- Caderno de erros ---------- */
@@ -2435,17 +2322,6 @@ function syncText(){
   return window.claude&&window.claude.use?"Este aparelho ainda não está ligado à sua conta do claude.ai. Use a sincronização automática acima ou o código de backup abaixo.":"A conta do claude.ai só vale no link do claude.ai. Aqui, use a sincronização automática acima; o código de backup abaixo é a cópia manual.";
 }
 function syncLbl(){document.querySelectorAll(".synclbl").forEach(e=>{e.textContent=syncText();e.className="synclbl "+(SYNC.st==="ok"?"ok":SYNC.st==="err"?"bad":"");});}
-function syncPanel(){
-  return `<section class="panel stack" id="syncSec"><h3>Backup e sincronização</h3>
-    <p class="synclbl">${esc(syncText())}</p>
-    <details class="rev"><summary><span class="mark">⇄</span><span>Copiar o progresso por código (sem conta)</span></summary>
-    <div class="stack" style="margin-top:10px">
-      <p class="muted">No aparelho antigo, gere e copie o código. No novo, cole o código e importe. A importação substitui o progresso do aparelho novo.</p>
-      <div class="row"><button class="btn ghost sm" id="bkGen">Gerar código</button><button class="btn ghost sm" id="bkCopy">Copiar</button></div>
-      <textarea id="bkTxt" rows="3" placeholder="Cole aqui o código de backup"></textarea>
-      <div class="row"><button class="btn sm" id="bkImp">Importar código</button><span class="muted" id="bkMsg"></span></div>
-    </div></details></section>`;
-}
 function syncWire(){
   const g=$("#bkGen"); if(!g) return;
   g.onclick=()=>{$("#bkTxt").value="TP26:"+btoa(unescape(encodeURIComponent(JSON.stringify(S))));$("#bkMsg").textContent="Código gerado.";};
@@ -2545,20 +2421,8 @@ vResult=function(){
 };
 
 /* ---------- Hoje (antigo Início + Orientação) ---------- */
-const _vGuia=vGuia;
-vGuia=function(){
-  _vGuia();
-  const v=$("#view");
-  v.insertAdjacentHTML("afterbegin",runBanner());
-  const first=v.querySelector("section.panel");
-  if(first) first.insertAdjacentHTML("afterend",pomoPanel()+todayPanel());
-  v.insertAdjacentHTML("beforeend",aboutExam());
-  const gs=$("#goalSel"); if(gs) gs.onchange=()=>{S.goal=+gs.value;save();vGuiaKeep();};
-  pomoWire();
-  const ib=$("#instBtn"); if(ib) ib.onclick=async()=>{if(!instEvt)return;instEvt.prompt();try{await instEvt.userChoice;}catch(e){}instEvt=null;ib.remove();};
-};
 let instEvt=null;
-window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();instEvt=e;if(current==="guia"||current==="home"){const s=$("#syncSec");if(s&&!$("#instBtn"))s.insertAdjacentHTML("beforeend",'<button class="btn" id="instBtn">Instalar o app no aparelho</button>');const ib=$("#instBtn");if(ib)ib.onclick=async()=>{instEvt.prompt();instEvt=null;ib.remove();};}});
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();instEvt=e;if(current==="config")vConfigKeep();});
 function aboutExam(){
   return `<details class="panel about"><summary><h3>Como a prova funciona</h3></summary><div class="stack" style="margin-top:12px">
     <div class="grid2">
@@ -3226,13 +3090,6 @@ function dailyIds(){
   return out;
 }
 function startDaily(){makeQuiz(dailyIds(),"train","Desafio do dia",0);quiz.daily=true;}
-function dailyPanel(){
-  const d=S.gm.dch||{}, done=d.last===todayK();
-  const y=new Date();y.setDate(y.getDate()-1);const alive=done||d.last===dkey(y), st=alive?(d.streak||0):0;
-  return `<section class="panel stack"><div class="row" style="justify-content:space-between"><h3>Desafio do dia</h3><span class="streak num">${st} ${st===1?"dia seguido":"dias seguidos"}</span></div>
-  <p class="muted">${done?`Feito hoje: ${d.score}/5. Volte amanhã para manter a sequência (recorde: ${d.best||st} dias).`:"5 questões rápidas: 3 dos seus assuntos mais fracos, 1 de Português ou Matemática e 1 específica. Leva uns 10 minutos."}</p>
-  ${done?"":`<div><button class="btn" onclick="startDaily()">Fazer o desafio</button></div>`}</section>`;
-}
 
 /* ---------- Telas existentes: novos atalhos ---------- */
 const _vJogos5=vJogos;
@@ -3296,14 +3153,6 @@ function outsidePanel(){
   <div class="row" style="gap:8px;flex-wrap:wrap"><a class="btn ghost sm" href="${gcalLink()}" target="_blank" rel="noopener">Criar lembrete diário no Google Agenda</a>${IS_PWA?`<button class="btn sm" onclick="icsDownload()">Baixar agenda com as tarefas (.ics)</button>`:`<a class="btn ghost sm" href="https://pedro1105.github.io/estudos-transpetro/" target="_blank" rel="noopener">Abrir a versão do GitHub</a>`}</div>
   <span class="muted" id="icsMsg">${IS_PWA&&"periodicSync" in (window.ServiceWorkerRegistration?ServiceWorkerRegistration.prototype:{})?"No Android, com o app instalado, o celular também tenta avisar sozinho no horário do lembrete (o sistema decide o momento exato).":""}</span></section>`;
 }
-const _vGuia5=vGuia;
-vGuia=function(){
-  _vGuia5();
-  const v=$("#view"), first=v.querySelector("section.panel");
-  if(first) first.insertAdjacentHTML("afterend",dailyPanel());
-  const rem=$("#remOn"); const sec=rem&&rem.closest("section");
-  if(sec){const p=sec.querySelector("p.muted");if(p)p.textContent=notifState()+" Este aviso aparece com o app aberto. Para avisos com o app fechado, veja o quadro abaixo.";sec.insertAdjacentHTML("afterend",outsidePanel());}
-};
 /* lembrete pelo service worker (versão instalada) */
 async function swRemSync(){
   if(!IS_PWA||!("serviceWorker" in navigator)) return;
@@ -3436,6 +3285,10 @@ dayItems=function(p){
   if(a[4]) it.push({id:"ger",t:`${n++}. ${a[4]==="port"?"Português":"Matemática"} (25 min): ${a[5]}`,act:`startTrainCat('${a[4]}')`,lbl:"Treinar"});
   if(sp==="rev") it.push({id:"rev",t:`${n++}. Revisão da semana (30 min): flashcards e pegadinhas dos assuntos da semana`,act:"go('peg')",lbl:"Abrir"});
   if(!it.find(x=>x.id==="cor")) it.push({id:"cad",t:`${n++}. Caderno de erros (10 min): anotar o motivo de cada erro do dia`,act:"go('caderno')",lbl:"Abrir"});
+  if(p.k>="2026-10-28"){
+    it.push({id:"dch",t:`${n++}. Desafio do dia (10 min): 5 questões rápidas dos seus pontos fracos`,act:"startDaily()",lbl:"Jogar",chk:k=>!!(S.gm.dch&&S.gm.dch.last===k)});
+    it.push({id:"prog",t:`${n++}. Fechamento (5 min): conferir o acerto do dia e onde está perdendo pontos`,act:"go('stats')",lbl:"Ver"});
+  }
   it.push({id:"meta",t:`Meta: ${S.goal} questões respondidas no dia`,auto:true});
   return it;
 };
@@ -3464,20 +3317,21 @@ vCrono=function(){
         <span class="agfoco"><b>${esc(a[0])}</b>${a[4]&&a[5]?`<i class="muted">+ ${a[4]==="port"?"Português":"Matemática"}: ${esc(a[5])}</i>`:""}</span>
         <span class="agst">${tp[0]!=="Conteúdo"?`<span class="pill ${tp[1]}">${tp[0]}</span>`:""}<span class="muted num">${st}</span></span>
       </button>
-      ${open?`<div class="stack" style="gap:4px">${its.map(i=>{const ck=itemDone(k,i);return `<div class="task ${ck?"done":""}"><input type="checkbox" data-k="${k}" data-i="${i.id}" id="ag-${k}-${i.id}" ${ck?"checked":""} ${i.auto?"disabled":""}><label for="ag-${k}-${i.id}">${esc(i.t)}${i.auto?` <span class="tchip">automático · ${S.days[k]||0}/${S.goal}</span>`:""}</label>${i.act&&k>=t?`<button class="btn ghost sm" onclick="${i.act}">${i.lbl}</button>`:""}</div>`;}).join("")}</div>`:""}
+      ${open?`<div class="tlist">${tlHTML(k,its,"ag-"+k+"-",k===t)}</div>${(()=>{const m=its.find(i=>i.auto);return m?`<p class="muted">${esc(m.t)}${k<=t?` · ${S.days[k]||0} respondidas`:""}</p>`:"";})()}`:""}
     </section>`;
   };
   $("#view").innerHTML=`
   <div class="stack"><h2>Cronograma até 06/12</h2>
-  <p class="muted">O que fazer em cada dia, do primeiro ao último. Dias úteis: cerca de 2 h (aquecimento, teoria, questões do assunto, Português ou Matemática e caderno de erros). Fins de semana e feriados: simulado ou dia mais longo. Toque no dia para ver as tarefas e os botões que abrem cada atividade. É o mesmo checklist da aba Hoje.</p></div>
+  <p class="muted">A programação de cada dia, com horários, a área do app e o que fazer. Toque no dia para abrir; o dia de hoje é o mesmo da tela Hoje.</p></div>
   <div class="panel row" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
     <span><b class="num">${left}</b> dias até a prova</span><span><b class="num">${full}</b> de <b class="num">${past.length}</b> dias anteriores completos</span>
     ${AG[t]?`<button class="btn sm" onclick="document.getElementById('ag-${t}').scrollIntoView({block:'center'})">Ir para hoje</button>`:""}
   </div>
+  ${foldHTML("plano","Plano até 06/12 e método de estudo","as 4 fases e como estudar cada dia",planMethod(),false)}
   ${agWeeks().map((w,i)=>`<div class="stack" style="gap:8px"><h3 class="agwk">Semana ${i+1} · ${fmtK(w[0])} a ${fmtK(w[w.length-1])}</h3>${w.map(card).join("")}</div>`).join("")}
-  <section class="panel stack"><h3>Lista de conteúdos por semana (antiga)</h3><p class="muted">Mantida para quem já marcou tarefas nela.</p>
-  ${PLAN.map(w=>`<details><summary>${esc(w.t)} · ${esc(w.f)} <span class="muted num">${w.d}</span></summary>${w.tasks.map((x,i)=>{const id=w.id+"-"+i,ck=!!S.plan[id];return `<div class="task ${ck?"done":""}"><input type="checkbox" class="oldp" id="${id}" ${ck?"checked":""}><label for="${id}">${esc(x[0])} <span class="tchip">${x[1]}</span></label></div>`;}).join("")}</details>`).join("")}</section>`;
-  document.querySelectorAll(".agday .task input").forEach(c=>c.onchange=()=>{const k=c.dataset.k;S.daily[k]=S.daily[k]||{};S.daily[k][c.dataset.i]=c.checked;save();vCronoKeep();});
+  ${Object.values(S.plan||{}).some(Boolean)?`<section class="panel stack"><h3>Lista de conteúdos por semana (antiga)</h3><p class="muted">Mantida para quem já marcou tarefas nela.</p>
+  ${PLAN.map(w=>`<details><summary>${esc(w.t)} · ${esc(w.f)} <span class="muted num">${w.d}</span></summary>${w.tasks.map((x,i)=>{const id=w.id+"-"+i,ck=!!S.plan[id];return `<div class="task ${ck?"done":""}"><input type="checkbox" class="oldp" id="${id}" ${ck?"checked":""}><label for="${id}">${esc(x[0])} <span class="tchip">${x[1]}</span></label></div>`;}).join("")}</details>`).join("")}</section>`:""}`;
+  document.querySelectorAll(".agday .tl input").forEach(c=>c.onchange=()=>{const k=c.dataset.k;S.daily[k]=S.daily[k]||{};S.daily[k][c.dataset.i]=c.checked;save();vCronoKeep();});
   document.querySelectorAll(".task input.oldp").forEach(c=>c.onchange=()=>{S.plan[c.id]=c.checked;save();vCronoKeep();});
 };
 (function(){const st=document.createElement("style");st.textContent=`
@@ -3588,23 +3442,6 @@ RES.mat.push(["Trigonometria",["No triângulo retângulo: **sen = oposto ÷ hipo
 
 /* ---------- 17. v12: telas mais limpas (seções secundárias recolhíveis) ---------- */
 S.fold=S.fold||{};
-function foldGroup(key,title,nodes,anchor,sub){
-  nodes=nodes.filter(Boolean); if(!nodes.length) return;
-  const d=document.createElement("details"); d.className="panel fold"; d.dataset.k=key; d.open=!!S.fold[key];
-  d.innerHTML=`<summary><span>${esc(title)}</span>${sub?`<span class="muted">${esc(sub)}</span>`:""}</summary><div class="stack foldin"></div>`;
-  const at=anchor||nodes.find(n=>n.isConnected); if(!at) return; at.before(d);
-  const box=d.querySelector(".foldin"); nodes.forEach(n=>{n.classList.remove("panel");n.classList.add("inner");box.appendChild(n);});
-}
-const secBy=(t)=>[...document.querySelectorAll("#view > section, #view > div, #view > details")].find(e=>{const h=e.querySelector("h2,h3");return h&&h.textContent.trim().startsWith(t);});
-const _vGuia12=vGuia;
-vGuia=function(){
-  _vGuia12();
-  const meta=[...document.querySelectorAll("#view > section")].find(e=>{const h=e.querySelector("h3");return h&&h.textContent.trim()==="Hoje";});
-  foldGroup("ferr","Cronômetro e meta diária",[secBy("Cronômetro de estudo"),meta],null,"blocos de 50 min, sequência de dias");
-  foldGroup("avis","Lembretes e avisos",[secBy("Lembrete diário"),secBy("Avisos com o app fechado")],null,"horário do aviso, Google Agenda");
-  foldGroup("plan","Plano e método de estudo",[secBy("Plano até 06/12"),secBy("Método de estudo diário")],null,"as 4 fases e como estudar cada dia");
-  foldGroup("bkp","Backup e sincronização",[secBy("Backup e sincronização")],null,"sincronização automática entre aparelhos e backup");
-};
 (function(){const st=document.createElement("style");st.textContent=`
 details.fold{padding:0}
 details.fold>summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:14px 44px 14px 16px;position:relative;font-weight:600}
@@ -3656,20 +3493,26 @@ async function mcpReady(ask){
   if(!IN_CLAUDE) return false;
   if(CL.mcp) return true;
   try{
-    if(!ask){const perm=await window.claude.use("permissions");if(perm){const st=await perm.state("mcp");if(st!=="granted") return false;}}
+    const perm=await window.claude.use("permissions");
+    if(perm){const st=await perm.state("mcp");if(st!=="granted"){if(!ask) return false;const r=await perm.request("mcp");if(r&&r.mcp&&r.mcp!=="granted") return false;}}
     CL.mcp=await window.claude.use("mcp"); return !!CL.mcp;
   }catch(e){return false;}
 }
 async function rpcMcp(fn,args){
   const tag="$tp"+Math.random().toString(36).slice(2,8)+"$";
   const lit=v=>typeof v==="number"?String(Math.round(v)):tag+String(v).split(tag).join("")+tag;
-  const params=fn==="tp_get"?[lit(args.p_code)]:[lit(args.p_code),lit(args.p_s),lit(args.p_upd),lit(args.p_base)];
+  const params=fn!=="tp_save"?[lit(args.p_code)]:[lit(args.p_code),lit(args.p_s),lit(args.p_upd),lit(args.p_base)];
   const res=await CL.mcp.callTool("Supabase","execute_sql",{project_id:SB_REF,query:`select public.${fn}(${params.join(",")})::text as r`},{cache:false});
   let p=res&&res.payload; if(p&&typeof p==="object"&&p.result) p=p.result; if(typeof p!=="string") p=JSON.stringify(p);
   const m=/<untrusted-data[^>]*>\s*([\s\S]*?)\s*<\/untrusted-data/.exec(p); const arr=JSON.parse(m?m[1]:p);
   const r=Array.isArray(arr)&&arr[0]?arr[0].r:null; return r?JSON.parse(r):null;
 }
+/* no claude.ai, o último erro de sincronização fica no banco da página, para diagnóstico */
+function clLog(e){try{if(!SYNC.db||!SYNC.uid||Date.now()-(CL.logAt||0)<60000) return;CL.logAt=Date.now();SYNC.db.doc("data/users/"+SYNC.uid+"/synclog").set({err:String(e&&e.message||e).slice(0,300),via:CL.via,st:CL.st,at:Date.now(),code:!!CL.code});}catch(x){}}
 async function rpc(fn,args,ask){
+  try{return await rpc0(fn,args,ask);}catch(e){clLog(e);throw e;}
+}
+async function rpc0(fn,args,ask){
   if(CL.via==="fetch"){
     try{
       const r=await fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(args)});
@@ -3750,12 +3593,23 @@ async function clPull(){
   CL.busy=false; clLbl();
   if(then==="push") clPush();
 }
-function clKick(){if(!CL.code&&S.cloud){CL.code=S.cloud;clStore();}if(!CL.code) return;clearTimeout(CL.t);CL.t=setTimeout(CL.base?clPush:clPull,3000);}
+function clKick(){if(!CL.code&&S.cloud){CL.code=S.cloud;clStore();}if(!CL.code) return;clearTimeout(CL.t);CL.t=setTimeout(CL.base?clPush:clPull,2000);}
 SAVE_HOOKS.push(clKick);
-document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible") clPull();});
-setInterval(()=>{if(document.visibilityState==="visible"&&!(quiz&&!quiz.finished&&current==="quiz")) clPull();},90000);
+/* Atualização quase ao vivo: a cada 15 s (60 s pelo conector do Claude) pergunta só a versão da nuvem
+   (tp_ver, poucos bytes) e baixa o progresso inteiro apenas quando ela mudou. */
+async function clCheck(){
+  if(!CL.code&&S.cloud){CL.code=S.cloud;clStore();}
+  if(!CL.code||CL.busy||document.visibilityState!=="visible") return;
+  if(CL.via==="mcp"&&Date.now()-(CL.lastMcp||0)<55000) return;
+  if(CL.via==="mcp") CL.lastMcp=Date.now();
+  try{const v=await rpc("tp_ver",{p_code:CL.code});if(v!==CL.base||(S.upd||0)>CL.base) clPull();else if(CL.st!=="ok"){CL.st="ok";CL.at=new Date();clLbl();}}
+  catch(e){CL.st=e.message==="needmcp"?"needmcp":"err";CL.err=String(e.message||e);clLbl();}
+}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible") clPull();else if(CL.code&&CL.base&&(S.upd||0)>CL.base){clearTimeout(CL.t);clPush();}});
+window.addEventListener("online",()=>clPull());
+setInterval(clCheck,15000);
 
-/* Conectar este aparelho a um código: pergunta o que fazer quando os dois lados já têm progresso. */
+/* Conectar este aparelho a um código: se os dois lados já têm progresso, junta os dois sozinho. */
 const hasProgress=st=>!!st&&((st.hist||[]).length>0||Object.keys(st.seen||{}).length>0);
 async function clLink(code,ask){
   code=String(code||"").trim().toLowerCase();
@@ -3765,67 +3619,18 @@ async function clLink(code,ask){
   try{r=await rpc("tp_get",{p_code:code},ask);}catch(e){CL.st=e.message==="needmcp"?"needmcp":"err";clLbl();toast("Sem conexão agora","O código foi guardado; a sincronização tenta de novo sozinha.");return;}
   if(!r){S.cloud=code;save();toast("Sincronização ativada","Este aparelho passa a enviar o progresso para a nuvem.");return;}
   const remote=JSON.parse(r.s);
-  let pick="cloud";
-  if(hasProgress(S)&&hasProgress(remote)) pick=await askMerge(remote);
-  if(pick==="cancel"){CL.code=null;clStore();clLbl();return;}
-  if(pick==="cloud"){clAdopt(remote,r.upd);CL.base=r.upd;clStore();clSnap(remote);}
-  else if(pick==="local"){S.cloud=code;S.upd=Math.max(Date.now(),r.upd+1);saveLocal();CL.base=r.upd;clStore();await clPush();}
+  if(!(hasProgress(S)&&hasProgress(remote))){clAdopt(remote,r.upd);CL.base=r.upd;clStore();clSnap(remote);}
   else{const m=mergeS(S,remote,null);clAdopt(m,Math.max(Date.now(),r.upd+1));CL.base=r.upd;clStore();await clPush();}
   toast("Aparelho conectado","O progresso agora é o mesmo nos aparelhos conectados.");
 }
-function askMerge(remote){
-  const n=st=>Object.keys(st.seen||{}).length, h=st=>(st.hist||[]).length;
-  return modal(`<h3>Os dois lados já têm progresso</h3>
-    <p class="muted">Neste aparelho: <b class="num">${n(S)}</b> questões respondidas, <b class="num">${h(S)}</b> simulados e treinos. Na nuvem: <b class="num">${n(remote)}</b> questões, <b class="num">${h(remote)}</b> simulados e treinos.</p>
-    <p class="muted">Juntar soma o que cada lado tem: questões vistas, revisões, caderno de erros, dias de estudo e histórico. Nas contagens por assunto fica a maior das duas.</p>`,
-    [["merge","Juntar os dois (recomendado)","btn"],["cloud","Usar só o da nuvem","btn ghost"],["local","Usar só o deste aparelho","btn ghost"],["cancel","Cancelar","btn ghost"]]).then(r=>r.v);
-}
-function clOff(){if(!confirm("Desconectar este aparelho? O progresso continua salvo aqui e na nuvem.")) return;CL.code=null;CL.base=0;CL.st="off";clStore();clSnap(null);delete S.cloud;saveLocal();clLbl();vGuiaKeep();}
-function clText(){
-  if(!CL.code) return "Desligada. Ative para usar o mesmo progresso no PC, no celular e nos dois links do app.";
-  if(CL.st==="ok") return "Sincronizado"+(CL.at?" às "+CL.at.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"")+". Todo aparelho conectado com este código recebe o mesmo progresso.";
-  if(CL.st==="needmcp") return "Nesta versão do claude.ai, a sincronização precisa da sua permissão para usar o conector Supabase. Toque em “Permitir”.";
-  if(CL.st==="err") return navigator.onLine?"Não foi possível sincronizar agora; o app tenta de novo sozinho. O progresso continua salvo neste aparelho.":"Sem internet. O progresso fica salvo aqui e sobe quando a conexão voltar.";
-  return "Conectando…";
-}
-function clLbl(){document.querySelectorAll(".cllbl").forEach(e=>{e.textContent=clText();e.className="cllbl "+(CL.st==="ok"?"ok":CL.st==="err"||CL.st==="needmcp"?"bad":"");});const b=$("#clMcp");if(b)b.hidden=CL.st!=="needmcp";}
-function clPanel(){
-  const link=CL.code?GH_URL+"#sync="+CL.code:"";
-  return `<div class="stack clbox"><h3>Sincronização automática</h3>
-    <p class="cllbl">${esc(clText())}</p>
-    ${CL.code?`<div class="stack" style="gap:8px">
-      <span class="muted">Código deste progresso (guarde, é a chave de acesso):</span>
-      <code class="clcode num">${esc(CL.code)}</code>
-      <div class="row" style="gap:8px;flex-wrap:wrap">
-        <button class="btn sm" id="clMcp" ${CL.st==="needmcp"?"":"hidden"}>Permitir</button>
-        <button class="btn ghost sm" id="clCopy">Copiar código</button>
-        <button class="btn ghost sm" id="clLinkCopy">Copiar link do app instalável já conectado</button>
-        <button class="btn ghost sm" id="clNow">Sincronizar agora</button>
-        <button class="btn ghost sm" id="clOff">Desconectar</button>
-      </div>
-      <p class="muted">No celular, abra o link copiado no Chrome: o app já entra conectado. No link do claude.ai, cole o código em “Já tenho um código”.</p></div>`
-    :`<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn sm" id="clOn">Ativar sincronização</button></div>`}
-    <details class="rev"><summary><span class="mark">⇄</span><span>Já tenho um código</span></summary>
-      <div class="stack" style="margin-top:10px"><input id="clIn" placeholder="tp-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx" autocomplete="off" autocapitalize="off" spellcheck="false"><div class="row"><button class="btn sm" id="clGo">Conectar este aparelho</button></div></div>
-    </details></div>`;
-}
-function clWire(){
-  const on=$("#clOn"); if(on) on.onclick=async()=>{CL.code=newCode();CL.base=0;S.cloud=CL.code;clStore();save();vGuiaKeep();await clPush();if(CL.st==="needmcp"){vGuiaKeep();}};
-  const cp=$("#clCopy"); if(cp) cp.onclick=()=>copyTxt(CL.code,"Código copiado");
-  const lk=$("#clLinkCopy"); if(lk) lk.onclick=()=>copyTxt(GH_URL+"#sync="+CL.code,"Link copiado","Abra no celular ou no PC para conectar o app instalável.");
-  const nw=$("#clNow"); if(nw) nw.onclick=async()=>{CL.st="";clLbl();await clPull();};
-  const off=$("#clOff"); if(off) off.onclick=clOff;
-  const mc=$("#clMcp"); if(mc) mc.onclick=async()=>{CL.via="mcp";if(await mcpReady(true)){CL.st="";clLbl();await clPull();}};
-  const go2=$("#clGo"); if(go2) go2.onclick=async()=>{await clLink($("#clIn").value,true);vGuiaKeep();};
-}
 async function copyTxt(t,ok,sub){try{await navigator.clipboard.writeText(t);toast(ok,sub||"");}catch(e){prompt("Copie o texto:",t);}}
 /* o painel entra no lugar do texto de status da sincronização antiga, dentro de "Backup e sincronização" */
-const _syncPanel13=syncPanel;
-syncPanel=function(){return _syncPanel13().replace(/<h3>Backup e sincronização<\/h3>/,'<h3 class="vh">Backup e sincronização</h3>'+clPanel()+'<h3 class="muted" style="font-size:14px;margin-top:6px">Conta do claude.ai e código de backup</h3>');};
-const _syncWire13=syncWire; syncWire=function(){_syncWire13();clWire();};
 /* link #sync=código (abre o app já conectado) */
 (function(){const m=/[#&]sync=(tp-[a-z0-9-]+)/.exec(location.hash||"");if(!m) return;try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}if(m[1]!==CL.code) setTimeout(()=>clLink(m[1],true),400);})();
 setTimeout(clPull,1200);
+/* no claude.ai a sincronização liga sozinha: se depois de carregar a conta ainda não houver código,
+   cria um; ele vai junto no progresso da conta e chega aos outros aparelhos com o mesmo login */
+if(IN_CLAUDE) setTimeout(()=>{if(SYNC.st==="ok"&&!CL.code&&!S.cloud){CL.code=newCode();CL.base=0;S.cloud=CL.code;clStore();save();}},8000);
 
 /* ---------- 20. v13: janela de diálogo simples ---------- */
 function modal(html,buttons){
@@ -3872,7 +3677,7 @@ const FZK="transpetro26-fz", FZS=[1,1.12,1.25,1.4,.92];
 let fz=1; try{fz=+localStorage.getItem(FZK)||1;}catch(e){}
 function fzApply(){document.documentElement.style.setProperty("--fz",fz);const b=$("#fzBtn");if(b)b.innerHTML=`<span aria-hidden="true">Aa</span><span class="tlbl">Letra ${Math.round(fz*100)}%</span>`;document.querySelectorAll(".fzq").forEach(x=>x.title="Letra "+Math.round(fz*100)+"%");}
 function fzCycle(){const i=FZS.indexOf(fz);fz=FZS[(i+1)%FZS.length];try{localStorage.setItem(FZK,fz);}catch(e){}fzApply();toast("Tamanho da letra: "+Math.round(fz*100)+"%","Toque de novo para mudar.");}
-(function(){const t=$("#themeBtn");if(!t) return;const b=document.createElement("button");b.className="themebtn fzbtn";b.id="fzBtn";b.type="button";b.setAttribute("aria-label","Tamanho da letra");b.onclick=fzCycle;t.after(b);fzApply();})();
+fzApply();
 
 /* ---------- 23. v13: resumo semanal ---------- */
 /* semana de segunda a domingo; os blocos usam o histórico de simulados/treinos (S.hist) e
@@ -3915,7 +3720,7 @@ vStats=function(){
   _vStats13();
   const seg=$("#view .segtabs"), h=$("#view h2"), at=(h||seg);
   const k=todayK(), a=monday(k);
-  at.insertAdjacentHTML("afterend",weekPanel(a,"Resumo da semana")+repPanel());
+  at.insertAdjacentHTML("afterend",weekPanel(a,"Resumo da semana")+prioPanel()+repPanel());
 };
 function weekCard(){
   const k=todayK(), wd=kDate(k).getDay();
@@ -3924,16 +3729,6 @@ function weekCard(){
   if(S.wkSeen===a) return "";
   return `<div class="wkwrap">${weekPanel(a,wd===0?"Resumo da semana":"Resumo da semana passada").replace('<div class="row" style="justify-content:space-between"><h3>',`<div class="row" style="justify-content:space-between"><button class="linkbtn wkx" onclick="S.wkSeen='${a}';save();vGuiaKeep()" aria-label="Fechar o resumo">Fechar</button><h3>`)}</div>`;
 }
-const _vGuia13=vGuia;
-vGuia=function(){
-  _vGuia13();
-  const v=$("#view"), first=v.querySelector(":scope > section.panel, :scope > div.panel");
-  const card=weekCard(); if(card&&first) first.insertAdjacentHTML("afterend",card);
-  if(!CL.code&&!S.clHint){
-    const at=v.querySelector(":scope > section.panel"); if(at) at.insertAdjacentHTML("afterend",`<div class="rule row clhint" style="justify-content:space-between;gap:8px"><span>Use o mesmo progresso no PC, no celular e nos dois links: ative a sincronização automática.</span><span class="row" style="gap:6px"><button class="btn sm" id="clHintGo">Ativar</button><button class="btn ghost sm" onclick="S.clHint=1;save();vGuiaKeep()">Agora não</button></span></div>`);
-    const g=$("#clHintGo"); if(g) g.onclick=()=>{const d=$('#view details.fold[data-k="bkp"]');if(d){d.open=true;d.scrollIntoView({behavior:"smooth"});}};
-  }
-};
 
 (function(){const st=document.createElement("style");st.textContent=`
 #view{zoom:var(--fz,1)}
@@ -3958,6 +3753,260 @@ dialog.tpdlg textarea,.clbox input{width:100%;box-sizing:border-box;font:inherit
 .wkd{text-align:right;font-size:13px}.wkd.ok{color:var(--ok)}.wkd.bad{color:var(--bad)}
 .wkx{order:2;font-size:12px;color:var(--muted)}
 .qhead .fzq{min-width:40px}
+`;document.head.appendChild(st);})();
+
+/* ---------- 24. v14: tela Hoje enxuta, programação do dia e Configurações ---------- */
+
+/* Áreas do app: cada etapa do dia diz em qual área acontece e como aproveitar */
+const AREAS={
+  est:{n:"Estudar",v:"cont",how:"Resumo do assunto do dia (toque em Ouvir para escutar no caminho), quadros comparativos e fórmulas no fim do resumo, Pegadinhas da banca e a Revisão da véspera. Leia, feche e escreva de memória 3 a 5 pontos."},
+  pra:{n:"Praticar",v:"pratica",how:"Onde você ganha pontos: Revisar erradas todo dia primeiro; Treino por assunto com correção na hora; Treino adaptativo quando não souber o que fazer; simulados e Modo prova real nos dias marcados; Caderno de erros para anotar por que errou."},
+  jog:{n:"Jogos",v:"jogos",how:"Fixação rápida para os intervalos: Desafio do dia (5 questões), Flashcards, V ou F relâmpago, Lei seca, Cálculo sem calculadora, Ache o erro e Ordene as fases. 10 minutos por dia já mantêm a memória viva."},
+  prog:{n:"Progresso",v:"stats",how:"Fechamento do dia em 5 minutos: acerto por assunto, onde está perdendo pontos, previsão de nota e o resumo da semana com os 3 focos. Uma vez por semana, confira se o acerto nas específicas subiu."}
+};
+const STEP_AREA={aq:"pra",sim:"pra",cor:"pra",teo:"est",q1:"pra",q2:"pra",src:"pra",lei:"pra",ger:"pra",rev:"est",cad:"pra",res:"est",dch:"jog",prog:"prog"};
+const STEP_HOW={
+  aq:"Responda antes de ver a explicação. Se não houver nada para revisar, faça uma rodada de V ou F em Jogos.",
+  sim:"Celular longe, cronômetro ligado e respostas passadas para o cartão no fim, como na prova.",
+  cor:"Para cada erro, anote o motivo no caderno: não sabia, confundi, li rápido ou errei a conta.",
+  teo:"No fim do resumo há quadros comparativos e pegadinhas do assunto. O botão Ouvir lê o resumo em voz alta.",
+  q1:"Correção na hora: leia a explicação também das que acertou no chute.",
+  q2:"Misturar temas treina reconhecer o assunto sem aviso, como na prova.",
+  src:"Questões reais de outra prova da Cesgranrio: repare no jeito da banca perguntar.",
+  lei:"Jogue Lei seca em Jogos e depois faça o treino artigo por artigo.",
+  ger:"Contas à mão, sem calculadora. Em Português, sublinhe a palavra-chave do enunciado.",
+  rev:"Pegadinhas dos assuntos da semana e uma rodada de Flashcards em Jogos.",
+  cad:"Releia as notas que voltaram hoje e escreva o que lembrar da próxima vez.",
+  res:"Só leitura leve, sem questões novas.",
+  dch:"Mantém a sequência de dias e treina rapidez.",
+  prog:"Veja em Progresso o acerto do dia e o assunto que mais tira pontos; ele entra no plano de amanhã."
+};
+const ICO_AREA={est:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H2zM22 5h-7a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h8z"/></svg>',pra:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>',jog:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="11" rx="4"/><path d="M7 11v3M5.5 12.5h3M16 12h.01M18 14h.01"/></svg>',prog:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>'};
+
+/* "3. Teoria (30 min): texto" → {titulo, minutos, texto} */
+function stepParse(i){
+  let t=i.t.replace(/^\d+\.\s*/,""), min=null;
+  const m=/^([^:(]+?)\s*\((\d+)\s*min\)\s*:\s*([\s\S]*)$/.exec(t);
+  if(m) return {h:m[1],min:+m[2],d:m[3]};
+  if(/\(4 h\)/.test(t)) min=240; else if(i.id==="sim"&&/Mini/.test(t)) min=50; else if(i.id==="sim") min=180;
+  return {h:"",min,d:t.replace(/\s*\(4 h\)/,"")};
+}
+const hm=m=>String(Math.floor(m/60)%24).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
+function startMin(k){const wd=kDate(k).getDay(),h=(wd===0||wd===6?S.st.w:S.st.h)||"19:00";const [a,b]=h.split(":").map(Number);return a*60+(b||0);}
+/* monta a agenda com horários e pausas de 10 min a cada ~50 min de estudo */
+function schedule(k,its){
+  let t=startMin(k), run=0; const out=[];
+  its.filter(i=>!i.auto).forEach((i,idx)=>{
+    const p=stepParse(i), dur=p.min||0;
+    if(dur>=10&&run>=45&&run+dur>60){out.push({pause:true,a:t,b:t+10});t+=10;run=0;}
+    out.push({i,p,a:dur?t:null,b:dur?t+dur:null,area:STEP_AREA[i.id]||null});
+    if(dur){t+=dur;run+=dur;if(dur>=90)run=0;}
+  });
+  return {rows:out,start:startMin(k),end:t};
+}
+function areaChip(a){return a?`<span class="achip a-${a}">${ICO_AREA[a]}${AREAS[a].n}</span>`:"";}
+
+function syncChip(){
+  const s=!CL.code?["off","Não sincronizado"]:CL.st==="ok"?["ok","Sincronizado"]:CL.st==="needmcp"?["bad","Permitir sincronização"]:CL.st==="err"?["bad",navigator.onLine?"Sincronização pendente":"Sem internet"]:["","Sincronizando…"];
+  return `<button class="clchip ${s[0]}" onclick="go('config')" title="Configurações › Sincronização"><i></i>${s[1]}</button>`;
+}
+
+function vGuia(){
+  const k=todayK(), p=dayPlan(k), its=dayItems(p), steps=its.filter(i=>!i.auto), done=steps.filter(i=>itemDone(k,i)).length;
+  const meta=its.find(i=>i.auto), due=srsDue().length, sc=schedule(k,its);
+  const last14=[...Array(14)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);const kk=dkey(d);return {kk,s:kk<"2026-10-27"?null:dayScore(kk)};});
+  const full=(()=>{let n=0,d=new Date();if(dayScore(dkey(d))<1)d.setDate(d.getDate()-1);while(dkey(d)>="2026-10-27"&&dayScore(dkey(d))>=1){n++;d.setDate(d.getDate()-1);}return n;})();
+  const wdN=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"][kDate(k).getDay()];
+  const rows=tlHTML(k,its,"dl-",true);
+  const tot=sc.end-sc.start;
+  $("#view").innerHTML=`${runBanner()}
+  <div class="hoje-top"><div class="stack" style="gap:2px"><h2>Hoje</h2><span class="muted">${wdN}, ${fmtK(k)}${p.ph?` · fase ${PHASES.indexOf(p.ph)+1}: ${esc(p.ph.t)}`:""}</span></div>${syncChip()}</div>
+  ${syncBanner()}
+  ${weekCard()}
+  <section class="panel stack prog-dia">
+    <div class="row" style="justify-content:space-between;gap:8px"><h3>Programação de hoje${p.foco?` · ${esc(p.foco)}`:""}</h3><span class="streak num">${full} ${full===1?"dia completo":"dias completos"} seguidos</span></div>
+    ${tot>0?`<span class="muted num">${hm(sc.start)} às ${hm(sc.end)} · ${minFmt(tot)} de estudo com pausas · <button class="linkbtn" onclick="go('config');setTimeout(()=>{const e=$('#stH');if(e)e.focus();},200)">mudar horário</button></span>`:""}
+    <div class="row" style="justify-content:space-between"><span><b class="num">${done}</b> de <b class="num">${steps.length}</b> etapas</span>${done===steps.length?'<span class="pill ok">Dia concluído</span>':""}</div>
+    <div class="track"><div class="fill" style="width:${steps.length?done/steps.length*100:0}%"></div></div>
+    ${due?`<div class="rule row" style="justify-content:space-between"><span><b class="num">${due}</b> ${due===1?"questão errada volta":"questões erradas voltam"} hoje na revisão espaçada.</span><button class="btn sm" onclick="startWrong()">Revisar agora</button></div>`:""}
+    <div class="tlist">${rows}</div>
+    ${meta?`<div class="row metaln"><span>Meta: <b class="num">${S.days[k]||0}</b> de <b class="num">${S.goal}</b> questões hoje</span>${(S.days[k]||0)>=S.goal?'<span class="pill ok">cumprida</span>':`<div class="track sm"><div class="fill" style="width:${Math.min(100,(S.days[k]||0)/S.goal*100)}%"></div></div>`}</div>`:""}
+    <div class="stack" style="gap:6px"><span class="muted">Últimos 14 dias</span><div class="days14">${last14.map(x=>`<span class="d14 ${x.s===null?"na":x.s>=1?"full":x.s>=.5?"half":x.s>0?"low":""}" title="${fmtK(x.kk)}"><i>${x.kk.slice(8)}</i></span>`).join("")}</div></div>
+    <div><button class="btn ghost sm" onclick="go('crono')">Ver a programação dos próximos dias</button></div>
+  </section>
+  ${foldHTML("ferr","Cronômetro de estudo","blocos de 50 min com 10 de pausa",pomoPanel().replace('<section class="panel stack">','<section class="stack inner">'),false)}
+  ${foldHTML("areas","Como aproveitar cada área, todo dia","Estudar, Praticar, Jogos e Progresso",areasGuide(),false)}`;
+  steps.forEach(i=>{const c=$("#dl-"+i.id); if(c) c.onchange=()=>{S.daily[k]=S.daily[k]||{};S.daily[k][i.id]=c.checked;save();vGuiaKeep();};});
+  pomoWire();
+}
+/* linhas da programação de um dia (Hoje e Cronograma); pre = prefixo dos ids das caixas */
+function tlHTML(k,its,pre,live){
+  const steps=its.filter(i=>!i.auto), sc=schedule(k,its), nowI=live?steps.findIndex(i=>!itemDone(k,i)):-1;
+  return sc.rows.map(r=>{
+    if(r.pause) return `<div class="tl pause"><span class="tltime num">${hm(r.a)}</span><span class="muted">Pausa de 10 min, longe do celular</span></div>`;
+    const i=r.i, ck=itemDone(k,i), cur=steps.indexOf(i)===nowI;
+    return `<div class="tl ${ck?"done":""} ${cur?"cur":""}">
+      <input type="checkbox" id="${pre}${i.id}" data-k="${k}" data-i="${i.id}" ${ck?"checked":""} aria-label="Concluí: ${esc(r.p.h||r.p.d)}">
+      <div class="tlb"><div class="tlt">${r.a!==null?`<span class="tltime num">${hm(r.a)}–${hm(r.b)}</span>`:""}${areaChip(r.area)}${cur?'<span class="pill now">agora</span>':""}</div>
+        <label for="${pre}${i.id}" class="tltitle">${r.p.h?`<b>${esc(r.p.h)}:</b> `:""}${esc(r.p.d)}</label>
+        ${STEP_HOW[i.id]?`<p class="tlhow">${esc(STEP_HOW[i.id])}</p>`:""}</div>
+      ${i.act?`<button class="btn ${cur?"":"ghost"} sm" onclick="${i.act}">${i.lbl}</button>`:""}</div>`;}).join("");
+}
+function vGuiaKeep(){const y=window.scrollY;vGuia();window.scrollTo({top:y});}
+function areasGuide(){
+  const order=[["est","30 a 40 min"],["pra","1 h a 1h30"],["jog","10 a 15 min"],["prog","5 min"]];
+  return `<div class="stack inner" style="gap:12px">${order.map(([a,t])=>`<div class="areaitem"><div class="row" style="justify-content:space-between;gap:8px">${areaChip(a)}<span class="muted num">${t} por dia</span></div><p>${esc(AREAS[a].how)}</p><div><button class="btn ghost sm" onclick="go('${AREAS[a].v}')">Abrir ${AREAS[a].n}</button></div></div>`).join("")}
+  <p class="muted">Ordem que mais rende: revisar erradas → teoria curta → questões do mesmo assunto → questões de outro assunto → caderno de erros → desafio do dia → conferir o progresso. Questões em 70% do tempo, teoria em 30%.</p></div>`;
+}
+function syncBanner(){
+  if(CL.st==="needmcp") return `<div class="rule row" style="justify-content:space-between;gap:8px"><span>Para o progresso daqui chegar ao celular, permita uma vez o uso do conector Supabase.</span><button class="btn sm" onclick="clAllow()">Permitir</button></div>`;
+  if(!CL.code&&!IN_CLAUDE) return `<div class="rule stack"><span><b>Este aparelho ainda não está sincronizado.</b> Abra o link de conexão (fica em Configurações, no app do PC ou do Claude) ou cole o código aqui.</span><div class="row" style="gap:8px;flex-wrap:wrap"><input id="clInH" placeholder="tp-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1;min-width:220px"><button class="btn sm" onclick="clLink($('#clInH').value,true).then(()=>vGuiaKeep())">Conectar</button></div></div>`;
+  return "";
+}
+async function clAllow(){CL.via="mcp";if(await mcpReady(true)){CL.st="";clLbl();await clPull();}else toast("Sem permissão","A sincronização com o celular fica parada até você permitir o conector Supabase.");if(current==="guia")vGuiaKeep();if(current==="config")vConfigKeep();}
+
+/* ---------- Configurações ---------- */
+function clText(){
+  if(!CL.code) return IN_CLAUDE?"Preparando a sincronização…":"Este aparelho ainda não está conectado. Cole o código abaixo ou abra o link de conexão.";
+  if(CL.st==="ok") return "Ligada e em dia"+(CL.at?" (conferido às "+CL.at.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})+")":"")+". O que você faz aqui aparece nos outros aparelhos em poucos segundos.";
+  if(CL.st==="needmcp") return "Falta uma permissão: toque em Permitir para o link do Claude usar o conector Supabase.";
+  if(CL.st==="err") return navigator.onLine?"Não deu para falar com a nuvem agora; o app tenta de novo sozinho. Nada se perde.":"Sem internet. O progresso fica salvo aqui e sobe quando a conexão voltar.";
+  return "Conectando…";
+}
+function clLbl(){
+  document.querySelectorAll(".cllbl").forEach(e=>{e.textContent=clText();e.className="cllbl "+(CL.st==="ok"?"ok":CL.st==="err"||CL.st==="needmcp"?"bad":"");});
+  const c=document.querySelector(".clchip"); if(c) c.outerHTML=syncChip();
+  const b=$("#clMcp"); if(b) b.hidden=CL.st!=="needmcp";
+}
+function cfgSync(){
+  const link=CL.code?GH_URL+"#sync="+CL.code:"";
+  return `<section class="panel stack" id="cfgSync"><h3>Sincronização entre aparelhos</h3>
+    <p class="cllbl">${esc(clText())}</p>
+    <button class="btn sm" id="clMcp" ${CL.st==="needmcp"?"":"hidden"} onclick="clAllow()">Permitir</button>
+    ${CL.code?`<div class="stack" style="gap:8px"><b>Conectar outro aparelho (uma vez só)</b>
+      <p class="muted">Abra este link no outro aparelho (no celular, pelo Chrome; depois instale pelo menu, se quiser). Ele entra conectado e junta o que já tiver lá.</p>
+      <code class="clcode">${esc(link)}</code>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn sm" onclick="copyTxt('${link}','Link copiado','Abra no outro aparelho.')">Copiar link</button>${navigator.share?`<button class="btn ghost sm" onclick="navigator.share({title:'Estudos Transpetro',url:'${link}'}).catch(()=>{})">Enviar para…</button>`:""}<button class="btn ghost sm" onclick="clPull()">Sincronizar agora</button></div></div>`:""}
+    ${CL.code?"":`<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn sm" id="clNew" onclick="clNew()">Este é o primeiro aparelho: criar a sincronização</button></div>`}
+    <details class="rev" ${CL.code?"":"open"}><summary><span class="mark">⇄</span><span>${CL.code?"Usar outro código":"Já tenho um código (de outro aparelho)"}</span></summary>
+      <div class="stack" style="margin-top:10px">${CL.code?`<span class="muted">Código atual: <span class="num">${esc(CL.code)}</span></span>`:""}<input id="clIn" placeholder="tp-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx" autocomplete="off" autocapitalize="off" spellcheck="false"><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn sm" onclick="clLink($('#clIn').value,true).then(()=>vConfigKeep())">Conectar este aparelho</button>${CL.code?`<button class="btn ghost sm" onclick="clOff()">Desconectar este aparelho</button>`:""}</div></div>
+    </details></section>`;
+}
+async function clNew(){CL.code=newCode();CL.base=0;S.cloud=CL.code;clStore();save();await clPull();vConfigKeep();}
+function clOff(){if(!confirm("Desconectar este aparelho? O progresso continua salvo aqui e na nuvem.")) return;CL.code=null;CL.base=0;CL.st="off";clStore();clSnap(null);delete S.cloud;saveLocal();vConfigKeep();}
+function seg(id,cur,opts){return `<div class="segtabs" role="radiogroup" id="${id}">${opts.map(([v,t])=>`<button role="radio" aria-checked="${v===cur}" aria-selected="${v===cur}" data-v="${v}">${t}</button>`).join("")}</div>`;}
+function vConfig(){
+  $("#view").innerHTML=`<div class="stack"><h2>Configurações</h2><p class="muted">Ajustes deste app. O progresso é salvo sozinho a cada resposta.</p></div>
+  ${cfgSync()}
+  <section class="panel stack"><h3>Rotina de estudo</h3>
+    <div class="cfgrow"><label for="stH">Início da programação em dias úteis</label><input type="time" id="stH" value="${S.st.h}"></div>
+    <div class="cfgrow"><label for="stW">Início no sábado e no domingo</label><input type="time" id="stW" value="${S.st.w}"></div>
+    <div class="cfgrow"><label for="goalSel">Meta diária</label><select id="goalSel">${[10,20,30,40,60,80].map(v=>`<option value="${v}" ${v===S.goal?"selected":""}>${v} questões</option>`).join("")}</select></div>
+    <p class="muted">A programação de Hoje calcula os horários a partir daqui, com pausa de 10 min a cada bloco de cerca de 50 min.</p></section>
+  <section class="panel stack"><h3>Lembrete diário</h3>
+    <div class="row" style="gap:10px;flex-wrap:wrap">
+      <label class="row" style="gap:8px"><input type="checkbox" id="remOn" ${S.rem.on?"checked":""} style="width:18px;height:18px;accent-color:var(--petrol)"> Avisar às</label>
+      <input type="time" id="remH" value="${S.rem.h}">
+      <button class="btn ghost sm" onclick="notify('Lembrete de teste','É assim que o aviso diário aparece.')">Testar</button></div>
+    <p class="muted">${notifState()} Este aviso aparece com o app aberto.</p>
+    <details class="rev"><summary><span class="mark">⏰</span><span>Avisos com o app fechado (agenda do celular)</span></summary>${outsidePanel().replace(/^<section class="panel stack" id="outSec"><h3>Avisos com o app fechado<\/h3>/,'<div class="stack" id="outSec" style="margin-top:10px">').replace(/<\/section>$/,"</div>")}</details></section>
+  <section class="panel stack"><h3>Aparência</h3>
+    <span class="muted">Tema</span>${seg("thSeg",theme,[["auto","Automático"],["light","Claro"],["dark","Escuro"]])}
+    <span class="muted">Tamanho da letra</span>${seg("fzSeg",String(fz),[[".92","92%"],["1","100%"],["1.12","112%"],["1.25","125%"],["1.4","140%"]])}
+    <p class="muted">Tema e letra valem só para este aparelho. Dentro do simulado, o botão Aa também muda a letra.</p></section>
+  <section class="panel stack" id="syncSec"><h3>Backup manual</h3>
+    <p class="synclbl">${esc(syncText())}</p>
+    <div class="stack"><p class="muted">Cópia do progresso por código, para guardar ou passar para um aparelho sem internet. A importação substitui o progresso deste aparelho.</p>
+      <div class="row"><button class="btn ghost sm" id="bkGen">Gerar código</button><button class="btn ghost sm" id="bkCopy">Copiar</button></div>
+      <textarea id="bkTxt" rows="3" placeholder="Cole aqui o código de backup"></textarea>
+      <div class="row"><button class="btn sm" id="bkImp">Importar código</button><span class="muted" id="bkMsg"></span></div></div>
+    ${instEvt?`<button class="btn" id="instBtn">Instalar o app neste aparelho</button>`:IS_PWA?"":`<a class="btn ghost sm" href="${GH_URL}" target="_blank" rel="noopener">Abrir a versão instalável (GitHub)</a>`}</section>
+  ${aboutExam()}
+  <p class="muted">Versão 14 · ${QV().length} questões</p>`;
+  $("#stH").onchange=e=>{S.st.h=e.target.value||"19:00";save();};
+  $("#stW").onchange=e=>{S.st.w=e.target.value||"09:00";save();};
+  $("#goalSel").onchange=e=>{S.goal=+e.target.value;save();};
+  $("#remOn").onchange=e=>{remEnable(e.target.checked);};
+  $("#remH").onchange=e=>{S.rem.h=e.target.value||"19:00";S.rem.last=null;save();};
+  document.querySelectorAll("#thSeg button").forEach(b=>b.onclick=()=>{theme=b.dataset.v;try{localStorage.setItem("transpetro26-theme",theme);}catch(e){}applyTheme();vConfigKeep();});
+  document.querySelectorAll("#fzSeg button").forEach(b=>b.onclick=()=>{fz=+b.dataset.v;try{localStorage.setItem(FZK,fz);}catch(e){}fzApply();vConfigKeep();});
+  const ib=$("#instBtn"); if(ib) ib.onclick=async()=>{if(!instEvt)return;instEvt.prompt();try{await instEvt.userChoice;}catch(e){}instEvt=null;vConfigKeep();};
+  syncWire(); clLbl();
+}
+function vConfigKeep(){if(current!=="config")return;const y=window.scrollY;vConfig();window.scrollTo({top:y});}
+VIEWS.config=()=>vConfig();
+
+/* botão de Configurações no cabeçalho (no lugar dos botões de tema e letra) */
+(function(){
+  const t=$("#themeBtn"); if(!t) return;
+  const b=document.createElement("button"); b.className="themebtn cfgbtn"; b.id="cfgBtn"; b.type="button"; b.setAttribute("aria-label","Configurações");
+  b.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="tlbl">Configurações</span>';
+  b.onclick=()=>go("config"); t.after(b);
+})();
+
+/* ---------- 25. v14: o que saiu de Hoje foi para Progresso ---------- */
+function prioPanel(){
+  return `<section class="panel stack"><h3>Assuntos de prioridade</h3>
+    <p class="muted">Os 5 assuntos específicos com pior acerto até agora (sem questões, contam como médios). Eles recebem 60% do tempo a partir da fase 2.</p>
+    <div class="row" style="gap:6px;flex-wrap:wrap">${weakCats(5).map(c=>{const pc=pct(S.stats[c]);return `<button class="chipbtn" onclick="openTopic('${c}')">${esc(CATS[c].n)}${pc!==null?` · ${pc}%`:""}</button>`;}).join("")}</div></section>`;
+}
+function planMethod(){
+  const p=dayPlan(todayK());
+  return `<div class="stack inner"><div class="phases">${PHASES.map((f,i)=>`<div class="panel phase ${p.ph===f?"cur":""}"><span class="tag">Fase ${i+1} · ${fmtK(f.a)} a ${fmtK(f.b)}${p.ph===f?" · agora":""}</span><h3>${esc(f.t)}</h3><p class="muted">${esc(f.d)}</p></div>`).join("")}</div>
+    <h3>Método de cada dia</h3>
+    <ol class="steps">
+      <li><b>Aquecimento, 10 min:</b> revisar as erradas (Praticar).</li>
+      <li><b>Teoria curta, 30 min:</b> resumo do assunto (Estudar). Feche e escreva de memória 3 a 5 pontos.</li>
+      <li><b>Questões, 45 min:</b> 30 min do mesmo assunto e 15 de outro ou de Português e Matemática (Praticar).</li>
+      <li><b>Gerais, 25 min:</b> Português ou Matemática, contas à mão.</li>
+      <li><b>Caderno de erros, 10 min:</b> motivo de cada erro; o app traz as notas de volta em 1, 3, 7 e 15 dias.</li>
+      <li><b>Desafio do dia, 10 min:</b> Jogos. <b>Fechamento, 5 min:</b> Progresso.</li>
+    </ol>
+    <ul class="res">
+      <li>Blocos de 50 minutos com 10 de pausa, longe do celular.</li>
+      <li>A Cesgranrio cobra a definição do livro (Chiavenato, Ballou, Viana, Martins e Alt, Dias): na dúvida, fique com a definição clássica.</li>
+      <li>Ensine em voz alta o que estudou; onde travar é o que precisa rever.</li>
+      <li>Durma de 7 a 8 horas. Na prova, errar não desconta: nunca deixe em branco.</li>
+      <li>Se o acerto nas específicas não subir por duas semanas, mude o método naquele assunto, não só as horas.</li>
+    </ul></div>`;
+}
+
+(function(){const st=document.createElement("style");st.textContent=`
+header.band .themebtn#themeBtn{display:none}
+.cfgbtn[aria-current="page"]{background:var(--petrol-soft);color:var(--petrol);border-color:var(--petrol)}
+@media (min-width:1100px){header.band .themebtn.cfgbtn{order:4;margin-top:auto;align-self:stretch;justify-content:flex-start;padding:0 12px}}
+.hoje-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.hoje-top h2{margin:0}
+.clchip{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font:600 12px var(--f-body);padding:6px 10px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;flex:none}
+.clchip i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.clchip.ok i{background:var(--ok)}.clchip.bad{color:var(--bad)}.clchip.bad i{background:var(--bad)}.clchip.off i{background:var(--amber)}
+.clchip:focus-visible{outline:2px solid var(--petrol)}
+.tlist{display:flex;flex-direction:column}
+.tl{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:start;padding:12px 0;border-top:1px solid var(--line)}
+.tl:first-child{border-top:0}
+.tl input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--petrol)}
+.tl.cur{background:var(--petrol-soft);margin:0 -12px;padding:12px;border-radius:12px;border-top-color:transparent}
+.tl.cur+.tl{border-top-color:transparent}
+.tl.done .tltitle{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
+.tl.done .tlhow{display:none}
+.tl.pause{grid-template-columns:auto 1fr;padding:8px 0 8px 32px;font-size:13px}
+.tlb{display:flex;flex-direction:column;gap:4px;min-width:0}
+.tlt{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tltime{font:600 13px var(--f-body);color:var(--ink)}
+.tltitle{cursor:pointer;line-height:1.4}
+.tlhow{margin:0;font-size:13px;color:var(--muted);line-height:1.4}
+.pill.now{background:var(--petrol);color:var(--onpetrol)}
+.achip{display:inline-flex;align-items:center;gap:4px;font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.03em;padding:3px 8px;border-radius:99px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+.achip.a-est{color:var(--c-port)}.achip.a-pra{color:var(--petrol)}.achip.a-jog{color:var(--c-log)}.achip.a-prog{color:var(--c-fin)}
+.metaln{justify-content:space-between;gap:10px;align-items:center}
+.metaln .track.sm{flex:0 1 160px}
+.areaitem{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
+.areaitem:first-child{border-top:0;padding-top:0}
+.areaitem p{margin:0}
+.cfgrow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.cfgrow label{flex:1 1 200px}
+.cfgrow input,.cfgrow select{flex:0 0 auto;min-width:140px}
+@media (max-width:420px){.tl{grid-template-columns:22px minmax(0,1fr)}.tl>.btn{grid-column:2;justify-self:start}}
 `;document.head.appendChild(st);})();
 
 if("serviceWorker" in navigator&&location.protocol==="https:"){navigator.serviceWorker.register("sw.js").catch(()=>{});}

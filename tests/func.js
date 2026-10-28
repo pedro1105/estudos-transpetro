@@ -11,6 +11,7 @@ async function route(ctx) {
     const fn = r.request().url().split('/').pop(), a = JSON.parse(r.request().postData() || '{}');
     let out = null;
     if (fn === 'tp_get') { const x = cloud[a.p_code]; out = x ? { s: x.s, upd: x.upd } : null; }
+    if (fn === 'tp_ver') { const x = cloud[a.p_code]; out = x ? x.upd : null; }
     if (fn === 'tp_save') { const x = cloud[a.p_code]; if (x && x.upd !== a.p_base) out = { ok: false, upd: x.upd }; else { cloud[a.p_code] = { s: a.p_s, upd: a.p_upd }; out = { ok: true, upd: a.p_upd }; } }
     await r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(out) });
   });
@@ -69,8 +70,8 @@ const answerTrain = async (p, n) => { for (let i = 0; i < n; i++) { await p.loca
   ok('Hoje abre sem erro', await A.evaluate(() => { go('guia'); return !!document.querySelector('#view h2,#view h3'); }));
 
   // sincronização: A ativa, B conecta pelo link, progresso chega nos dois sentidos
-  await A.evaluate(() => { const d = document.querySelector('#view details.fold[data-k="bkp"]'); d.open = true; });
-  await A.locator('#clOn').click(); await A.waitForTimeout(500);
+  await A.evaluate(() => go('config'));
+  await A.locator('#clNew').click(); await A.waitForTimeout(600);
   const code = await A.evaluate(() => CL.code);
   ok('código criado e enviado', !!cloud[code] && JSON.parse(cloud[code].s).rep !== undefined, code);
   ok('status sincronizado', await A.evaluate(() => CL.st === 'ok'));
@@ -78,17 +79,18 @@ const answerTrain = async (p, n) => { for (let i = 0; i < n; i++) { await p.loca
   await B.evaluate(() => { startTrainCat('compras'); });
   await answerTrain(B, 2); await B.evaluate(() => finish());
   await B.goto(file + '#sync=' + code); await B.waitForTimeout(400); await B.reload(); await B.waitForTimeout(1200);
-  // B tem progresso próprio e a nuvem também: escolhe juntar
-  const dlg = await B.locator('dialog.tpdlg[open]').count();
-  if (dlg) await B.locator('dialog.tpdlg button[value="merge"]').click();
+  // B tem progresso próprio e a nuvem também: junta sozinho, sem perguntar
   await B.waitForTimeout(600);
-  ok('B pergunta como juntar', dlg === 1);
+  ok('B não pergunta nada', await B.locator('dialog.tpdlg[open]').count() === 0);
   ok('B juntou os dois', await B.evaluate(() => CL.code && S.qlog && Object.values(S.qlog).some(d => d.estoq) && Object.values(S.qlog).some(d => d.compras) && Object.keys(S.rep || {}).length === 1));
   ok('hash removido da barra', await B.evaluate(() => !location.hash));
   await B.evaluate(() => { S.goal = 40; save(); }); await B.waitForTimeout(3600);
   await A.evaluate(() => clPull()); await A.waitForTimeout(400);
   ok('A recebe mudança de B', await A.evaluate(() => S.goal === 40 && Object.values(S.qlog).some(d => d.compras)));
   // edição nos dois lados ao mesmo tempo
+  // B recebe mudança de A sozinho (verificação a cada 15 s)
+  await A.evaluate(() => { S.goal = 60; save(); }); await A.waitForTimeout(2600); await B.waitForTimeout(16000);
+  ok('B recebe sozinho em até 15 s', await B.evaluate(() => S.goal === 60));
   await A.evaluate(() => { S.days['2026-10-01'] = 5; save(); });
   await B.evaluate(() => { S.days['2026-10-02'] = 7; save(); });
   await A.waitForTimeout(3600); await B.waitForTimeout(500); await B.evaluate(() => clPull()); await B.waitForTimeout(800); await A.evaluate(() => clPull()); await A.waitForTimeout(500);
@@ -96,10 +98,10 @@ const answerTrain = async (p, n) => { for (let i = 0; i < n; i++) { await p.loca
   ok('contadores sem duplicar', await A.evaluate(() => S.stats.estoq.t) === 3, await A.evaluate(() => JSON.stringify(S.stats)));
 
   // backup antigo (sem gm/fold) importado não quebra o app
-  ok('importar backup antigo', await A.evaluate(() => { const o = { hist: [], stats: {}, wrong: [], plan: {}, srs: {}, seen: {} }; document.querySelector('#view details.fold[data-k="bkp"]').open = true; S = Object.assign({ hist: [], stats: {}, wrong: [], plan: {} }, o); initState(); go('jogos'); go('stats'); go('guia'); return !!S.gm && !!S.fold; }));
+  ok('importar backup antigo', await A.evaluate(() => { const o = { hist: [], stats: {}, wrong: [], plan: {}, srs: {}, seen: {} }; S = Object.assign({ hist: [], stats: {}, wrong: [], plan: {} }, o); initState(); go('jogos'); go('stats'); go('guia'); return !!S.gm && !!S.fold; }));
 
   // todas as telas abrem
-  for (const v of ['guia', 'cont', 'pratica', 'jogos', 'stats', 'crono', 'links', 'vesp', 'peg', 'caderno']) {
+  for (const v of ['guia', 'cont', 'pratica', 'jogos', 'stats', 'crono', 'links', 'vesp', 'peg', 'caderno', 'config']) {
     await A.evaluate(v => go(v), v);
     ok('tela ' + v + ' sem rolagem lateral', await A.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   }
