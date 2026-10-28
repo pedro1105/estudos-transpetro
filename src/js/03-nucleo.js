@@ -61,7 +61,7 @@ function vPratica(){
   const blk=Object.entries(BLOCKS).map(([k,v])=>`<option value="b:${k}">Bloco: ${esc(v)}</option>`).join("");
   const years=Object.keys(PROVAS).sort().reverse();
   const t=paceTarget(), a=myAvgT(), lawN=QV().filter(q=>/13\.303/.test(q[1])).length;
-  const grp=[["Transpetro, outros cargos","Transpetro"],["Petrobras","Petrobras"],["Banco do Brasil (só Português, Matemática, Mat. Financeira e Informática)","BB"]];
+  const grp=[["Mesmo cargo: Técnico(a) de Administração e Controle (TAC)",s=>/ TAC$/.test(s),s=>s.replace(/ TAC$/,"")],["Transpetro, outros cargos","Transpetro"],["Petrobras, outros cargos","Petrobras"],["Banco do Brasil (só Português, Matemática, Mat. Financeira e Informática)","BB"]].map(([t,p,f])=>typeof p==="string"?[t,s=>s.startsWith(p)&&!/ TAC$/.test(s),s=>s.replace(p+" ","")]:[t,p,f]);
   const nv=unseenCount();
   const especiais=`<div class="grid2 inner">
     <div class="panel mode"><span class="tag">Cesgranrio · questões reais</span><h3>Provas anteriores</h3><p class="muted">Técnico de Administração e Controle da Transpetro, só com as questões que ainda valem pelas regras atuais, conferidas com o gabarito oficial. Cronômetro de 4 min por questão, como na prova.</p>
@@ -73,7 +73,7 @@ function vPratica(){
   </div>
   <section class="stack inner"><h3>Outras provas Cesgranrio</h3>
     <p class="muted">Questões reais da mesma banca, só dos assuntos do seu edital e com a lei e os programas atuais. Cada uma mostra a prova de origem. Gabarito conferido com o oficial e explicado.</p>
-    ${grp.map(([t,p])=>`<div class="stack" style="gap:6px"><span class="muted">${esc(t)}</span><div class="row" style="gap:8px;flex-wrap:wrap">${SRC_ORD.filter(s=>s.startsWith(p)).map(s=>`<button class="btn ghost sm" onclick="startSrc('${s}')">${esc(s.replace(p+" ",""))} · ${srcCount(s)}</button>`).join("")}</div></div>`).join("")}
+    ${grp.map(([t,p,f])=>`<div class="stack" style="gap:6px"><span class="muted">${esc(t)}</span><div class="row" style="gap:8px;flex-wrap:wrap">${SRC_ORD.filter(p).map(s=>`<button class="btn ghost sm" onclick="startSrc('${s}')">${esc(f(s))} · ${srcCount(s)}</button>`).join("")}</div></div>`).join("")}
   </section>
   <p class="muted inner">A divisão das 40 específicas no simulado (9 de processos, 9 de finanças, 15 de logística e compras, 7 de informática) é uma estimativa proporcional ao edital, que não define quantas questões vêm de cada tema.</p>`;
   $("#view").innerHTML=`

@@ -38,3 +38,8 @@ Ao publicar, troque a versão do cache em `sw.js`.
 - `src/js/11-v16.js`: tela Áudio (estudo falado em sequência: mix do dia, resumo, questões, flashcards e pegadinhas; botões do fone via Media Session; tela acesa com Wake Lock e modo bolso; desligar sozinho) e sons para concentrar gerados no próprio app (ruídos marrom, rosa e branco, chuva, ondas, ambiente lo-fi e piano), tocados por um `<audio>` em loop que abaixa enquanto a voz fala.
 - Limpeza: plano antigo de semanas (PLAN), SRS de intervalos fixos, vCrono antigo e funções duplicadas saíram. A cópia na conta do claude.ai agora junta em vez de substituir.
 - Testes: `node tests/v16.js`.
+
+## v17
+- `src/js/07c-questoes-tac.js`: 202 questões das provas do mesmo cargo (Técnico de Administração e Controle) — Petrobras 2018, 2014 e 2012 e BR Distribuidora 2015 e 2013 —, conferidas com o gabarito oficial e explicadas. Ficaram de fora questões que dependem do texto ou de figura, anuladas, Lei 8.666, Decreto 2.745, redação oficial, arquivologia e assuntos fora do edital. Entram no fim do banco (o progresso usa a posição).
+- Praticar > Outras provas: novo grupo "Mesmo cargo".
+- Testes: `node tests/v17.js`.

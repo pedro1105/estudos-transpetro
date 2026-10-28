@@ -1,4 +1,4 @@
-const C="transpetro-v16";
+const C="transpetro-v17";
 const FILES=["./","index.html","app.js","manifest.json","icons/icon-192.png","icons/icon-512.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(FILES)));self.skipWaiting();});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C&&k!=="tp26-rem").map(k=>caches.delete(k)))));self.clients.claim();});
