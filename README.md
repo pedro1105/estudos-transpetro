@@ -83,3 +83,4 @@ App separado (plano de carreira em dados), publicado em https://pedro1105.github
 - `carreira/src/app.html` é a página do claude.ai; `python3 carreira/build.py` gera `carreira/index.html` com manifest, ícones e service worker próprios (escopo `/carreira/`, cache `carreira-vN`).
 - Sincroniza pela mesma tabela `progress` e pelas mesmas funções `tp_get`/`tp_save`/`tp_ver`, com códigos `cd-…` (os da Transpetro são `tp-…`).
 - O `sw.js` da raiz ignora `/carreira/` (v24).
+- v4: cronômetro de foco (marca a tarefa ao completar os minutos), aba Revisar (flashcards com FSRS, habilidades da PL-300, áudio com sons gerados no aparelho, tutor com IA via capability `sample` no claude.ai), resumo semanal e estatísticas, botão "Reorganizar o plano" (`cfg.rp` no `build`), candidaturas (`ST.apps`), diário de projetos (`ST.diary`) e push pela função `tp_push` + Edge Function `tp-push` (o plano de cada inscrição já leva título, texto e URL).
