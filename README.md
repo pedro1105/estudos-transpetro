@@ -28,6 +28,11 @@ node tests/snapshot.js dist/app.html antes.json   # foto do HTML das telas, para
 
 Ao publicar, troque a versão do cache em `sw.js`.
 
+## v24
+- Revisão geral do banco: 68 questões corrigidas (enunciados com palavra "destacada" sem destaque, PROCV sem a tabela, explicações que citavam letras, que mudam porque as alternativas são embaralhadas, e as 7 explicações reportadas pelo usuário). Nenhum gabarito mudou. Os avisos dessas 7 saem uma vez (`S.v24rep`).
+- Conteúdos conferidos com o edital: Razão/Diário, documentos fiscais, CLT básica, processadores, direitos do titular (LGPD), regimes e desempate da Lei 13.303, leis e nomenclatura de rodovias, automação do manuseio, PNRS. Lei seca: vedação de prazo indeterminado é o art. 71, parágrafo único.
+- `src/js/14-v24.js`: aviso (toast) sempre acima da barra de abas e some em 4 s; botões das provas em grade (`.pgrid`).
+
 ## v15
 - `src/js/10-v15.js`: edital verticalizado (`EDITAL`, tela `edital`), revisão espaçada FSRS (`srsUpdate` com `{s,dif,d,l}`), estatísticas detalhadas, tutor com IA (capability `sample`, só no claude.ai), deslizar entre questões, atalhos `?a=wrong|daily|sim|afc`, flashcards em áudio (tela `afc`) e notificações push.
 - Push: o app grava a inscrição e o plano dos próximos 14 dias pela função `tp_push`; a Edge Function `supabase/functions/tp-push` roda a cada 15 min (pg_cron) e envia o que venceu. Chaves VAPID e chave do cron ficam na tabela `push_cfg` (sem acesso público).

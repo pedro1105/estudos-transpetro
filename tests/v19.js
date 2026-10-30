@@ -21,8 +21,8 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   ok('códigos únicos', r.ids);
   await p.evaluate(() => go('pratica')); await p.waitForTimeout(200);
   const txt = await p.locator('#view').textContent();
-  ok('botões no grupo do mesmo cargo', /BR Distribuidora 2011 · 29/.test(txt) && /Innova 2012 · 34/.test(txt) && /Termobahia 2012 · 32/.test(txt));
-  await p.locator('#view button:has-text("Termobahia 2012 · 32")').click(); await p.waitForTimeout(200);
+  ok('botões no grupo do mesmo cargo', /BR Distribuidora 2011\s*29 questões/.test(txt) && /Innova 2012\s*34 questões/.test(txt) && /Termobahia 2012\s*32 questões/.test(txt));
+  await p.locator('#view button',{hasText:/Termobahia 2012\s*32 questões/}).click(); await p.waitForTimeout(200);
   ok('treino da prova abre', await p.evaluate(() => current === 'quiz' && quiz.ids.length === 32));
   ok('sem erros de página', errs.length === 0, errs.join(' | '));
   await b.close();

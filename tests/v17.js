@@ -22,9 +22,9 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   await p.evaluate(() => go('pratica')); await p.waitForTimeout(200);
   const txt = await p.locator('#view').textContent();
   ok('grupo do mesmo cargo em Praticar', /Mesmo cargo: Técnico\(a\) de Administração e Controle/.test(txt));
-  ok('botões sem o sufixo TAC', /Petrobras 2018 · 43/.test(txt) && /BR Distribuidora 2015 · 31/.test(txt) && !/2018 TAC ·/.test(txt));
+  ok('botões sem o sufixo TAC', /Petrobras 2018\s*43 questões/.test(txt) && /BR Distribuidora 2015\s*31 questões/.test(txt) && !/2018 TAC ·/.test(txt));
   ok('Petrobras outros cargos sem as TAC', /Petrobras, outros cargos/.test(txt));
-  await p.locator('#view button:has-text("Petrobras 2018 · 43")').click(); await p.waitForTimeout(200);
+  await p.locator('#view button',{hasText:/Petrobras 2018\s*43 questões/}).click(); await p.waitForTimeout(200);
   ok('treino da prova abre', await p.evaluate(() => current === 'quiz' && quiz.ids.length === 43), await p.evaluate(() => current + ' ' + quiz.ids.length));
   ok('sem erros de página', errs.length === 0, errs.join(' | '));
   await b.close();

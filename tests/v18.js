@@ -21,8 +21,8 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   ok('códigos únicos', r.ids);
   await p.evaluate(() => go('pratica')); await p.waitForTimeout(200);
   const txt = await p.locator('#view').textContent();
-  ok('botões em Petrobras, outros cargos', /2018 Suprimento · 30/.test(txt) && /2014 Suprimento · 35/.test(txt) && /2012 Suprimento · 20/.test(txt));
-  await p.locator('#view button:has-text("2014 Suprimento · 35")').click(); await p.waitForTimeout(200);
+  ok('botões em Petrobras, outros cargos', /2018 Suprimento\s*30 questões/.test(txt) && /2014 Suprimento\s*35 questões/.test(txt) && /2012 Suprimento\s*20 questões/.test(txt));
+  await p.locator('#view button',{hasText:/2014 Suprimento\s*35 questões/}).click(); await p.waitForTimeout(200);
   ok('treino da prova abre', await p.evaluate(() => current === 'quiz' && quiz.ids.length === 35));
   ok('sem erros de página', errs.length === 0, errs.join(' | '));
   await b.close();

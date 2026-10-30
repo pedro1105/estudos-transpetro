@@ -65,15 +65,15 @@ function vPratica(){
   const nv=unseenCount();
   const especiais=`<div class="grid2 inner">
     <div class="panel mode"><span class="tag">Cesgranrio · questões reais</span><h3>Provas anteriores</h3><p class="muted">Técnico de Administração e Controle da Transpetro, só com as questões que ainda valem pelas regras atuais, conferidas com o gabarito oficial. Cronômetro de 4 min por questão, como na prova.</p>
-      <div class="row" style="gap:8px;flex-wrap:wrap">${years.map(y=>`<button class="btn ghost sm" onclick="startPast('${y}')">${y} · ${QV().filter(q=>q[4]===y).length} questões</button>`).join("")}</div></div>
+      <div class="pgrid">${years.map(y=>`<button class="btn ghost sm pbtn" onclick="startPast('${y}')"><b>Transpetro ${y}</b><span>${QV().filter(q=>q[4]===y).length} questões</span></button>`).join("")}</div></div>
     <div class="panel mode"><span class="tag">Cartão-resposta</span><h3>Modo prova real</h3><p class="muted">Caderno de questões com rascunho e “voltar depois”, cartão-resposta separado e só a correção no fim. Treina passar as respostas a tempo.</p>
-      <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" onclick="startReal('full')">Simulado de 60</button>${years.map(y=>`<button class="btn ghost sm" onclick="startReal('${y}')">Transpetro ${y}</button>`).join("")}</div></div>
+      <div class="pgrid"><button class="btn pbtn pfull" onclick="startReal('full')"><b>Simulado de 60</b><span>misturado, 4 horas</span></button>${years.map(y=>`<button class="btn ghost sm pbtn" onclick="startReal('${y}')"><b>Transpetro ${y}</b><span>prova inteira</span></button>`).join("")}</div></div>
     <div class="panel mode"><span class="tag">60 questões · ${fmt(t)} cada</span><h3>Simulado de ritmo</h3><p class="muted">${a?`Sua média recente é ${fmt(Math.round(a))} por questão. O tempo deste simulado é 10% menor, para você ganhar folga no dia da prova.`:"Sem média ainda: o alvo começa em 3:30 por questão."} Em qualquer questão, o app avisa quando você passa de 3 minutos.</p><button class="btn ghost" onclick="startPace()">Iniciar</button></div>
     <div class="panel mode"><span class="tag">${lawN} questões</span><h3>Lei 13.303 artigo por artigo</h3><p class="muted">Questões com o número do artigo, no estilo da letra da lei que a Cesgranrio cobra. Complete com o jogo Lei seca.</p><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="startLaw()">Treinar</button><button class="btn ghost sm" onclick="go('jogos')">Lei seca</button></div></div>
   </div>
-  <section class="stack inner"><h3>Outras provas Cesgranrio</h3>
+  <section class="panel stack inner"><h3>Outras provas Cesgranrio</h3>
     <p class="muted">Questões reais da mesma banca, só dos assuntos do seu edital e com a lei e os programas atuais. Cada uma mostra a prova de origem. Gabarito conferido com o oficial e explicado.</p>
-    ${grp.map(([t,p,f])=>`<div class="stack" style="gap:6px"><span class="muted">${esc(t)}</span><div class="row" style="gap:8px;flex-wrap:wrap">${SRC_ORD.filter(p).map(s=>`<button class="btn ghost sm" onclick="startSrc('${s}')">${esc(f(s))} · ${srcCount(s)}</button>`).join("")}</div></div>`).join("")}
+    ${grp.map(([t,p,f])=>`<div class="stack pgrp" style="gap:8px"><h4>${esc(t)}</h4><div class="pgrid">${SRC_ORD.filter(p).map(s=>`<button class="btn ghost sm pbtn" onclick="startSrc('${s}')"><b>${esc(f(s))}</b><span>${srcCount(s)} questões</span></button>`).join("")}</div></div>`).join("")}
   </section>
   <p class="muted inner">A divisão das 40 específicas no simulado (9 de processos, 9 de finanças, 15 de logística e compras, 7 de informática) é uma estimativa proporcional ao edital, que não define quantas questões vêm de cada tema.</p>`;
   $("#view").innerHTML=`
