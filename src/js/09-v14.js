@@ -167,7 +167,7 @@ function vConfig(){
       <div class="row"><button class="btn sm" id="bkImp">Importar código</button><span class="muted" id="bkMsg"></span></div></div>
     ${instEvt?`<button class="btn" id="instBtn">Instalar o app neste aparelho</button>`:IS_PWA?"":`<a class="btn ghost sm" href="${GH_URL}" target="_blank" rel="noopener">Abrir a versão instalável (GitHub)</a>`}</section>
   ${aboutExam()}
-  <p class="muted">Versão 25 · ${QV().length.toLocaleString("pt-BR")} questões</p>`;
+  <p class="muted">Versão 26 · ${QV().length.toLocaleString("pt-BR")} questões</p>`;
   $("#stH").onchange=e=>{S.st.h=e.target.value||"19:00";save();};
   $("#stW").onchange=e=>{S.st.w=e.target.value||"09:00";save();};
   $("#goalSel").onchange=e=>{S.goal=+e.target.value;save();};

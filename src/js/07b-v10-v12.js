@@ -132,15 +132,15 @@ vCrono=function(){
   const left=Math.max(0,Math.round((kDate("2026-12-06")-kDate(t))/864e5));
   if(cronoOpen===null) cronoOpen=AG[t]?t:days.find(k=>k>t)||days[0];
   const card=k=>{
-    const a=AG[k], p=dayPlan(k), its=dayItems(p), dn=its.filter(i=>itemDone(k,i)).length, open=k===cronoOpen, tp=agTipo(a);
-    const st=k<t?(dn===its.length?"✓ feito":dn?`${dn}/${its.length}`:"não feito"):k===t?"hoje":"";
-    return `<section class="panel agday ${k===t?"today":""} ${k<t&&dn<its.length?"miss":""}" id="ag-${k}">
+    const a=AG[k], p=dayPlan(k), its=dayItems(p), tk=its.filter(i=>!i.auto), dn=tk.filter(i=>itemDone(k,i)).length, open=k===cronoOpen, tp=agTipo(a);
+    const st=k<t?(dn===tk.length?"✓ feito":dn?`${dn}/${tk.length}`:"não feito"):k===t?(dn?`${dn}/${tk.length}`:"hoje"):"";
+    return `<section class="panel agday ${k===t?"today":""} ${k<t&&dn<tk.length?"miss":""}" id="ag-${k}">
       <button class="aghead" onclick="cronoOpen=cronoOpen==='${k}'?'':'${k}';vCronoKeep()" aria-expanded="${open}">
         <span class="agdate num"><b>${k.slice(8)}/${k.slice(5,7)}</b><i>${WD[kDate(k).getDay()]}</i></span>
         <span class="agfoco"><b>${esc(a[0])}</b>${a[4]&&a[5]?`<i class="muted">+ ${a[4]==="port"?"Português":"Matemática"}: ${esc(a[5])}</i>`:""}</span>
         <span class="agst">${tp[0]!=="Conteúdo"?`<span class="pill ${tp[1]}">${tp[0]}</span>`:""}<span class="muted num">${st}</span></span>
       </button>
-      ${open?`<div class="tlist">${tlHTML(k,its,"ag-"+k+"-",k===t)}</div>${(()=>{const m=its.find(i=>i.auto);return m?`<p class="muted">${esc(m.t)}${k<=t?` · ${S.days[k]||0} respondidas`:""}</p>`:"";})()}`:""}
+      ${open?`<div class="tlist">${tlHTML(k,its,"ag-"+k+"-",k===t)}</div>${(()=>{const m=its.find(i=>i.auto);return m?`<p class="muted">${esc(m.t)}${k<=t?` · ${S.days[k]||0} respondidas${(S.days[k]||0)>=S.goal?" ✓ cumprida":""}`:""}</p>`:"";})()}`:""}
     </section>`;
   };
   $("#view").innerHTML=segNav("crono",SEG_PROG)+`

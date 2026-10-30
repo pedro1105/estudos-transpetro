@@ -93,3 +93,11 @@ Ao publicar, troque a versão do cache em `sw.js`.
 ## Carreira em Dados 2027 (mudou)
 
 O app de carreira ficou em `carreira/` por pouco tempo e mudou para o repositório próprio `pedro1105/carreira-dados` (https://pedro1105.github.io/carreira-dados/), porque o app instalado da Transpetro (escopo `/estudos-transpetro/`) abria a página de carreira dentro dele. `carreira/index.html` só aponta o endereço novo e `carreira/sw.js` apaga o service worker antigo. O `sw.js` da raiz continua ignorando `/carreira/`.
+
+## v26 (30/10/2026)
+
+- Cronograma: a meta de questões aparece à parte e não entra mais na conta de etapas (o 3/4 de 27/10 vinha daí).
+- Etapa de prova anterior se marca sozinha quando a prova daquele ano foi feita, em qualquer dia.
+- Remarcações: prova 2012 em 31/10; prova 2011 + Estoques II em 01/11; 25/11 vira Excel + mini simulado; simulado completo no horário da prova em 29/11; simulado das específicas em 02/12. Nenhum simulado de 4 h em dia útil.
+- Conteúdos do dia atualizados (trigonometria, conjuntos numéricos, ANPD 2026, valores 2026 da 14.133, depreciação, intensidade ESG).
+- Teste: `tests/v26.js`. Cache do SW: transpetro-v27.

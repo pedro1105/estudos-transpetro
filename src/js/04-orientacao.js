@@ -70,7 +70,8 @@ function dayItems(p){
   return it;
 }
 function itemDone(k,i){if(i.chk) return i.chk(k)||!!(S.daily[k]&&S.daily[k][i.id]);return i.auto?(S.days[k]||0)>=S.goal:!!(S.daily[k]&&S.daily[k][i.id]);}
-function dayScore(k){const its=dayItems(dayPlan(k));return its.filter(i=>itemDone(k,i)).length/its.length;}
+// a meta de questões aparece à parte e não entra na conta de etapas feitas (v26)
+function dayScore(k){const its=dayItems(dayPlan(k)).filter(i=>!i.auto);return its.length?its.filter(i=>itemDone(k,i)).length/its.length:1;}
 
 /* ---------- Lembretes ---------- */
 function toast(t,b,goHoje){

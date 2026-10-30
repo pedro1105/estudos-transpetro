@@ -1645,7 +1645,8 @@ function dayItems(p){
   return it;
 }
 function itemDone(k,i){if(i.chk) return i.chk(k)||!!(S.daily[k]&&S.daily[k][i.id]);return i.auto?(S.days[k]||0)>=S.goal:!!(S.daily[k]&&S.daily[k][i.id]);}
-function dayScore(k){const its=dayItems(dayPlan(k));return its.filter(i=>itemDone(k,i)).length/its.length;}
+// a meta de questões aparece à parte e não entra na conta de etapas feitas (v26)
+function dayScore(k){const its=dayItems(dayPlan(k)).filter(i=>!i.auto);return its.length?its.filter(i=>itemDone(k,i)).length/its.length:1;}
 
 /* ---------- Lembretes ---------- */
 function toast(t,b,goHoje){
@@ -2854,15 +2855,15 @@ vCrono=function(){
   const left=Math.max(0,Math.round((kDate("2026-12-06")-kDate(t))/864e5));
   if(cronoOpen===null) cronoOpen=AG[t]?t:days.find(k=>k>t)||days[0];
   const card=k=>{
-    const a=AG[k], p=dayPlan(k), its=dayItems(p), dn=its.filter(i=>itemDone(k,i)).length, open=k===cronoOpen, tp=agTipo(a);
-    const st=k<t?(dn===its.length?"✓ feito":dn?`${dn}/${its.length}`:"não feito"):k===t?"hoje":"";
-    return `<section class="panel agday ${k===t?"today":""} ${k<t&&dn<its.length?"miss":""}" id="ag-${k}">
+    const a=AG[k], p=dayPlan(k), its=dayItems(p), tk=its.filter(i=>!i.auto), dn=tk.filter(i=>itemDone(k,i)).length, open=k===cronoOpen, tp=agTipo(a);
+    const st=k<t?(dn===tk.length?"✓ feito":dn?`${dn}/${tk.length}`:"não feito"):k===t?(dn?`${dn}/${tk.length}`:"hoje"):"";
+    return `<section class="panel agday ${k===t?"today":""} ${k<t&&dn<tk.length?"miss":""}" id="ag-${k}">
       <button class="aghead" onclick="cronoOpen=cronoOpen==='${k}'?'':'${k}';vCronoKeep()" aria-expanded="${open}">
         <span class="agdate num"><b>${k.slice(8)}/${k.slice(5,7)}</b><i>${WD[kDate(k).getDay()]}</i></span>
         <span class="agfoco"><b>${esc(a[0])}</b>${a[4]&&a[5]?`<i class="muted">+ ${a[4]==="port"?"Português":"Matemática"}: ${esc(a[5])}</i>`:""}</span>
         <span class="agst">${tp[0]!=="Conteúdo"?`<span class="pill ${tp[1]}">${tp[0]}</span>`:""}<span class="muted num">${st}</span></span>
       </button>
-      ${open?`<div class="tlist">${tlHTML(k,its,"ag-"+k+"-",k===t)}</div>${(()=>{const m=its.find(i=>i.auto);return m?`<p class="muted">${esc(m.t)}${k<=t?` · ${S.days[k]||0} respondidas`:""}</p>`:"";})()}`:""}
+      ${open?`<div class="tlist">${tlHTML(k,its,"ag-"+k+"-",k===t)}</div>${(()=>{const m=its.find(i=>i.auto);return m?`<p class="muted">${esc(m.t)}${k<=t?` · ${S.days[k]||0} respondidas${(S.days[k]||0)>=S.goal?" ✓ cumprida":""}`:""}</p>`:"";})()}`:""}
     </section>`;
   };
   $("#view").innerHTML=segNav("crono",SEG_PROG)+`
@@ -4011,7 +4012,7 @@ function vConfig(){
       <div class="row"><button class="btn sm" id="bkImp">Importar código</button><span class="muted" id="bkMsg"></span></div></div>
     ${instEvt?`<button class="btn" id="instBtn">Instalar o app neste aparelho</button>`:IS_PWA?"":`<a class="btn ghost sm" href="${GH_URL}" target="_blank" rel="noopener">Abrir a versão instalável (GitHub)</a>`}</section>
   ${aboutExam()}
-  <p class="muted">Versão 25 · ${QV().length.toLocaleString("pt-BR")} questões</p>`;
+  <p class="muted">Versão 26 · ${QV().length.toLocaleString("pt-BR")} questões</p>`;
   $("#stH").onchange=e=>{S.st.h=e.target.value||"19:00";save();};
   $("#stW").onchange=e=>{S.st.w=e.target.value||"09:00";save();};
   $("#goalSel").onchange=e=>{S.goal=+e.target.value;save();};
@@ -4788,7 +4789,7 @@ details.lk summary .bh{min-width:0}
 
 /* Cada aparelho grava no progresso sincronizado a versão do app, onde abriu e quando,
    para dar para conferir pela nuvem se o celular está atualizado e sincronizando */
-const APP_V=25;
+const APP_V=26;
 function devMark(){
   let id="x";try{id=localStorage.getItem("transpetro26-dev");if(!id){id=Math.random().toString(36).slice(2,8);localStorage.setItem("transpetro26-dev",id);}}catch(e){}
   const ua=navigator.userAgent, m=(/Android [\d.]+/.exec(ua)||/iPhone|iPad|Windows|Mac OS X|CrOS|Linux/.exec(ua)||["?"])[0];
@@ -4881,6 +4882,59 @@ function glosTxt(t,cat){
   });
 }
 function xpl(q){return esc(glosTxt(q[3],q.c));}
+
+/* ---------- v26: revisão do cronograma ---------- */
+
+/* Provas anteriores: a etapa se marca sozinha quando a prova daquele ano foi feita até o fim,
+   em qualquer dia (a de 2018, marcada para 27/10, foi feita em 29/10) */
+function pastDone(y){return (S.hist||[]).some(h=>h.label&&(h.label.startsWith("Prova Transpetro "+y)||h.label==="Prova real Transpetro "+y));}
+
+/* Remarcações a partir de 30/10. A prova 2012 de 29/10 não foi feita (no dia foi feita a de 2018):
+   vai para o sábado 31/10, e a de 2011 vai para o domingo 01/11 junto com Estoques II. */
+AG["2026-10-29"][0]="Diagnóstico: prova 2012 (remarcada para 31/10)";
+AG["2026-10-31"]=["Diagnóstico: prova 2012","","","","","","past:2012"];
+AG["2026-11-01"]=["Prova 2011 + Estoques II","estoq","PEPS × custo médio; giro e cobertura; MRP, JIT e kanban; inventário geral × rotativo; RFID e código de barras","estoq","","","past:2011"];
+/* Concordância saiu de 01/11 e entra no lugar de uma revisão repetida */
+AG["2026-11-24"][5]="Concordância verbal e nominal";
+/* Conteúdo atualizado com as mudanças de 2026 e com os pontos do edital que faltavam */
+AG["2026-11-02"][2]+="; valores do art. 29 e atualização pelo Conselho (§ 3º)";
+AG["2026-11-05"][2]+="; dispensa por valor (art. 75) e valores de 2026 (Decreto 12.807/2025)";
+AG["2026-11-14"][2]+="; inservíveis, impairment e métodos de depreciação (linear, soma dos dígitos, unidades)";
+AG["2026-11-16"][2]+="; indicadores de intensidade (água, energia por volume)";
+AG["2026-11-21"][2]+="; ajustes do método indireto (depreciação, clientes, fornecedores)";
+AG["2026-11-26"][5]="Conjuntos numéricos e funções trigonométricas";
+AG["2026-11-27"][2]="Lei 13.709: bases legais, dados sensíveis, direitos do titular, controlador × operador × encarregado; ANPD agora é Agência Nacional de Proteção de Dados (Lei 15.352/2026)";
+/* Simulados de 4 h ficam no fim de semana. 25/11 (quarta) vira Excel com mini simulado; o simulado
+   completo no horário da prova passa para o domingo 29/11; a quarta 02/12 fica com o simulado das
+   específicas (2 h 40), que cabe depois do trabalho */
+AG["2026-11-25"]=["Excel + mini simulado","info","Excel: referências relativas, absolutas e mistas; SE, SOMASE, CONT.SE, PROCV, PROCX; validação e formatação condicional","info","","","mini"];
+AG["2026-11-29"]=["Simulado completo nº 4 no horário da prova","","","","","","sim"];
+AG["2026-12-02"]=["Simulado das específicas","","","","","","esp"];
+AG["2026-12-03"][0]="Correção dos simulados e revisão final";
+
+PHASES[0].d="Provas Transpetro 2018, 2012 e 2011 completas (2018 feita em 29/10; 2012 em 31/10; 2011 em 01/11) e os primeiros assuntos de Logística e Estoques. Na aba Progresso, anote os 5 assuntos com pior acerto.";
+PHASES[1].d="Um assunto novo por dia, sempre com teoria curta, questões do mesmo tema e um treino de Português ou Matemática. Mini simulado nas quartas 04, 11, 18 e 25/11 e simulado completo nos domingos 08, 15 e 22/11.";
+PHASES[2].d="Revisão e ritmo de prova: ataque aos pontos fracos, simulado completo no horário da prova em 29/11, simulado das específicas em 02/12 e lei seca.";
+
+const _dayPlan26=dayPlan;
+dayPlan=function(k){
+  const p=_dayPlan26(k);
+  if(p.ag&&p.ag[6]==="esp") p.sp={t:"Simulado das específicas: 40 questões em 2 h 40",fn:"startExam('esp')"};
+  return p;
+};
+const _dayItems26=dayItems;
+dayItems=function(p){
+  const it=_dayItems26(p), sp=p.ag?p.ag[6]:"";
+  if(sp.startsWith("past:")){const y=sp.slice(5), s=it.find(i=>i.id==="sim"); if(s) s.chk=()=>pastDone(y);}
+  if(sp==="esp"&&!it.find(i=>i.id==="cor")){
+    const at=it.findIndex(i=>i.id==="sim")+1;
+    it.splice(at,0,{id:"cor",t:"Correção (30 min): ler a explicação de cada erro e anotar o motivo no caderno de erros",act:"go('caderno')",lbl:"Abrir"});
+  }
+  return it;
+};
+const _agTipo26=agTipo;
+agTipo=function(a){return a[6]==="esp"?["Simulado","bad"]:_agTipo26(a);};
+if(typeof dsMemo==="object") for(const k in dsMemo) delete dsMemo[k];
 
 if("serviceWorker" in navigator&&location.protocol==="https:"){const sw=navigator.serviceWorker;let had=!!sw.controller;sw.register("sw.js").then(r=>{document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")r.update().catch(()=>{});});}).catch(()=>{});sw.addEventListener("controllerchange",()=>{if(had)swUpdated();had=true;});}
 go("guia");

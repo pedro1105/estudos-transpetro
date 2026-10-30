@@ -23,7 +23,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   ok('questões novas em 10+ assuntos e completas', d.cats >= 10 && d.okc, d.cats);
   ok('nenhuma explicação com menos de 85 letras', d.curtas === 0, d.curtas);
   ok('sem enunciado repetido novo', d.dup <= 9, d.dup);
-  ok('versão 25', d.v === 25);
+  ok('versão 25+', d.v >= 25);
   ok('glossário expande só a primeira vez', d.g1 === 'O PL (patrimônio líquido) aumentou e o PL caiu.', d.g1);
   ok('glossário respeita sigla já explicada', d.g2 === 'MTTR (tempo médio) e MTTR.', d.g2);
   ok('glossário não quebra CT-e', d.g3.startsWith('O CT-e'), d.g3);
