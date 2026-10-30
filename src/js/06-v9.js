@@ -277,7 +277,7 @@ vStats=function(){_vStats5();const seg=$("#view .segtabs");const h=$("#view h2")
 /* ---------- 4. Caderno de erros em PDF ---------- */
 function cadernoDoc(){
   const ids=Object.keys(S.notes).map(Number).filter(q=>Q[q]).sort((a,b)=>CATS[Q[a].c].b.localeCompare(CATS[Q[b].c].b)||Q[a].c.localeCompare(Q[b].c));
-  const items=ids.map((qi,n)=>{const q=Q[qi],no=S.notes[qi];return `<div class="it"><div class="cat">${n+1}. ${esc(CATS[q.c].n)} · ${esc(REASONS[no.r]||"")}</div><p class="st">${esc(q[1])}</p><p><b>Resposta:</b> ${esc(q[2][0])}</p>${no.t?`<p class="nt"><b>Minha nota:</b> ${esc(no.t)}</p>`:""}<p class="ex">${esc(q[3])}</p></div>`;}).join("");
+  const items=ids.map((qi,n)=>{const q=Q[qi],no=S.notes[qi];return `<div class="it"><div class="cat">${n+1}. ${esc(CATS[q.c].n)} · ${esc(REASONS[no.r]||"")}</div><p class="st">${esc(q[1])}</p><p><b>Resposta:</b> ${esc(q[2][0])}</p>${no.t?`<p class="nt"><b>Minha nota:</b> ${esc(no.t)}</p>`:""}<p class="ex">${xpl(q)}</p></div>`;}).join("");
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Caderno de erros</title><style>body{font:13px/1.5 system-ui,Arial,sans-serif;color:#222;max-width:760px;margin:24px auto;padding:0 16px}h1{font-size:20px;margin:0 0 4px}.it{border-top:1px solid #ccc;padding:10px 0;break-inside:avoid}.cat{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#555}.st{font-weight:600;margin:4px 0}.nt{background:#f4f0e4;padding:4px 8px}.ex{color:#444}p{margin:4px 0}@page{margin:14mm}</style></head><body><h1>Caderno de erros · Transpetro 2026</h1><p>${ids.length} questões · gerado em ${new Date().toLocaleDateString("pt-BR")}</p>${items||"<p>Caderno vazio.</p>"}</body></html>`;
 }
 async function cadernoPdf(){
@@ -367,7 +367,7 @@ function vDuel(){
     if(duel.pts>(S.gm.duelBest||0)){S.gm.duelBest=duel.pts;save();}
     $("#view").innerHTML=`<div><button class="btn ghost sm" onclick="go('jogos')">← Jogos</button></div><h2>Duelo do relógio</h2>
     <div class="score"><span class="muted">Pontuação</span><span class="v num">${duel.pts}</span><span class="muted">${duel.ok} de 10 certas · recorde ${S.gm.duelBest||0}</span></div>
-    <div class="stack">${duel.ids.map((qi,k)=>{const q=Q[qi],ok=duel.ans[k]!==null&&duel.order[k][duel.ans[k]]===0;return ok?"":`<details class="rev"><summary><span class="mark bad">✗</span><span>${esc(q[1].length>100?q[1].slice(0,100)+"…":q[1])}</span></summary><div class="stack" style="margin-top:8px"><p>Resposta: <b>${esc(q[2][0])}</b></p><div class="expl">${esc(q[3])}</div></div></details>`;}).join("")}</div>
+    <div class="stack">${duel.ids.map((qi,k)=>{const q=Q[qi],ok=duel.ans[k]!==null&&duel.order[k][duel.ans[k]]===0;return ok?"":`<details class="rev"><summary><span class="mark bad">✗</span><span>${esc(q[1].length>100?q[1].slice(0,100)+"…":q[1])}</span></summary><div class="stack" style="margin-top:8px"><p>Resposta: <b>${esc(q[2][0])}</b></p><div class="expl">${xpl(q)}</div></div></details>`;}).join("")}</div>
     <div class="row"><button class="btn" onclick="startDuel()">Jogar de novo</button></div>`;
     return;
   }
@@ -375,7 +375,7 @@ function vDuel(){
   $("#view").innerHTML=`<div class="qhead"><button class="btn ghost sm" onclick="go('jogos')">← Sair</button><div class="stack" style="gap:2px"><strong>Duelo do relógio</strong><span class="muted num">Questão ${k+1} de 10 · ${duel.pts} pontos</span></div><span class="timer num" id="dT">${Math.ceil(Math.max(0,duelLeft()))} s</span></div>
   <article class="panel stack"><span class="qcat" style="color:${bcol(q.c)}">${esc(CATS[q.c].n)}</span><p class="qtext">${esc(q[1])}</p>
   <div class="opts">${duel.order[k].map((oi,pos)=>`<button class="opt ${shown?(oi===0?"right":a===pos?"wrong":""):""} ${shown?"locked":""}" data-p="${pos}"><span class="l">${L[pos]}</span><span>${esc(q[2][oi])}</span></button>`).join("")}</div>
-  ${shown?`<div class="expl"><strong>${a!==null&&duel.order[k][a]===0?"Certo!":a===null?"Tempo esgotado.":"Errado."}</strong> ${esc(q[3])}</div><div class="row"><button class="btn" id="dNext">${k<9?"Próxima":"Ver resultado"}</button></div>`:""}</article>`;
+  ${shown?`<div class="expl"><strong>${a!==null&&duel.order[k][a]===0?"Certo!":a===null?"Tempo esgotado.":"Errado."}</strong> ${xpl(q)}</div><div class="row"><button class="btn" id="dNext">${k<9?"Próxima":"Ver resultado"}</button></div>`:""}</article>`;
   document.querySelectorAll("#view .opt").forEach(b=>b.onclick=()=>{if(!duel.lock)duelAnswer(+b.dataset.p);});
   const n=$("#dNext"); if(n) n.onclick=()=>{duel.i++;duel.lock=false;duel.t0=Date.now();if(!dtick)dtick=setInterval(duelTick,250);vDuel();};
 }

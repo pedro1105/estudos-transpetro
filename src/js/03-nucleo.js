@@ -84,6 +84,7 @@ function vPratica(){
     <div class="panel mode hl"><span class="tag">Recomendado</span><h3>Treino adaptativo</h3><p class="muted">20 questões: 12 dos seus 5 assuntos mais fracos (${weakCats(5).map(k=>esc(CATS[k].n)).join(", ")}), 4 de outras específicas e 4 de Português e Matemática. Prioriza as que você nunca viu.</p><button class="btn" onclick="startAdaptive()">Começar</button></div>
     <div class="panel mode"><span class="tag">Igual à prova</span><h3>Simulado completo</h3><p class="muted">60 questões no formato da prova, 4 h cronometradas, correção só no final e verificação das notas de corte. Puxa primeiro as questões que você nunca viu (${nv.toLocaleString("pt-BR")} inéditas no banco).</p><button class="btn" onclick="startExam('full')">Iniciar simulado</button></div>
     <div class="panel mode"><span class="tag">50 minutos</span><h3>Mini simulado</h3><p class="muted">20 questões com a mesma proporção entre os blocos, priorizando as inéditas. Bom para dias de semana.</p><button class="btn" onclick="startExam('mini')">Iniciar mini</button></div>
+    <div class="panel mode"><span class="tag">2 h 40 min</span><h3>Simulado das específicas</h3><p class="muted">As 40 questões que decidem a classificação, na proporção do edital, com 4 minutos por questão. Mostra a distância do corte (20) e da meta (28 a 32).</p><button class="btn" onclick="startExam('esp')">Iniciar específicas</button></div>
     <div class="panel mode"><span class="tag">Correção imediata</span><h3>Treino por assunto</h3><p class="muted">Até 15 questões de um tema, com gabarito comentado a cada resposta.</p>
       <label for="selCat" class="muted">Assunto</label><select id="selCat"><option value="src:all">Só questões de provas anteriores (${QV().filter(q=>q[4]).length})</option>${blk}${opts}</select>
       <label class="row muted chk" style="gap:8px"><input type="checkbox" id="onlyNew" style="width:18px;height:18px;accent-color:var(--petrol)"> Só questões que ainda não respondi</label>
@@ -116,9 +117,9 @@ function makeQuiz(ids,mode,label,limit){
   go("quiz");
 }
 function startExam(t){
-  const n=t==="full"?{adm:9,fin:9,log:15,info:7,port:10,mat:10}:{adm:3,fin:3,log:5,info:2,port:3,mat:4};
+  const n=t==="full"?{adm:9,fin:9,log:15,info:7,port:10,mat:10}:t==="esp"?{adm:9,fin:9,log:15,info:7}:{adm:3,fin:3,log:5,info:2,port:3,mat:4};
   const ids=[].concat(...Object.entries(n).map(([b,k])=>pickBlock(b,k)));
-  makeQuiz(ids,"exam",t==="full"?"Simulado completo":"Mini simulado",t==="full"?4*3600:50*60);
+  makeQuiz(ids,"exam",t==="full"?"Simulado completo":t==="esp"?"Simulado das específicas":"Mini simulado",t==="full"?4*3600:t==="esp"?160*60:50*60);
 }
 function startTrain(){
   const v=$("#selCat").value; let pool;
@@ -174,7 +175,7 @@ function vQuiz(){
     <span class="qcat" style="color:var(--c-${CATS[q.c].b})">${esc(CATS[q.c].n)}${q[4]?` · <span class="srcpill">Cesgranrio · ${/^\d{4}$/.test(q[4])?"Transpetro "+q[4]:q[4]}</span>`:""}</span>
     <p class="qtext">${esc(q[1])}</p>
     <div class="opts">${optsHtml}</div>
-    ${locked?`<div class="expl"><strong>${a!==null&&ord[a]===0?"Correto.":"Resposta: "+L[ord.indexOf(0)]+"."}</strong> ${esc(q[3])}</div>${ord[a]!==0?noteForm(qi):""}`:""}
+    ${locked?`<div class="expl"><strong>${a!==null&&ord[a]===0?"Correto.":"Resposta: "+L[ord.indexOf(0)]+"."}</strong> ${xpl(q)}</div>${ord[a]!==0?noteForm(qi):""}`:""}
     ${repBtn(qi)}
   </article>
   <div class="row" style="justify-content:space-between">
@@ -235,6 +236,10 @@ function vResult(){
   const ger={c:g("port").c+g("mat").c,t:g("port").t+g("mat").t};
   const full=quiz.label==="Simulado completo"||(quiz.real&&quiz.ids.length===60);
   let cut="";
+  if(quiz.label==="Simulado das específicas"&&quiz.finished){
+    const c=esp.c, msg=c<20?`Faltaram ${20-c} para o corte. Foque nos assuntos com mais erros abaixo.`:c<28?`Passou do corte. Faltam ${28-c} para a meta de 28.`:`Na meta (28 a 32). Agora é manter.`;
+    cut=`<div class="rule"><span class="pill ${c<20?"bad":c<28?"":"ok"}">${c}/40</span> ${msg}</div>`;
+  }
   if(full){
     const fails=[];
     if(esp.c<20) fails.push("menos de 20 nas específicas");
@@ -258,7 +263,7 @@ function vResult(){
         <p class="qtext" style="font-size:16px">${esc(q[1])}</p>
         <p>Sua resposta: <b>${a===null?"em branco":L[a]+") "+esc(q[2][ord[a]])}</b></p>
         <p>Gabarito: <b>${L[ci]}) ${esc(q[2][0])}</b></p>
-        <div class="expl">${esc(q[3])}</div>
+        <div class="expl">${xpl(q)}</div>
         ${repBtn(qi)}
         ${ok?"":noteForm(qi)}
       </div></details>`;}).join("");
@@ -453,7 +458,7 @@ function vVfEnd(){
     <div class="score"><span class="muted">Maior sequência</span><span class="v num">${vf.maxStreak}</span><span class="muted num">recorde geral: ${S.gm.vfBest||0}</span></div>
   </div>
   <div class="row"><button class="btn" onclick="go('jogos')">Jogar de novo</button></div>
-  ${wrong.length?`<h3>Correção dos erros</h3><div class="stack">${wrong.map(x=>{const q=Q[x.qi];return `<div class="panel stack"><p>${esc(x.text)}</p><p><span class="pill ${x.truth?"ok":"bad"}">${x.truth?"Verdadeira":"Falsa"}</span> você marcou ${x.a?"verdadeira":"falsa"}.</p>${x.truth?"":`<p>Correto: <b>${esc(q[1].trim()+" "+q[2][0]+".")}</b></p>`}<div class="expl">${esc(q[3])}</div></div>`;}).join("")}</div>`:""}`;
+  ${wrong.length?`<h3>Correção dos erros</h3><div class="stack">${wrong.map(x=>{const q=Q[x.qi];return `<div class="panel stack"><p>${esc(x.text)}</p><p><span class="pill ${x.truth?"ok":"bad"}">${x.truth?"Verdadeira":"Falsa"}</span> você marcou ${x.a?"verdadeira":"falsa"}.</p>${x.truth?"":`<p>Correto: <b>${esc(q[1].trim()+" "+q[2][0]+".")}</b></p>`}<div class="expl">${xpl(q)}</div></div>`;}).join("")}</div>`:""}`;
 }
 document.addEventListener("keydown",e=>{
   if(current!=="vf"||!vf||vf.done||e.ctrlKey||e.metaKey||e.altKey) return;

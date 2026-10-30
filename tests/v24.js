@@ -14,10 +14,10 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
     const letra = vis.filter(q => /(^|\. |; )(Em|Na) [A-E][,: ]/.test(q[3] || '')).length;
     return { n: Q.length, letra, procv: /fora dessa tabela/.test(Q[467][1]), v: APP_V, rep: S.v24rep };
   });
-  ok('banco com 1.280 questões', d.n === 1280, d.n);
+  ok('banco com 1.280+ questões', d.n >= 1280, d.n);
   ok('explicações não citam letras', d.letra === 0, d.letra);
   ok('PROCV com a tabela descrita', d.procv);
-  ok('versão 24', d.v === 24);
+  ok('versão 24+', d.v >= 24);
   ok('avisos reportados limpos uma vez', d.rep === 1);
   await p.evaluate(() => go('pratica')); await p.waitForTimeout(200);
   const g = await p.evaluate(() => { const gs = [...document.querySelectorAll('#view .pgrid')]; const b = document.querySelector('#view .pgrid .pbtn'); return { n: gs.length, cols: gs[0] ? getComputedStyle(gs[0]).gridTemplateColumns.split(' ').length : 0, w: b ? b.getBoundingClientRect().width : 0 }; });

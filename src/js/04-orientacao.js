@@ -134,7 +134,7 @@ function vCaderno(){
   const card=(qi,rev)=>{const q=Q[qi],n=S.notes[qi];return `<details class="rev" ${rev?"open":""}><summary><span class="mark bad">✗</span><span>${esc(q[1].length>100?q[1].slice(0,100)+"…":q[1])}</span></summary>
     <div class="stack" style="margin-top:10px"><span class="qcat" style="color:var(--c-${CATS[q.c].b})">${esc(CATS[q.c].n)} · ${REASONS[n.r]}${n.d?" · anotada em "+fmtK(n.d):""}</span>
     <p class="qtext" style="font-size:16px">${esc(q[1])}</p><p>Gabarito: <b>${esc(q[2][0])}</b></p>
-    ${n.t?`<div class="rule"><b>Sua nota:</b> ${esc(n.t)}</div>`:""}<div class="expl">${esc(q[3])}</div>
+    ${n.t?`<div class="rule"><b>Sua nota:</b> ${esc(n.t)}</div>`:""}<div class="expl">${xpl(q)}</div>
     <div class="row">${rev?`<button class="btn sm" onclick="noteRev(${qi})">Revisei</button>`:`<span class="muted">${n.n?"Próxima revisão em "+fmtK(n.n):"Revisões concluídas"}</span>`}<button class="btn ghost sm" onclick="noteDel(${qi})">Apagar</button></div></div></details>`;};
   $("#view").innerHTML=`
   <div><button class="btn ghost sm" onclick="go('pratica')">← Praticar</button></div>
@@ -231,12 +231,14 @@ const LINKS={
  fluxo:[["Pronunciamentos do CPC (CPC 03: Demonstração dos Fluxos de Caixa)","https://www.cpc.org.br/CPC/Documentos-Emitidos/Pronunciamentos","site"]],
  bp:[["Lei 6.404/1976, arts. 176 a 188 (demonstrações)",PL+"leis/l6404consol.htm","lei"],["Pronunciamentos do CPC (CPC 26: apresentação das demonstrações)","https://www.cpc.org.br/CPC/Documentos-Emitidos/Pronunciamentos","site"]],
  transp:[["Lei 9.611/1998: transporte multimodal (OTM)",PL+"leis/l9611.htm","lei"],["ANTT (transporte terrestre)","https://www.gov.br/antt/pt-br","site"],["ANTAQ (transporte aquaviário)","https://www.gov.br/antaq/pt-br","site"]],
- compras:[["Lei 13.303/2016 (estatais: licitações e contratos)",PL+"_ato2015-2018/2016/lei/l13303.htm","lei"],["Lei 14.133/2021 (nova lei de licitações)",PL+"_ato2019-2022/2021/lei/l14133.htm","lei"]],
+ compras:[["Lei 13.303/2016 (estatais: licitações e contratos)",PL+"_ato2015-2018/2016/lei/l13303.htm","lei"],["Lei 14.133/2021 (nova lei de licitações)",PL+"_ato2019-2022/2021/lei/l14133.htm","lei"],["Decreto 12.807/2025: valores da 14.133 em 2026 (dispensa R$ 130.984,20 / R$ 65.492,11)",PL+"_ato2023-2026/2025/decreto/d12807.htm","lei"]],
  contr:[["Lei 13.303/2016, arts. 68 a 91 (contratos)",PL+"_ato2015-2018/2016/lei/l13303.htm","lei"],["Lei 14.133/2021 (gestão e fiscalização de contratos)",PL+"_ato2019-2022/2021/lei/l14133.htm","lei"],["Lei 14.063/2020 (assinaturas eletrônicas)",PL+"_ato2019-2022/2020/lei/l14063.htm","lei"]],
  info:[["Atalhos de teclado no Windows (Microsoft)","https://support.microsoft.com/pt-br/accessibility/windows/keyboard-shortcuts-in-windows","site"],["Suporte do Excel em português (Microsoft)","https://support.microsoft.com/pt-br/excel","site"],["Suporte do Word em português (Microsoft)","https://support.microsoft.com/pt-br/word","site"]],
- lgpd:[["LGPD (Lei 13.709/2018)",PL+"_ato2015-2018/2018/lei/l13709.htm","lei"],["ANPD: Autoridade Nacional de Proteção de Dados","https://www.gov.br/anpd/pt-br","site"],["Cartilha de Segurança para Internet (CERT.br)","https://cartilha.cert.br/","site"]],
+ lgpd:[["LGPD (Lei 13.709/2018)",PL+"_ato2015-2018/2018/lei/l13709.htm","lei"],["ANPD: Agência Nacional de Proteção de Dados","https://www.gov.br/anpd/pt-br","site"],["Cartilha de Segurança para Internet (CERT.br)","https://cartilha.cert.br/","site"],["Lei 15.352/2026: ANPD vira agência reguladora","https://legis.senado.leg.br/norma/42835651","lei"]],
  port:[["Manual de Redação da Presidência da República","https://www4.planalto.gov.br/centrodeestudos/assuntos/manual-de-redacao-da-presidencia-da-republica","site"],["VOLP: Vocabulário Ortográfico (ABL)","https://www.academia.org.br/nossa-lingua/busca-no-vocabulario","site"],["Acordo Ortográfico (Decreto 6.583/2008)",PL+"_ato2007-2010/2008/decreto/d6583.htm","lei"]],
- mat:[["Khan Academy em português: Matemática","https://pt.khanacademy.org/math","site"]]
+ mat:[["Khan Academy em português: Matemática","https://pt.khanacademy.org/math","site"]],
+ log:[["Lei 12.305/2010: Política Nacional de Resíduos Sólidos (logística reversa)",PL+"_ato2007-2010/2010/lei/l12305.htm","lei"]],
+ matfin:[["Calculadora do Cidadão (Banco Central): confira juros e correções","https://www3.bcb.gov.br/CALCIDADAO/","site"]]
 };
 const SEARCH={
  rh:"gestão de pessoas recrutamento seleção treinamento avaliação de desempenho concurso",sgi:"sistema de gestão integrado ISO 9001 14001 45001 PDCA concurso",
@@ -248,7 +250,7 @@ const SEARCH={
  armaz:"armazenagem layout paletização drive-in concurso",manus:"movimentação de materiais embalagem unitização concurso",
  compras:"Lei 13.303 licitações empresas estatais aula concurso",contr:"gestão e fiscalização de contratos Lei 13.303 14.133 aula",
  info:"Windows 11 Word Excel atalhos concurso Cesgranrio",lgpd:"LGPD segurança da informação malware phishing concurso",
- port:"português Cesgranrio crase concordância regência aula",mat:"matemática nível médio Cesgranrio porcentagem probabilidade progressões aula"
+ port:"português Cesgranrio crase concordância regência aula",mat:"matemática nível médio Cesgranrio porcentagem probabilidade logaritmo estatística aula"
 };
 const yt=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q);
 const gg=q=>"https://www.google.com/search?q="+encodeURIComponent(q);

@@ -28,6 +28,15 @@ node tests/snapshot.js dist/app.html antes.json   # foto do HTML das telas, para
 
 Ao publicar, troque a versão do cache em `sw.js`.
 
+## v25 (30/10/2026)
+
+- 193 explicações curtas reescritas (conceito, conta passo a passo e pegadinha). Nenhum gabarito mudou.
+- Glossário (`src/js/15-v25.js`): na primeira vez que uma sigla aparece numa explicação, ela vem por extenso. Mapa por categoria para siglas ambíguas (PC, EF, OS...).
+- 71 questões novas (`src/js/07g-questoes-v25.js`, posições 1280+) em manuseio, patrimônio, ESG, armazenagem, manutenção, fluxo de caixa, contratos, SGI, transportes, balanço/DRE, compras e LGPD.
+- Normas 2026: ANPD virou Agência Nacional de Proteção de Dados (Lei 15.352/2026); valores da 14.133 em 2026 (Decreto 12.807/2025); art. 29, § 3º da 13.303.
+- Simulado das específicas: 40 questões, 2h40, mostra corte (20) e meta (28).
+- Teste: `tests/v25.js`. Cache do SW: transpetro-v26.
+
 ## v24
 - Revisão geral do banco: 68 questões corrigidas (enunciados com palavra "destacada" sem destaque, PROCV sem a tabela, explicações que citavam letras, que mudam porque as alternativas são embaralhadas, e as 7 explicações reportadas pelo usuário). Nenhum gabarito mudou. Os avisos dessas 7 saem uma vez (`S.v24rep`).
 - Conteúdos conferidos com o edital: Razão/Diário, documentos fiscais, CLT básica, processadores, direitos do titular (LGPD), regimes e desempate da Lei 13.303, leis e nomenclatura de rodovias, automação do manuseio, PNRS. Lei seca: vedação de prazo indeterminado é o art. 71, parágrafo único.

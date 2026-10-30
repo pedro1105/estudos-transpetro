@@ -15,7 +15,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
     return { n: sup.length, first: sup[0], last: sup[sup.length - 1], total: Q.length, bad, srcs: [srcCount('Petrobras 2010 TAC')], ids: new Set(QID).size === QID.length };
   });
   ok('41 questões novas', r.n === 41, r.n);
-  ok('entram no fim do banco (1239..1279)', r.first === 1239 && r.last === 1279 && r.total === 1280, r.first + '..' + r.last);
+  ok('entram no fim do banco (1239..1279)', r.first === 1239 && r.last === 1279 && r.total >= 1280, r.first + '..' + r.last);
   ok('todas íntegras', r.bad.length === 0, r.bad.join(','));
   ok('contagem 41', r.srcs.join('/') === '41', r.srcs.join('/'));
   ok('códigos únicos', r.ids);

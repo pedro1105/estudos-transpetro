@@ -28,7 +28,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   ok('aviso de versão nova com botão Atualizar', r.toast);
   ok('07/11 usa prova do mesmo cargo', r.src === 'src:Petrobras 2018 TAC' && r.srcN > 30, r.srcN);
   ok('correções embutidas nos dados (sem dicionários em tempo de execução)', r.fix);
-  ok('banco com 1.280 questões', r.total === 1280, r.total);
+  ok('banco com 1.280+ questões', r.total >= 1280, r.total);
   await p.evaluate(() => go('audio')); await p.waitForTimeout(200);
   ok('tela Áudio sem controle de volume', await p.evaluate(() => !document.querySelector('#view input[type=range]')));
   ok('sem erros de página', errs.length === 0, errs.join(' | '));
