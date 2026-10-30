@@ -101,3 +101,9 @@ O app de carreira ficou em `carreira/` por pouco tempo e mudou para o repositór
 - Remarcações: prova 2012 em 31/10; prova 2011 + Estoques II em 01/11; 25/11 vira Excel + mini simulado; simulado completo no horário da prova em 29/11; simulado das específicas em 02/12. Nenhum simulado de 4 h em dia útil.
 - Conteúdos do dia atualizados (trigonometria, conjuntos numéricos, ANPD 2026, valores 2026 da 14.133, depreciação, intensidade ESG).
 - Teste: `tests/v26.js`. Cache do SW: transpetro-v27.
+
+## v27 (30/10/2026)
+
+- Checklist do dia marca sozinho só quando a etapa é concluída (`src/js/17-v27.js`): treino até o fim (S.fin), leitura até o fim com "Terminei a leitura" (S.rd), motivo anotado em cada erro do dia (caderno), Progresso aberto depois de estudar (S.vis). A regra sai do botão de cada etapa (autoChk).
+- Etapas automáticas não podem ser marcadas à mão e tocar no texto não marca mais. Só "separar documentos" e "dormir" continuam manuais.
+- Teste: `tests/v27.js`. Cache do SW: transpetro-v28.

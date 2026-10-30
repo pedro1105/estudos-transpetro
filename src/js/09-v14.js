@@ -89,9 +89,9 @@ function tlHTML(k,its,pre,live){
     if(r.pause) return `<div class="tl pause"><span class="tltime num">${hm(r.a)}</span><span class="muted">Pausa de 10 min, longe do celular</span></div>`;
     const i=r.i, ck=itemDone(k,i), cur=steps.indexOf(i)===nowI;
     return `<div class="tl ${ck?"done":""} ${cur?"cur":""}">
-      <input type="checkbox" id="${pre}${i.id}" data-k="${k}" data-i="${i.id}" ${ck?"checked":""} aria-label="Concluí: ${esc(r.p.h||r.p.d)}">
+      <input type="checkbox" id="${pre}${i.id}" data-k="${k}" data-i="${i.id}" ${ck?"checked":""} ${i.chk?'disabled title="Marca sozinho quando você concluir a etapa"':""} aria-label="${i.chk?"Marca sozinho ao concluir":"Concluí"}: ${esc(r.p.h||r.p.d)}">
       <div class="tlb"><div class="tlt">${r.a!==null?`<span class="tltime num">${hm(r.a)}–${hm(r.b)}</span>`:""}${areaChip(r.area)}${cur?'<span class="pill now">agora</span>':""}</div>
-        <label for="${pre}${i.id}" class="tltitle">${r.p.h?`<b>${esc(r.p.h)}:</b> `:""}${esc(r.p.d)}</label>
+        ${i.chk?`<span class="tltitle">`:`<label for="${pre}${i.id}" class="tltitle">`}${r.p.h?`<b>${esc(r.p.h)}:</b> `:""}${esc(r.p.d)}${i.chk?(ck?"":` <i class="muted tlauto">· marca sozinho ao concluir</i>`)+"</span>":"</label>"}
         ${STEP_HOW[i.id]?`<p class="tlhow">${esc(STEP_HOW[i.id])}</p>`:""}</div>
       ${i.act?`<button class="btn ${cur?"":"ghost"} sm" onclick="${i.act}">${i.lbl}</button>`:""}</div>`;}).join("");
 }
@@ -167,7 +167,7 @@ function vConfig(){
       <div class="row"><button class="btn sm" id="bkImp">Importar código</button><span class="muted" id="bkMsg"></span></div></div>
     ${instEvt?`<button class="btn" id="instBtn">Instalar o app neste aparelho</button>`:IS_PWA?"":`<a class="btn ghost sm" href="${GH_URL}" target="_blank" rel="noopener">Abrir a versão instalável (GitHub)</a>`}</section>
   ${aboutExam()}
-  <p class="muted">Versão 26 · ${QV().length.toLocaleString("pt-BR")} questões</p>`;
+  <p class="muted">Versão 27 · ${QV().length.toLocaleString("pt-BR")} questões</p>`;
   $("#stH").onchange=e=>{S.st.h=e.target.value||"19:00";save();};
   $("#stW").onchange=e=>{S.st.w=e.target.value||"09:00";save();};
   $("#goalSel").onchange=e=>{S.goal=+e.target.value;save();};

@@ -80,7 +80,7 @@ details.lk summary .bh{min-width:0}
 
 /* Cada aparelho grava no progresso sincronizado a versão do app, onde abriu e quando,
    para dar para conferir pela nuvem se o celular está atualizado e sincronizando */
-const APP_V=26;
+const APP_V=27;
 function devMark(){
   let id="x";try{id=localStorage.getItem("transpetro26-dev");if(!id){id=Math.random().toString(36).slice(2,8);localStorage.setItem("transpetro26-dev",id);}}catch(e){}
   const ua=navigator.userAgent, m=(/Android [\d.]+/.exec(ua)||/iPhone|iPad|Windows|Mac OS X|CrOS|Linux/.exec(ua)||["?"])[0];
