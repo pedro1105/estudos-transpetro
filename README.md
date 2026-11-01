@@ -108,6 +108,15 @@ O app de carreira ficou em `carreira/` por pouco tempo e mudou para o repositór
 - Etapas automáticas não podem ser marcadas à mão e tocar no texto não marca mais. Só "separar documentos" e "dormir" continuam manuais.
 - Teste: `tests/v27.js`. Cache do SW: transpetro-v28.
 
+## v29 (01/11/2026)
+- Correção e Caderno de erros abrem uma tela nova (`openCorr`, `src/js/19-v29.js`) com os erros do simulado, do dia ou da semana: enunciado, resposta certa, explicação e motivos. Um toque no motivo já salva. A etapa marca sozinha quando todos os erros têm motivo, ou quando não houve erro.
+- Reler o caderno (descanso) marca com "Terminei a leitura" no fim do caderno, ou sozinho se o caderno estiver vazio.
+- Dias anteriores: Desafio do dia conta pelo registro do dia; Reforço aceita qualquer treino extra completo; Fechamento aceita o Progresso aberto no dia ou depois. 29/10 passou a ser o dia da prova 2018 (feita nesse dia).
+- A nota dos dias anteriores se atualiza na hora (antes ficava guardada até recarregar).
+- Aviso (toast) volta para cima da barra de abas depois do modo foco e ganhou botão de fechar.
+- Questões: 2 explicações reescritas (reportes do usuário), alternativas erradas alongadas em 24 questões da v25 (a certa não fica mais óbvia pelo tamanho).
+- Teste: `tests/v29.js`.
+
 ## v28 (01/11/2026)
 
 - Dias atrasados (`src/js/18-v28.js`): o que é concluído a partir do botão de um cartão anterior do cronograma conta também para aquele dia (tlFrom). Dias anteriores aceitam marcar a caixa à mão; hoje e dias futuros seguem automáticos.
