@@ -22,9 +22,10 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   // treino até o fim marca
   await p.evaluate(c => { startTrainCat(c); quiz.ids.forEach((_, j) => quiz.ans[j] = quiz.order[j].indexOf(j === 0 ? 1 : 0)); finish(); }, cat); await p.waitForTimeout(150);
   s = await st(); ok('treino concluído marca a etapa', s.q1 === true);
-  ok('caderno ainda pendente (erro sem motivo)', s.cad === false);
+  const cad0 = await p.evaluate(() => cadDone(todayK()));
+  ok('caderno ainda pendente (erro sem motivo)', cad0 === false);
   await p.evaluate(() => { const k = todayK(); [].concat(...S.fin[k].map(f => f.w)).forEach(qi => S.notes[qi] = { r: 'conceito', t: '', d: k, s: 0, n: k }); });
-  s = await st(); ok('caderno marca com todos os erros anotados', s.cad === true);
+  ok('caderno marca com todos os erros anotados', await p.evaluate(() => cadDone(todayK())) === true);
   // leitura: abrir não marca, tocar em Terminei marca
   await p.evaluate(c => openTopic(c), cat); await p.waitForTimeout(200);
   s = await st(); ok('abrir o resumo não marca a teoria', s.teo === false);
@@ -37,7 +38,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   await p.evaluate(() => go('crono')); await p.waitForTimeout(200);
   const d = await p.evaluate(() => { const r = [...document.querySelectorAll('.agday.today .tl input')]; return { n: r.length, dis: r.filter(x => x.disabled).length, lbl: document.querySelectorAll('.agday.today label.tltitle').length }; });
   ok('caixas automáticas travadas e texto sem marcar', d.dis === d.n && d.lbl === 0, JSON.stringify(d));
-  ok('versão 27', await p.evaluate(() => APP_V === 27));
+  ok('versão 27+', await p.evaluate(() => APP_V >= 27));
   ok('sem rolagem lateral', await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   ok('sem erros JS', errs.length === 0, errs.join(' | '));
   await b.close();

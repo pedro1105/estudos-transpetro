@@ -3934,11 +3934,11 @@ function tlHTML(k,its,pre,live){
     if(r.pause) return `<div class="tl pause"><span class="tltime num">${hm(r.a)}</span><span class="muted">Pausa de 10 min, longe do celular</span></div>`;
     const i=r.i, ck=itemDone(k,i), cur=steps.indexOf(i)===nowI;
     return `<div class="tl ${ck?"done":""} ${cur?"cur":""}">
-      <input type="checkbox" id="${pre}${i.id}" data-k="${k}" data-i="${i.id}" ${ck?"checked":""} ${i.chk?'disabled title="Marca sozinho quando você concluir a etapa"':""} aria-label="${i.chk?"Marca sozinho ao concluir":"Concluí"}: ${esc(r.p.h||r.p.d)}">
+      <input type="checkbox" id="${pre}${i.id}" data-k="${k}" data-i="${i.id}" ${ck?"checked":""} ${i.chk&&k>=todayK()?'disabled title="Marca sozinho quando você concluir a etapa"':""} aria-label="${i.chk&&k>=todayK()?"Marca sozinho ao concluir":"Concluí"}: ${esc(r.p.h||r.p.d)}">
       <div class="tlb"><div class="tlt">${r.a!==null?`<span class="tltime num">${hm(r.a)}–${hm(r.b)}</span>`:""}${areaChip(r.area)}${cur?'<span class="pill now">agora</span>':""}</div>
-        ${i.chk?`<span class="tltitle">`:`<label for="${pre}${i.id}" class="tltitle">`}${r.p.h?`<b>${esc(r.p.h)}:</b> `:""}${esc(r.p.d)}${i.chk?(ck?"":` <i class="muted tlauto">· marca sozinho ao concluir</i>`)+"</span>":"</label>"}
+        ${i.chk?`<span class="tltitle">`:`<label for="${pre}${i.id}" class="tltitle">`}${r.p.h?`<b>${esc(r.p.h)}:</b> `:""}${esc(r.p.d)}${i.chk?(ck?"":` <i class="muted tlauto">· ${k<todayK()?"conclua pelo botão ou marque a caixa":"marca sozinho ao concluir"}</i>`)+"</span>":"</label>"}
         ${STEP_HOW[i.id]?`<p class="tlhow">${esc(STEP_HOW[i.id])}</p>`:""}</div>
-      ${i.act?`<button class="btn ${cur?"":"ghost"} sm" onclick="${i.act}">${i.lbl}</button>`:""}</div>`;}).join("");
+      ${i.act?`<button class="btn ${cur?"":"ghost"} sm" onclick="tlFrom='${k}';${i.act}">${i.lbl}</button>`:""}</div>`;}).join("");
 }
 function vGuiaKeep(){const y=window.scrollY;vGuia();window.scrollTo({top:y});}
 function areasGuide(){
@@ -4012,7 +4012,7 @@ function vConfig(){
       <div class="row"><button class="btn sm" id="bkImp">Importar código</button><span class="muted" id="bkMsg"></span></div></div>
     ${instEvt?`<button class="btn" id="instBtn">Instalar o app neste aparelho</button>`:IS_PWA?"":`<a class="btn ghost sm" href="${GH_URL}" target="_blank" rel="noopener">Abrir a versão instalável (GitHub)</a>`}</section>
   ${aboutExam()}
-  <p class="muted">Versão 27 · ${QV().length.toLocaleString("pt-BR")} questões</p>`;
+  <p class="muted">Versão 28 · ${QV().length.toLocaleString("pt-BR")} questões</p>`;
   $("#stH").onchange=e=>{S.st.h=e.target.value||"19:00";save();};
   $("#stW").onchange=e=>{S.st.w=e.target.value||"09:00";save();};
   $("#goalSel").onchange=e=>{S.goal=+e.target.value;save();};
@@ -4789,7 +4789,7 @@ details.lk summary .bh{min-width:0}
 
 /* Cada aparelho grava no progresso sincronizado a versão do app, onde abriu e quando,
    para dar para conferir pela nuvem se o celular está atualizado e sincronizando */
-const APP_V=27;
+const APP_V=28;
 function devMark(){
   let id="x";try{id=localStorage.getItem("transpetro26-dev");if(!id){id=Math.random().toString(36).slice(2,8);localStorage.setItem("transpetro26-dev",id);}}catch(e){}
   const ua=navigator.userAgent, m=(/Android [\d.]+/.exec(ua)||/iPhone|iPad|Windows|Mac OS X|CrOS|Linux/.exec(ua)||["?"])[0];
@@ -5027,6 +5027,50 @@ dayItems=function(p){
   return it;
 };
 STEP_HOW.prog=(STEP_HOW.prog?STEP_HOW.prog+" ":"")+"Marca sozinho quando você abre o Progresso depois de estudar.";
+
+/* ---------- v28: checklist dos dias atrasados ----------
+   O que você conclui a partir do botão de um dia anterior do cronograma conta também para esse dia
+   (tlFrom guarda de qual cartão veio o toque). Dias anteriores aceitam marcar a caixa à mão, para o
+   que foi estudado fora do app ou antes da v27. */
+var tlFrom="";
+function tlPast(){return tlFrom&&tlFrom<todayK()?tlFrom:"";}
+const _finish28=finish;
+finish=function(){
+  const q=quiz, was=q&&q.finished; _finish28();
+  const d=tlPast(), k=todayK();
+  if(d&&q&&!was&&q.finished&&S.fin[k]&&S.fin[k].length){(S.fin[d]=S.fin[d]||[]).push(S.fin[k][S.fin[k].length-1]);save();}
+};
+const _startWrong28=startWrong;
+startWrong=function(){
+  const k=todayK(), n0=(S.fin[k]||[]).length; _startWrong28();
+  const d=tlPast(), fk=S.fin[k]||[];
+  if(d&&fk.length>n0){(S.fin[d]=S.fin[d]||[]).push(fk[fk.length-1]);save();}
+  if(fk.length>n0){toast("Nada para revisar agora","Você já revisou todas as erradas que estavam na fila. Esta etapa ficou marcada como feita.");if(current==="crono")vCronoKeep();}
+};
+const _rdMark28=rdMark;
+rdMark=function(v){
+  const d=tlPast(), key=rdKey(v); _rdMark28(v);
+  if(d&&key){fz27();(S.rd[d]=S.rd[d]||{})[key]=1;save();}
+};
+const _go28=go;
+go=function(v){
+  const r=_go28(v), d=tlPast();
+  if(d&&v==="stats"){(S.vis[d]=S.vis[d]||{}).stats=1;save();}
+  /* voltou para uma tela de navegação: o próximo treino não é mais do cartão atrasado */
+  if(["guia","crono","pratica","jogos","cont","config","audio"].includes(v)) tlFrom="";
+  return r;
+};
+/* uma vez: o que foi feito antes da v27 (no histórico) entra no registro do dia em que foi feito */
+(function(){
+  if(S.v28bf) return; fz27();
+  (S.hist||[]).forEach(h=>{
+    const m=(h.date||"").match(/^(\d\d)\/(\d\d)\/(\d{4})$/); if(!m) return;
+    const k=`${m[3]}-${m[2]}-${m[1]}`; if(k>="2026-10-31") return;
+    const fs=S.fin[k]=S.fin[k]||[];
+    if(!fs.some(f=>f.l===h.label&&f.bf)) fs.push({l:h.label,full:true,n:h.total,w:[],bf:1});
+  });
+  S.v28bf=1; save();
+})();
 
 if("serviceWorker" in navigator&&location.protocol==="https:"){const sw=navigator.serviceWorker;let had=!!sw.controller;sw.register("sw.js").then(r=>{document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")r.update().catch(()=>{});});}).catch(()=>{});sw.addEventListener("controllerchange",()=>{if(had)swUpdated();had=true;});}
 go("guia");

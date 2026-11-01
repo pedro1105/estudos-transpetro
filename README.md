@@ -107,3 +107,10 @@ O app de carreira ficou em `carreira/` por pouco tempo e mudou para o repositór
 - Checklist do dia marca sozinho só quando a etapa é concluída (`src/js/17-v27.js`): treino até o fim (S.fin), leitura até o fim com "Terminei a leitura" (S.rd), motivo anotado em cada erro do dia (caderno), Progresso aberto depois de estudar (S.vis). A regra sai do botão de cada etapa (autoChk).
 - Etapas automáticas não podem ser marcadas à mão e tocar no texto não marca mais. Só "separar documentos" e "dormir" continuam manuais.
 - Teste: `tests/v27.js`. Cache do SW: transpetro-v28.
+
+## v28 (01/11/2026)
+
+- Dias atrasados (`src/js/18-v28.js`): o que é concluído a partir do botão de um cartão anterior do cronograma conta também para aquele dia (tlFrom). Dias anteriores aceitam marcar a caixa à mão; hoje e dias futuros seguem automáticos.
+- "Revisar" sem erradas na fila avisa e marca o aquecimento como feito.
+- Histórico anterior à v27 entra uma vez no registro de cada dia (S.v28bf).
+- Teste: `tests/v28.js`. Cache do SW: transpetro-v29.
