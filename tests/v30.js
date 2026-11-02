@@ -1,0 +1,40 @@
+// Testes da v30: explicações simples, siglas por extenso, fórmulas com legenda e aulas do Carranza. Uso: node tests/v30.js [dist/app.html]
+const { chromium } = require('playwright');
+const path = require('path');
+const file = 'file://' + path.resolve(process.argv[2] || 'dist/app.html');
+let fails = 0;
+const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', t, extra !== undefined ? extra : ''); };
+(async () => {
+  const b = await chromium.launch();
+  const p = await (await b.newContext({ viewport: { width: 390, height: 844 } })).newPage();
+  const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await p.goto(file); await p.waitForTimeout(300);
+  const r = await p.evaluate(() => {
+    const miss = [];
+    Object.keys(CATS).forEach(k => (RES[k] || []).forEach(s => { if (!EXPL[k] || !EXPL[k].s[s[0]]) miss.push(k + ':' + s[0]); }));
+    const nested = []; Object.keys(RES).forEach(k => RES[k].forEach(s => s[1].forEach(x => { if (/\([^()]*\([^()]*\)[^()]*\)/.test(x) && /\((?:[a-zà-ú][^()]*)\(/.test(x)) nested.push(x.slice(0, 80)); })));
+    return { miss, nested, vid: Object.keys(CATS).filter(k => !(VID[k] || []).length), ids: Object.values(VID).flat().every(v => /^[\w-]{11}$/.test(v[0])) };
+  });
+  ok('todo assunto e toda seção têm explicação simples', !r.miss.length, r.miss.join(', '));
+  ok('IDs de vídeo válidos', r.ids);
+  ok('vídeos em quase todos os tópicos', r.vid.length <= 2, r.vid.join(','));
+  await p.evaluate(() => openTopic('estoq')); await p.waitForTimeout(200);
+  ok('Entenda primeiro aparece', await p.locator('.intro30').count() === 1);
+  ok('Em palavras simples em cada seção', await p.locator('.simple30').count() >= 4);
+  const fx = await p.locator('.fx30').innerText();
+  ok('fórmula do ponto de pedido explica PP, D, TR e ES', /ponto de pedido/.test(fx) && /demanda/.test(fx) && /tempo de reposição/.test(fx) && /estoque de segurança/.test(fx));
+  ok('lote econômico explica Cp e Ca', /custo de pedir/.test(fx) && /custo de armazenar/.test(fx));
+  ok('giro explica CMV', /custo das mercadorias vendidas/.test(fx));
+  ok('quadro antigo de fórmulas não aparece duplicado', await p.locator('section.panel:has-text("Fórmulas para a prova")').count() === 1);
+  ok('lista de siglas do assunto', /Siglas deste assunto/.test(await p.locator('.sig30').innerText()));
+  ok('sigla expandida no texto', /CMV \(custo das mercadorias vendidas\)/.test(await p.locator('#view').innerText()));
+  ok('aulas do Carranza no tópico', await p.locator('.vidbox a[href*="youtube.com/watch"]').count() >= 2);
+  await p.evaluate(() => openTopic('info')); await p.waitForTimeout(150);
+  ok('TPM em Informática é o chip, não a manutenção', /TPM \(chip de segurança/.test(await p.locator('#view').innerText()));
+  const w = await p.evaluate(() => document.documentElement.scrollWidth); ok('sem rolagem lateral no celular', w <= 390, w);
+  ok('explicações das questões usam o glossário novo', await p.evaluate(() => glosTxt('O SPED recebe os arquivos.', 'contab').includes('Sistema Público')));
+  await p.evaluate(() => go('links')); await p.waitForTimeout(150);
+  ok('Links e vídeos mostra o canal Carranza', /Carranza Cursos/.test(await p.locator('#view').innerText()));
+  ok('sem erros de script', !errs.length, errs.join(' | '));
+  await b.close(); process.exit(fails ? 1 : 0);
+})();
