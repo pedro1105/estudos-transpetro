@@ -19,9 +19,10 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
     afterSim: await at('2026-11-09', ([k]) => { const f = eval('(' + k + ')'); return f('2026-11-09'); }, [rec.toString()]),
     ...(await p.evaluate(() => { swUpdated(); const t = document.querySelector('#toast');
       return { toast: t && t.classList.contains('on') && [...t.querySelectorAll('button')].some(x => x.textContent === 'Atualizar'),
-        src: AG['2026-11-07'][6], srcN: srcCount('Petrobras 2018 TAC'), fix: typeof FIX === 'undefined' && typeof EXPL === 'undefined', total: Q.length }; }))
+        src: AG['2026-11-07'][6], srcN: srcCount('Petrobras 2018 TAC'), fix: typeof FIX === 'undefined' && (typeof EXPL === 'undefined' || !!(EXPL.rh && EXPL.rh.i)), total: Q.length }; }))
   };
-  ok('etapa "Recuperar ontem" aparece quando o resumo de ontem ficou pendente', /Recuperar ontem.*Lei 13.303/.test(r.a || ''), r.a);
+  // v31: "Recuperar ontem" deu lugar à reorganização do cronograma (tests/v31.js)
+  ok('etapa "Recuperar ontem" não aparece mais (a reorganização cuida do que ficou para trás)', !r.a, r.a);
   ok('some quando o resumo de ontem foi feito', !r.b2);
   ok('não aparece em dias que não são hoje', !r.past);
   ok('não aparece depois de dia de simulado', !r.afterSim);

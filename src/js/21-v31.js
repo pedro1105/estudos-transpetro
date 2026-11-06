@@ -8,7 +8,8 @@
 const AG0=JSON.parse(JSON.stringify(AG));
 const RP_END="2026-12-01";
 const rpFixed=k=>k>="2026-12-02"||k==="2026-11-29";
-const rpWE=k=>{const d=kDate(k).getDay();return d===0||d===6;};
+const HOLI={"2026-11-20":"Consciência Negra"};
+const rpWE=k=>{const d=kDate(k).getDay();return d===0||d===6||!!HOLI[k];};
 const rpSp=o=>o==="w"?"weak":(AG0[o]?AG0[o][6]:"");
 const rpIsWe=o=>{const sp=rpSp(o);return sp==="sim"||sp==="esp"||sp.startsWith("past:");};
 const rpCont=o=>!!(AG0[o]&&AG0[o][1])&&!rpIsWe(o)&&rpSp(o)!=="weak";
@@ -27,8 +28,10 @@ function rpApply(force){
       const a=["Sem estudo neste dia","","","","","","off"]; a.to=[...new Set(to)]; AG[k]=a; return;
     }
     if(b[0]==="w"){AG[k]=["Reforço dos pontos fracos","","","","","","weak"];return;}
-    const a=AG0[b[0]].slice(); a.from=b[0];
-    if(b[1]){const c=AG0[b[1]]; a.dbl=c.slice(); a.from2=b[1]; a[0]=AG0[b[0]][0]+" + "+c[0];}
+    const nm=x=>AG0[x][0].replace(/ \(feriado\)$/,"");
+    const a=AG0[b[0]].slice(); a.from=b[0]; a[0]=nm(b[0]);
+    if(b[1]){const c=AG0[b[1]]; a.dbl=c.slice(); a.from2=b[1]; a[0]=nm(b[0])+" + "+nm(b[1]);}
+    if(HOLI[k]) a[0]+=" (feriado)";
     AG[k]=a;
   });
   if(typeof dsMemo==="object") for(const x in dsMemo) delete dsMemo[x];
@@ -72,8 +75,8 @@ const _agTipo31=agTipo;
 agTipo=function(a){return a[6]==="off"?["Sem estudo","ok"]:a.dbl?["Dois assuntos","warn"]:_agTipo31(a);};
 
 /* o que ficou para trás: blocos de dias anteriores cujas etapas principais não foram feitas */
-function rpBlockDone(k,second){
-  const its=dayItems(dayPlan(k)), ids=second?["teo2","q12","mini2"]:["teo","q1","sim"];
+function rpBlockDone(k,second,contOnly){
+  const its=dayItems(dayPlan(k)), ids=second?["teo2","q12","mini2"]:contOnly?["teo","q1"]:["teo","q1","sim"];
   const main=its.filter(i=>ids.includes(i.id));
   return !main.length||main.some(i=>itemDone(k,i));
 }
@@ -83,7 +86,13 @@ function rpPending(){
     rpBlocks(k).forEach((o,j)=>{
       if(o==="w"||rpSp(o)==="weak"||rpSp(o)==="rest") return;
       const sp=rpSp(o);
-      if(sp.startsWith("past:")){if(pastDone(sp.slice(5))||seenPast.has(sp))return;seenPast.add(sp);}
+      if(sp.startsWith("past:")){
+        const done=pastDone(sp.slice(5));
+        // dia "prova + assunto" (ex.: 01/11 prova 2011 + Estoques II): a prova feita não basta, o assunto também conta
+        if(seenPast.has(sp))return;
+        if(done){if(AG0[o][1]&&!rpBlockDone(k,j===1,true)){seenPast.add(sp);out.push({k,o});}return;}
+        seenPast.add(sp);
+      }
       if(sp==="sim"||sp==="esp") return; // simulado perdido não volta: o próximo já está no plano
       if(!rpBlockDone(k,j===1)) out.push({k,o});
     });
@@ -126,7 +135,7 @@ function rpPlan(off,unoff){
   for(let i=units.length-1;i>=0&&over>0;i--) if(rpSp(units[i][0])==="weak"){units.splice(i,1);over--;log.push("Um dia de reforço dos pontos fracos saiu para abrir espaço");}
   const area=x=>CATS[AG0[x][1]]?CATS[AG0[x][1]].b:"";
   // entre os pares possíveis, prefere o que cai num fim de semana (mais tempo) e evita hoje
-  const pick=test=>{let best=-1,bs=-1;for(let i=0;i<units.length-1;i++){const A=units[i],B=units[i+1];if(A.length===1&&B.length===1&&rpCont(A[0])&&rpCont(B[0])&&test(A[0],B[0])){const d=slots[Math.min(i,slots.length-1)]||"",sc=(d&&rpWE(d)?2:0)+(d!==t?1:0);if(sc>bs){bs=sc;best=i;}}}return best;};
+  const pick=test=>{let best=-1,bs=-1;for(let i=0;i<units.length-1;i++){const A=units[i],B=units[i+1];if(A.length===1&&B.length===1&&rpCont(A[0])&&rpCont(B[0])&&test(A[0],B[0])){const d=slots[Math.min(i,slots.length-1)]||"",mini=[A[0],B[0]].some(x=>rpSp(x)==="mini"),sc=(d&&rpWE(d)?2:0)+(d!==t?1:0)-(mini&&!(d&&rpWE(d))?4:0);if(sc>bs){bs=sc;best=i;}}}return best;};
   const tests=[(x,y)=>AG0[x][1]===AG0[y][1],(x,y)=>area(x)===area(y),()=>true];
   while(over>0){
     let i=-1; for(const f of tests){i=pick(f);if(i>=0)break;}

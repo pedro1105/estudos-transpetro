@@ -28,6 +28,13 @@ node tests/snapshot.js dist/app.html antes.json   # foto do HTML das telas, para
 
 Ao publicar, troque a versão do cache em `sw.js`.
 
+## v32 (06/11/2026, revisão geral)
+
+- Conferido que tudo o que foi pedido desde 27/10 está no app (v1 a v31) e que o claude.ai e o GitHub estão iguais.
+- 48 questões criadas tinham a alternativa certa bem mais longa que as erradas (dava para chutar pelo tamanho): erradas reescritas, gabarito igual. Questão do lucro na DRE (07g): dividendos a pagar ficam no passivo, não no PL.
+- Reorganização do cronograma (`21-v31.js`, `22-v32.js`): dia "prova + assunto" com a prova feita e o assunto não volta ao plano; "(feriado)" fica no dia 20/11 e não no assunto remarcado; feriado conta como fim de semana (horário e preferência para simulados e dias duplos); dia útil com dois assuntos não leva o mini simulado.
+- Testes desatualizados ajustados (v15 versão fixa, v21 "Recuperar ontem" e EXPL); teste novo `tests/v32.js`. APP_V=32, cache do SW transpetro-v34.
+
 ## v25 (30/10/2026)
 
 - 193 explicações curtas reescritas (conceito, conta passo a passo e pegadinha). Nenhum gabarito mudou.
