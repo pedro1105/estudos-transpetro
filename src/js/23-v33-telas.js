@@ -75,7 +75,7 @@ function vGuia(){
     </div>
     ${rpTodayBtn()}
   </section>
-  ${foldHTML("ferr","Cronômetro de estudo","blocos de 50 min com 10 de pausa",pomoPanel().replace('<section class="panel stack">','<section class="stack inner">'),false)}
+  ${foldHTML("ferr","Cronômetro de estudo","blocos de 50 min com 10 de pausa",pomoPanel().replace('<section class="panel stack">','<section class="stack inner">').replace('<h3>Cronômetro de estudo</h3>',''),false)}
   ${foldHTML("areas","Como aproveitar cada área, todo dia","Estudar, Praticar, Jogos e Progresso",areasGuide(),false)}`;
   steps.forEach(i=>{const c=$("#dl-"+i.id); if(c) c.onchange=()=>{S.daily[k]=S.daily[k]||{};S.daily[k][i.id]=c.checked;save();vGuiaKeep();};});
   pomoWire();
