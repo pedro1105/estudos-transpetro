@@ -33,7 +33,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   ok('cronograma de 27/10 a 06/12 completo', d.dc === 41, d.dc);
   await p.evaluate(() => { go('crono'); }); await p.waitForTimeout(200);
   const txt = await p.locator('#view').textContent();
-  ok('cartão de 27/10 mostra feito', /✓ feito/.test(txt));
+  ok('cartão de 27/10 mostra feito', /27\/10[^✓]{0,80}✓/.test(txt), txt.slice(0, 300));
   ok('sem rolagem lateral', await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   ok('sem erros JS', errs.length === 0, errs.join(' | '));
   await b.close();

@@ -12,19 +12,7 @@ toast=function(t,b,goHoje){
   clearTimeout(toast.tm);
   toast.tm=setTimeout(()=>{if(!el.querySelector(".btn:not(.ghost)"))el.classList.remove("on");},4000);
 };
-(function(){
-  const st=document.createElement("style");
-  st.textContent=`
-#toast{max-height:calc(100vh - 140px);overflow:auto}
-.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px}
-.pgrid .pbtn{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;width:100%;min-height:54px;padding:8px 12px;text-align:left;white-space:normal;line-height:1.25}
-.pgrid .pbtn b{font-weight:650;font-size:14px}
-.pgrid .pbtn span{font-weight:500;font-size:12px;opacity:.8}
-.pgrid .pfull{grid-column:1/-1}
-.pgrp h4{text-transform:none;letter-spacing:0;font-size:14px;margin:6px 0 0}
-`;
-  document.body.appendChild(st);
-})();
+/* estilos: src/css/514-v24*.css */
 /* Questões reportadas pelo usuário em 29/10 e revisadas na v24: o aviso sai sozinho, uma única vez. */
 (function(){
   if(S.v24rep) return;

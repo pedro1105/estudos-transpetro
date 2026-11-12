@@ -1,0 +1,10 @@
+/* antes injetado por src/js/07b-v10-v12.js (cabeçalho) */
+details.fold{padding:0}
+details.fold>summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:14px 44px 14px 16px;position:relative;font-weight:600}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::after{content:"";position:absolute;right:18px;top:50%;width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-70%) rotate(45deg);opacity:.6;transition:transform .15s}
+details.fold[open]>summary::after{transform:translateY(-30%) rotate(-135deg)}
+details.fold>summary .muted{font-weight:400;font-size:13px}
+details.fold>summary:focus-visible{outline:2px solid var(--petrol);border-radius:10px}
+.foldin{padding:0 16px 16px}
+.foldin>.inner{border-top:1px solid var(--line);padding-top:14px}

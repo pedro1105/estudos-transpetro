@@ -22,8 +22,7 @@ applyTheme();
 /* ---------- Navegação: foco, voz, tempo por questão ---------- */
 function qtAcc(){if(quiz&&!quiz.finished&&quiz._k!=null){quiz.tq=quiz.tq||quiz.ids.map(()=>0);quiz.tq[quiz._k]+=Date.now()-quiz._t;quiz._k=null;}}
 function segNav(cur,items){return `<div class="segtabs" role="tablist">${items.map(([v,t])=>`<button role="tab" aria-selected="${v===cur}" onclick="go('${v}')">${t}</button>`).join("")}</div>`;}
-const SEG_EST=[["cont","Resumos"],["links","Links e vídeos"],["vesp","Revisão da véspera"]];
-const SEG_PROG=[["stats","Desempenho"],["crono","Cronograma"]];
+const SEG_EST=[["cont","Resumos"],["edital","Edital"],["peg","Pegadinhas"],["links","Links"],["vesp","Véspera"]]; // Áudio abre pelo botão de fone
 
 /* ---------- Simulado salvo ao recarregar ---------- */
 const RK="transpetro26-run";
@@ -136,7 +135,6 @@ function pomoPanel(){
 function pomoWire(){const g=$("#pomoGo");if(g)g.onclick=()=>pomoStart("est");const pz=$("#pomoPause");if(pz)pz.onclick=()=>pomoStart("pau");const s=$("#pomoStop");if(s)s.onclick=pomoStop;}
 
 /* ---------- Estudar: resumos com cor por bloco, ouvir ---------- */
-const _vCont=vCont; vCont=function(){_vCont();const h=$("#view h2");if(h)h.textContent="Estudar";$("#view").insertAdjacentHTML("afterbegin",segNav("cont",SEG_EST));};
 const _vLinks=vLinks; vLinks=function(){_vLinks();$("#view").insertAdjacentHTML("afterbegin",segNav("links",SEG_EST));};
 let ttsQ=[];
 const TTS_OK="speechSynthesis" in window;
@@ -190,22 +188,6 @@ function vVesp(){
   ${html}`;
 }
 
-/* ---------- Progresso (Desempenho + Cronograma) ---------- */
-const _vStats=vStats;
-vStats=function(){
-  _vStats(); const v=$("#view"); const h=v.querySelector("h2"); if(h) h.textContent="Progresso";
-  v.insertAdjacentHTML("afterbegin",segNav("stats",SEG_PROG));
-  const w=slogSum(7), m=slogSum(30);
-  const blk=Object.keys(BLOCKS).concat("geral").filter(b=>m.by[b]);
-  const mx=Math.max(1,...blk.map(b=>m.by[b]));
-  const tl=S.hist.filter(x=>x.avgT).slice(0,8);
-  const fc=v.querySelector(".panel");
-  const html=`<div class="panel stack"><h3>Horas de estudo</h3>
-    <div class="row" style="gap:18px"><span>Últimos 7 dias: <b class="num">${minFmt(w.t)}</b></span><span>Últimos 30 dias: <b class="num">${minFmt(m.t)}</b></span></div>
-    ${blk.length?blk.map(b=>`<div class="hbar"><span><i class="bdot" style="background:${b==="geral"?"var(--muted)":`var(--c-${b})`}"></i>${b==="geral"?"Geral":esc(BLOCKS[b])}</span><div class="track"><div class="fill" style="width:${m.by[b]/mx*100}%;background:${b==="geral"?"var(--muted)":`var(--c-${b})`}"></div></div><span class="num">${minFmt(m.by[b])}</span></div>`).join(""):'<p class="muted">Use o cronômetro de estudo na aba Hoje para registrar o tempo por assunto.</p>'}
-    ${tl.length?`<h3>Tempo médio por questão</h3>${tl.map(x=>`<div class="row" style="justify-content:space-between"><span>${esc(x.date)} · ${esc(x.label)}</span><span class="num ${x.avgT>240?"badt":""}">${fmt(x.avgT)}</span></div>`).join("")}`:""}</div>`;
-  if(fc) fc.insertAdjacentHTML("afterend",html); else v.insertAdjacentHTML("beforeend",html);
-};
 
 /* ---------- Praticar: simulado adaptativo ---------- */
 function startAdaptive(){
@@ -215,18 +197,6 @@ function startAdaptive(){
   makeQuiz(ids,"train","Treino adaptativo",0);
 }
 
-/* ---------- Jogos: lei seca e cálculo ---------- */
-const _vJogos=vJogos;
-vJogos=function(){
-  _vJogos();
-  const g=$("#view .grid2");
-  if(g) g.insertAdjacentHTML("beforeend",`
-    <div class="panel mode"><span class="tag">${LEI.length} trechos</span><h3>Lei seca</h3><p class="muted">Complete o texto da Lei 13.303, da Lei 14.133 e da LGPD. A Cesgranrio copia a letra da lei nas alternativas.</p>
-      <label class="muted" for="selLei">Lei</label><select id="selLei"><option value="all">Todas</option><option value="13.303">Lei 13.303/2016 (estatais)</option><option value="14.133">Lei 14.133/2021</option><option value="LGPD">LGPD (Lei 13.709/2018)</option></select>
-      <button class="btn" onclick="startLei()">Começar</button>${S.gm.leiBest?`<span class="muted num">Recorde: ${S.gm.leiBest} acertos</span>`:""}</div>
-    <div class="panel mode"><span class="tag">90 segundos</span><h3>Cálculo sem calculadora</h3><p class="muted">Porcentagem, juros, regra de três, aumentos e descontos. Na prova, calculadora é proibida: aqui você treina a conta de cabeça.</p>
-      <button class="btn" onclick="startCalc()">Jogar</button>${S.gm.calcBest?`<span class="muted num">Recorde: ${S.gm.calcBest} acertos</span>`:""}</div>`);
-};
 const LEI=[
  ["13.303","Art. 1º","Esta Lei dispõe sobre o estatuto jurídico da empresa pública, da ___ e de suas subsidiárias.","sociedade de economia mista",["autarquia","fundação pública","agência reguladora"]],
  ["13.303","Art. 29, I","É dispensável a realização de licitação por empresas públicas e sociedades de economia mista para obras e serviços de engenharia de valor até ___.","R$ 100.000,00",["R$ 50.000,00","R$ 150.000,00","R$ 33.000,00"]],

@@ -14,7 +14,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   ok('botão de fone no cabeçalho', await p.locator('#audBtn').count() === 1);
   await p.locator('#audBtn').click();
   ok('tela Áudio abre', await p.evaluate(() => current === 'audio'));
-  ok('aba Áudio em Estudar', await p.locator('#view .segtabs button[aria-selected="true"]').textContent() === 'Áudio');
+  ok('Áudio sem aba repetida em Estudar', await p.locator('#view .segtabs').count() === 0);
   // cada modo monta itens
   const counts = await p.evaluate(() => { const o = {}; for (const [m] of AU_MODES) { S.au.mode = m; S.au.src = 'esp'; o[m] = auBuild().length; } return o; });
   ok('todos os modos têm conteúdo', Object.values(counts).every(n => n > 0), JSON.stringify(counts));
@@ -53,7 +53,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   await p.evaluate(() => go('pratica'));
   ok('barrinha do som em outra tela', await p.locator('#sndBar').isVisible());
   await p.locator('#sndBar .sbx').click(); ok('parar pela barrinha', await p.evaluate(() => !SND.k && document.querySelector('#sndEl').paused) && await p.locator('#sndBar').count() === 0);
-  ok('card de áudio em Jogos', await p.evaluate(() => { go('jogos'); return !!document.querySelector('#view h3') && /Estudo em áudio/.test(document.querySelector('#view').textContent); }));
+  ok('Jogos aponta para o botão de fone', await p.evaluate(() => { go('jogos'); return /botão de fone/.test(document.querySelector('#view').textContent); }));
   ok('atalho antigo afc abre Áudio', await p.evaluate(() => { go('afc'); return current === 'audio'; }));
   for (const w of [390, 1366]) { await p.setViewportSize({ width: w, height: 844 }); await p.evaluate(() => go('audio')); ok('áudio sem rolagem lateral ' + w, await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)); }
   ok('sem erros JS', errs.length === 0, errs.join(' | '));

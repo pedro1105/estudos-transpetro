@@ -11,6 +11,13 @@ src = lambda *p: os.path.join(ROOT, 'src', *p)
 
 shell = open(src('shell.html'), encoding='utf8').read()
 js = [open(f, encoding='utf8').read().rstrip('\n') for f in sorted(glob.glob(src('js', '*.js')))]
+# estilos: src/css/0*.css vão no <head>; os demais entram no lugar de <!--CSS-->, na ordem do nome
+# (a ordem importa: em empate de seletor vale o que vem depois)
+cssf = sorted(glob.glob(src('css', '*.css')))
+rd = lambda f: open(f, encoding='utf8').read().rstrip('\n')
+head_css = '\n'.join(rd(f) for f in cssf if os.path.basename(f).startswith('0'))
+body_css = '\n'.join(rd(f) for f in cssf if not os.path.basename(f).startswith('0'))
+shell = shell.replace('</head>', '<style>\n' + head_css + '\n</style></head>', 1).replace('<!--CSS-->', '<style>\n' + body_css + '\n</style>', 1)
 app = shell + '<script>\n' + '\n\n'.join(js) + '\n\ngo("guia");\n</script>\n\n</body></html>'
 
 os.makedirs(os.path.join(ROOT, 'dist'), exist_ok=True)

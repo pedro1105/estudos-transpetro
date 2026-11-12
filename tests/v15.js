@@ -47,6 +47,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   ok('gráfico de evolução', await p.locator('#view svg.evo circle').count() === 2);
   ok('questões que mais erra (2+)', await p.locator('#view .repitem .pill.bad').count() === 2);
   ok('tabela por assunto com tempo', /3m20/.test(await p.locator('#view .cattbl').textContent()));
+  await p.evaluate(() => document.querySelectorAll('#view details.fold').forEach(d => d.open = true));
   await p.locator('button:has-text("Treinar estas")').click();
   ok('treino das que mais erra', await p.evaluate(() => current === 'quiz' && quiz.ids.length === 2));
 
@@ -60,7 +61,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
 
   // configurações: push explica a versão do GitHub
   await p.evaluate(() => go('config'));
-  ok('painel de notificações', await p.locator('#view h3:has-text("Notificações com o app fechado")').count() === 1);
+  ok('painel de notificações', await p.locator('#view h4:has-text("Com o app fechado")').count() === 1);
   ok('plano de push com datas futuras', await p.evaluate(() => { const pl = pushPlan(); return pl.length >= 10 && pl.every(x => x.t > Date.now() && x.ti && x.b); }));
   ok('versão do app', new RegExp('Versão ' + await p.evaluate(() => APP_V)).test(await p.locator('#view').textContent()) && /Versão \d+/.test(await p.locator('#view').textContent()));
 

@@ -154,21 +154,6 @@ function noteDel(qi){delete S.notes[qi];save();const y=window.scrollY;vCaderno()
 /* ---------- Previsão de nota ---------- */
 function parseBr(s){const m=/^(\d{2})\/(\d{2})\/(\d{4})/.exec(s||"");return m?new Date(+m[3],+m[2]-1,+m[1]):null;}
 function espOf(h){let c=0,t=0;ESP_B.forEach(k=>{const b=h.byB&&h.byB[k];if(b){c+=b.c;t+=b.t;}});return {c,t};}
-function forecastPanel(){
-  const ex=S.hist.filter(h=>espOf(h).t>=8);
-  if(!ex.length) return `<div class="panel stack"><h3>Previsão de nota</h3><p class="muted">Faça um simulado (ou um treino com pelo menos 8 questões específicas) para ver a projeção da sua nota nas 40 específicas.</p></div>`;
-  const last=ex.slice(0,3), r=last.reduce((s,h)=>{const e=espOf(h);return s+e.c/e.t;},0)/last.length, proj=Math.round(r*40);
-  const wk={}; ex.forEach(h=>{const d=parseBr(h.date); if(!d) return; const m=new Date(d); m.setDate(d.getDate()-((d.getDay()+6)%7)); const key=dkey(m); const e=espOf(h); wk[key]=wk[key]||{c:0,t:0}; wk[key].c+=e.c; wk[key].t+=e.t;});
-  const weeks=Object.keys(wk).sort().slice(-6), pc=weeks.map(w=>Math.round(wk[w].c/wk[w].t*100));
-  const stall=pc.length>=3&&pc[pc.length-1]<=pc[pc.length-2]&&pc[pc.length-2]<=pc[pc.length-3];
-  const st=proj>=32?["ok","Na meta de classificação"]:proj>=20?["mid","Acima do corte, abaixo da meta"]:["bad","Abaixo do corte de 20"];
-  return `<div class="panel stack"><h3>Previsão de nota</h3>
-    <div class="grid2"><div class="score"><span class="muted">Projeção nas específicas</span><span class="v num">${proj}/40</span><span class="pill ${st[0]}">${st[1]}</span></div>
-    <div class="score"><span class="muted">Base</span><span class="v num">${Math.round(r*100)}%</span><span class="muted">média dos últimos ${last.length} ${last.length===1?"resultado":"resultados"} com específicas</span></div></div>
-    <p class="muted">Corte: 20 acertos. Meta de classificação: 32 ou mais (80%). Mire 85% nos simulados para chegar com folga.</p>
-    <h3>Tendência por semana</h3>${weeks.map((w,i)=>bar("Semana de "+fmtK(w)+(i?(pc[i]>pc[i-1]?" ↑":pc[i]<pc[i-1]?" ↓":" ="):""),wk[w].c,wk[w].t)).join("")}
-    ${stall?`<div class="rule"><span class="pill bad">Atenção</span> O acerto nas específicas não sobe há duas semanas. Mude o método nos assuntos mais fracos: mais teoria ou mais questões comentadas, não só mais horas.</div>`:""}</div>`;
-}
 
 /* ---------- Modo prova real (caderno + cartão-resposta) ---------- */
 let rq=null;

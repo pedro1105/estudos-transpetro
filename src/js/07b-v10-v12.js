@@ -126,47 +126,8 @@ function agWeeks(){
   const w=[]; agDays().forEach(k=>{const d=kDate(k).getDay(); if(!w.length||d===1) w.push([]); w[w.length-1].push(k);}); return w;
 }
 function agTipo(a){const sp=a[6];return sp==="sim"?["Simulado","bad"]:sp.startsWith("past:")?["Prova anterior","bad"]:sp==="mini"?["Mini simulado","warn"]:sp==="weak"?["Pontos fracos","warn"]:sp==="rest"?["Leve","ok"]:sp==="exam"?["Prova","bad"]:sp==="rev"||sp==="law"?["Revisão","ok"]:["Conteúdo",""];}
-let cronoOpen=null;
-vCrono=function(){
-  const t=todayK(), days=agDays(), past=days.filter(k=>k<t), full=past.filter(k=>dayScore(k)>=1).length;
-  const left=Math.max(0,Math.round((kDate("2026-12-06")-kDate(t))/864e5));
-  if(cronoOpen===null) cronoOpen=AG[t]?t:days.find(k=>k>t)||days[0];
-  const card=k=>{
-    const a=AG[k], p=dayPlan(k), its=dayItems(p), tk=its.filter(i=>!i.auto), dn=tk.filter(i=>itemDone(k,i)).length, open=k===cronoOpen, tp=agTipo(a);
-    const st=k<t?(dn===tk.length?"✓ feito":dn?`${dn}/${tk.length}`:"não feito"):k===t?(dn?`${dn}/${tk.length}`:"hoje"):"";
-    return `<section class="panel agday ${k===t?"today":""} ${k<t&&dn<tk.length?"miss":""}" id="ag-${k}">
-      <button class="aghead" onclick="cronoOpen=cronoOpen==='${k}'?'':'${k}';vCronoKeep()" aria-expanded="${open}">
-        <span class="agdate num"><b>${k.slice(8)}/${k.slice(5,7)}</b><i>${WD[kDate(k).getDay()]}</i></span>
-        <span class="agfoco"><b>${esc(a[0])}</b>${a[4]&&a[5]?`<i class="muted">+ ${a[4]==="port"?"Português":"Matemática"}: ${esc(a[5])}</i>`:""}</span>
-        <span class="agst">${tp[0]!=="Conteúdo"?`<span class="pill ${tp[1]}">${tp[0]}</span>`:""}<span class="muted num">${st}</span></span>
-      </button>
-      ${open?`<div class="tlist">${tlHTML(k,its,"ag-"+k+"-",k===t)}</div>${(()=>{const m=its.find(i=>i.auto);return m?`<p class="muted">${esc(m.t)}${k<=t?` · ${S.days[k]||0} respondidas${(S.days[k]||0)>=S.goal?" ✓ cumprida":""}`:""}</p>`:"";})()}`:""}
-    </section>`;
-  };
-  $("#view").innerHTML=segNav("crono",SEG_PROG)+`
-  <div class="stack"><h2>Cronograma até 06/12</h2>
-  <p class="muted">A programação de cada dia, com horários, a área do app e o que fazer. Toque no dia para abrir; o dia de hoje é o mesmo da tela Hoje.</p></div>
-  <div class="panel row" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
-    <span><b class="num">${left}</b> dias até a prova</span><span><b class="num">${full}</b> de <b class="num">${past.length}</b> ${past.length===1?"dia anterior completo":"dias anteriores completos"}</span>
-    ${AG[t]?`<button class="btn sm" onclick="document.getElementById('ag-${t}').scrollIntoView({block:'center'})">Ir para hoje</button>`:""}
-  </div>
-  ${foldHTML("plano","Plano até 06/12 e método de estudo","as 4 fases e como estudar cada dia",planMethod(),false)}
-  ${agWeeks().map((w,i)=>`<div class="stack" style="gap:8px"><h3 class="agwk">Semana ${i+1} · ${fmtK(w[0])} a ${fmtK(w[w.length-1])}</h3>${w.map(card).join("")}</div>`).join("")}
-`;
-  document.querySelectorAll(".agday .tl input").forEach(c=>c.onchange=()=>{const k=c.dataset.k;S.daily[k]=S.daily[k]||{};S.daily[k][c.dataset.i]=c.checked;save();vCronoKeep();});
-};
-(function(){const st=document.createElement("style");st.textContent=`
-.agday{padding:10px 14px;gap:8px}.agday.today{outline:2px solid var(--petrol)}.agday.miss .agdate b{color:var(--amber)}
-.aghead{all:unset;cursor:pointer;display:flex;gap:12px;align-items:center;width:100%}
-.aghead:focus-visible{outline:2px solid var(--petrol);border-radius:6px}
-.agdate{display:flex;flex-direction:column;align-items:center;min-width:44px}.agdate i{font-style:normal;font-size:12px;opacity:.7}
-.agfoco{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.agfoco i{font-style:normal;font-size:13px}
-.agst{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:12px}
-.agwk{margin:8px 0 0}
-#view{overflow-wrap:anywhere}
-.qcomp{display:flex;flex-direction:column;gap:8px}.qcomp table{font-size:13px}.qcomp th,.qcomp td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-.qcomp th{background:var(--amber-soft)}.fcard{font-family:ui-monospace,Menlo,monospace;background:var(--amber-soft);padding:6px 10px;border-radius:6px;display:block}
-`;document.head.appendChild(st);})();
+let cronoOpen="";
+/* estilos: src/css/007b-v10-v12*.css */
 
 /* ---------- 15. v10: quadros comparativos e fórmulas nos conteúdos ---------- */
 // cada quadro: [título, [cabeçalhos], [[linha]...]]; fórmulas: [nome, fórmula, exemplo]
@@ -263,14 +224,4 @@ RES.mat.push(["Trigonometria",["No triângulo retângulo: **sen = oposto ÷ hipo
 
 /* ---------- 17. v12: telas mais limpas (seções secundárias recolhíveis) ---------- */
 S.fold=S.fold||{};
-(function(){const st=document.createElement("style");st.textContent=`
-details.fold{padding:0}
-details.fold>summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:14px 44px 14px 16px;position:relative;font-weight:600}
-details.fold>summary::-webkit-details-marker{display:none}
-details.fold>summary::after{content:"";position:absolute;right:18px;top:50%;width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-70%) rotate(45deg);opacity:.6;transition:transform .15s}
-details.fold[open]>summary::after{transform:translateY(-30%) rotate(-135deg)}
-details.fold>summary .muted{font-weight:400;font-size:13px}
-details.fold>summary:focus-visible{outline:2px solid var(--petrol);border-radius:10px}
-.foldin{padding:0 16px 16px}
-.foldin>.inner{border-top:1px solid var(--line);padding-top:14px}
-`;document.head.appendChild(st);})();
+/* estilos: src/css/007b-v10-v12*.css */

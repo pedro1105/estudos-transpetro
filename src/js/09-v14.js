@@ -54,57 +54,11 @@ function syncChip(){
   return `<button class="clchip ${s[0]}" onclick="go('config')" title="Configurações › Sincronização"><i></i>${s[1]}</button>`;
 }
 
-function vGuia(){
-  const k=todayK(), p=dayPlan(k), its=dayItems(p), steps=its.filter(i=>!i.auto), done=steps.filter(i=>itemDone(k,i)).length;
-  const meta=its.find(i=>i.auto), due=srsDue().length, sc=schedule(k,its);
-  const last14=[...Array(14)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);const kk=dkey(d);return {kk,s:kk<"2026-10-27"?null:dayScore(kk)};});
-  const full=(()=>{let n=0,d=new Date();if(dayScore(dkey(d))<1)d.setDate(d.getDate()-1);while(dkey(d)>="2026-10-27"&&dayScore(dkey(d))>=1){n++;d.setDate(d.getDate()-1);}return n;})();
-  const wdN=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"][kDate(k).getDay()];
-  const rows=tlHTML(k,its,"dl-",true);
-  const tot=sc.end-sc.start;
-  $("#view").innerHTML=`${runBanner()}
-  <div class="hoje-top"><div class="stack" style="gap:2px"><h2>Hoje</h2><span class="muted">${wdN}, ${fmtK(k)}${p.ph?` · fase ${PHASES.indexOf(p.ph)+1}: ${esc(p.ph.t)}`:""}</span></div>${syncChip()}</div>
-  ${syncBanner()}
-  ${weekCard()}
-  <section class="panel stack prog-dia">
-    <div class="row" style="justify-content:space-between;gap:8px"><h3>Programação de hoje${p.foco?` · ${esc(p.foco)}`:""}</h3><span class="streak num">${full} ${full===1?"dia completo":"dias completos"} seguidos</span></div>
-    ${tot>0?`<span class="muted num">${hm(sc.start)} às ${hm(sc.end)} · ${minFmt(tot)} de estudo com pausas · <button class="linkbtn" onclick="go('config');setTimeout(()=>{const e=$('#stH');if(e)e.focus();},200)">mudar horário</button></span>`:""}
-    <div class="row" style="justify-content:space-between"><span><b class="num">${done}</b> de <b class="num">${steps.length}</b> etapas</span>${done===steps.length?'<span class="pill ok">Dia concluído</span>':""}</div>
-    <div class="track"><div class="fill" style="width:${steps.length?done/steps.length*100:0}%"></div></div>
-    ${due?`<div class="rule row" style="justify-content:space-between"><span><b class="num">${due}</b> ${due===1?"questão errada volta":"questões erradas voltam"} hoje na revisão espaçada.</span><button class="btn sm" onclick="startWrong()">Revisar agora</button></div>`:""}
-    <div class="tlist">${rows}</div>
-    ${meta?`<div class="row metaln"><span>Meta: <b class="num">${S.days[k]||0}</b> de <b class="num">${S.goal}</b> questões hoje</span>${(S.days[k]||0)>=S.goal?'<span class="pill ok">cumprida</span>':`<div class="track sm"><div class="fill" style="width:${Math.min(100,(S.days[k]||0)/S.goal*100)}%"></div></div>`}</div>`:""}
-    <div class="stack" style="gap:6px"><span class="muted">Últimos 14 dias</span><div class="days14">${last14.map(x=>`<span class="d14 ${x.s===null?"na":x.s>=1?"full":x.s>=.5?"half":x.s>0?"low":""}" title="${fmtK(x.kk)}"><i>${x.kk.slice(8)}</i></span>`).join("")}</div></div>
-    <div><button class="btn ghost sm" onclick="go('crono')">Ver a programação dos próximos dias</button></div>
-  </section>
-  ${foldHTML("ferr","Cronômetro de estudo","blocos de 50 min com 10 de pausa",pomoPanel().replace('<section class="panel stack">','<section class="stack inner">'),false)}
-  ${foldHTML("areas","Como aproveitar cada área, todo dia","Estudar, Praticar, Jogos e Progresso",areasGuide(),false)}`;
-  steps.forEach(i=>{const c=$("#dl-"+i.id); if(c) c.onchange=()=>{S.daily[k]=S.daily[k]||{};S.daily[k][i.id]=c.checked;save();vGuiaKeep();};});
-  pomoWire();
-}
-/* linhas da programação de um dia (Hoje e Cronograma); pre = prefixo dos ids das caixas */
-function tlHTML(k,its,pre,live){
-  const steps=its.filter(i=>!i.auto), sc=schedule(k,its), nowI=live?steps.findIndex(i=>!itemDone(k,i)):-1;
-  return sc.rows.map(r=>{
-    if(r.pause) return `<div class="tl pause"><span class="tltime num">${hm(r.a)}</span><span class="muted">Pausa de 10 min, longe do celular</span></div>`;
-    const i=r.i, ck=itemDone(k,i), cur=steps.indexOf(i)===nowI;
-    return `<div class="tl ${ck?"done":""} ${cur?"cur":""}">
-      <input type="checkbox" id="${pre}${i.id}" data-k="${k}" data-i="${i.id}" ${ck?"checked":""} ${i.chk&&k>=todayK()?'disabled title="Marca sozinho quando você concluir a etapa"':""} aria-label="${i.chk&&k>=todayK()?"Marca sozinho ao concluir":"Concluí"}: ${esc(r.p.h||r.p.d)}">
-      <div class="tlb"><div class="tlt">${r.a!==null?`<span class="tltime num">${hm(r.a)}–${hm(r.b)}</span>`:""}${areaChip(r.area)}${cur?'<span class="pill now">agora</span>':""}</div>
-        ${i.chk?`<span class="tltitle">`:`<label for="${pre}${i.id}" class="tltitle">`}${r.p.h?`<b>${esc(r.p.h)}:</b> `:""}${esc(r.p.d)}${i.chk?(ck?"":` <i class="muted tlauto">· ${k<todayK()?"conclua pelo botão ou marque a caixa":"marca sozinho ao concluir"}</i>`)+"</span>":"</label>"}
-        ${STEP_HOW[i.id]?`<p class="tlhow">${esc(STEP_HOW[i.id])}</p>`:""}</div>
-      ${i.act?`<button class="btn ${cur?"":"ghost"} sm" onclick="tlFrom='${k}';${i.act}">${i.lbl}</button>`:""}</div>`;}).join("");
-}
 function vGuiaKeep(){const y=window.scrollY;vGuia();window.scrollTo({top:y});}
 function areasGuide(){
   const order=[["est","30 a 40 min"],["pra","1 h a 1h30"],["jog","10 a 15 min"],["prog","5 min"]];
   return `<div class="stack inner" style="gap:12px">${order.map(([a,t])=>`<div class="areaitem"><div class="row" style="justify-content:space-between;gap:8px">${areaChip(a)}<span class="muted num">${t} por dia</span></div><p>${esc(AREAS[a].how)}</p><div><button class="btn ghost sm" onclick="go('${AREAS[a].v}')">Abrir ${AREAS[a].n}</button></div></div>`).join("")}
   <p class="muted">Ordem que mais rende: revisar erradas → teoria curta → questões do mesmo assunto → questões de outro assunto → caderno de erros → desafio do dia → conferir o progresso. Questões em 70% do tempo, teoria em 30%.</p></div>`;
-}
-function syncBanner(){
-  if(CL.st==="needmcp") return `<div class="rule row" style="justify-content:space-between;gap:8px"><span>Para o progresso daqui chegar ao celular, permita uma vez o uso do conector Supabase.</span><button class="btn sm" onclick="clAllow()">Permitir</button></div>`;
-  if(!CL.code&&!IN_CLAUDE) return `<div class="rule stack"><span><b>Este aparelho ainda não está sincronizado.</b> Abra o link de conexão (fica em Configurações, no app do PC ou do Claude) ou cole o código aqui.</span><div class="row" style="gap:8px;flex-wrap:wrap"><input id="clInH" placeholder="tp-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1;min-width:220px"><button class="btn sm" onclick="clLink($('#clInH').value,true).then(()=>vGuiaKeep())">Conectar</button></div></div>`;
-  return "";
 }
 async function clAllow(){CL.via="mcp";if(CL.perm==="denied"){try{const perm=await window.claude.use("permissions");await perm.manage();}catch(e){toast("Permissão bloqueada","Abra o menu Permissões deste artifact (no topo da página) e ligue o conector Supabase.");}CL.perm=null;}
   if(await mcpReady(true)){CL.st="";clLbl();await clPull();}else toast("Sem permissão","A sincronização com o celular fica parada até você permitir o conector Supabase.");if(current==="guia")vGuiaKeep();if(current==="config")vConfigKeep();}
@@ -140,44 +94,6 @@ function cfgSync(){
 async function clNew(){CL.code=newCode();CL.base=0;S.cloud=CL.code;clStore();save();await clPull();vConfigKeep();}
 async function clOff(){if((await modal(`<h3>Desconectar este aparelho?</h3><p class="muted">O progresso continua salvo aqui e na nuvem, mas este aparelho para de sincronizar.</p>`,[["cancel","Cancelar","btn ghost"],["ok","Desconectar","btn warn"]])).v!=="ok") return;CL.code=null;CL.base=0;CL.st="off";clStore();clSnap(null);delete S.cloud;saveLocal();vConfigKeep();}
 function seg(id,cur,opts){return `<div class="segtabs" role="radiogroup" id="${id}">${opts.map(([v,t])=>`<button role="radio" aria-checked="${v===cur}" aria-selected="${v===cur}" data-v="${v}">${t}</button>`).join("")}</div>`;}
-function vConfig(){
-  $("#view").innerHTML=`<div class="stack"><h2>Configurações</h2><p class="muted">Ajustes deste app. O progresso é salvo sozinho a cada resposta.</p></div>
-  ${cfgSync()}
-  <section class="panel stack"><h3>Rotina de estudo</h3>
-    <div class="cfgrow"><label for="stH">Início da programação em dias úteis</label><input type="time" id="stH" value="${S.st.h}"></div>
-    <div class="cfgrow"><label for="stW">Início no sábado e no domingo</label><input type="time" id="stW" value="${S.st.w}"></div>
-    <div class="cfgrow"><label for="goalSel">Meta diária</label><select id="goalSel">${[10,20,30,40,60,80].map(v=>`<option value="${v}" ${v===S.goal?"selected":""}>${v} questões</option>`).join("")}</select></div>
-    <p class="muted">A programação de Hoje calcula os horários a partir daqui, com pausa de 10 min a cada bloco de cerca de 50 min.</p></section>
-  <section class="panel stack"><h3>Lembrete diário</h3>
-    <div class="row" style="gap:10px;flex-wrap:wrap">
-      <label class="row" style="gap:8px"><input type="checkbox" id="remOn" ${S.rem.on?"checked":""} style="width:18px;height:18px;accent-color:var(--petrol)"> Avisar às</label>
-      <input type="time" id="remH" value="${S.rem.h}">
-      <button class="btn ghost sm" onclick="notify('Lembrete de teste','É assim que o aviso diário aparece.')">Testar</button></div>
-    <p class="muted">${notifState()}</p>
-    <details class="rev"><summary><span class="mark">⏰</span><span>Avisos com o app fechado (agenda do celular)</span></summary>${outsidePanel().replace(/^<section class="panel stack" id="outSec"><h3>Avisos com o app fechado<\/h3>/,'<div class="stack" id="outSec" style="margin-top:10px">').replace(/<\/section>$/,"</div>")}</details></section>
-  <section class="panel stack"><h3>Aparência</h3>
-    <span class="muted">Tema</span>${seg("thSeg",theme,[["auto","Automático"],["light","Claro"],["dark","Escuro"]])}
-    <span class="muted">Tamanho da letra</span>${seg("fzSeg",String(fz),[[".92","92%"],["1","100%"],["1.12","112%"],["1.25","125%"],["1.4","140%"]])}
-    <p class="muted">Tema e letra valem só para este aparelho. Dentro do simulado, o botão Aa também muda a letra.</p></section>
-  <section class="panel stack" id="syncSec"><h3>Backup manual</h3>
-    <p class="synclbl">${esc(syncText())}</p>
-    <div class="stack"><p class="muted">Cópia do progresso por código, para guardar ou passar para um aparelho sem internet. A importação substitui o progresso deste aparelho.</p>
-      <div class="row"><button class="btn ghost sm" id="bkGen">Gerar código</button><button class="btn ghost sm" id="bkCopy">Copiar</button></div>
-      <textarea id="bkTxt" rows="3" placeholder="Cole aqui o código de backup"></textarea>
-      <div class="row"><button class="btn sm" id="bkImp">Importar código</button><span class="muted" id="bkMsg"></span></div></div>
-    ${instEvt?`<button class="btn" id="instBtn">Instalar o app neste aparelho</button>`:IS_PWA?"":`<a class="btn ghost sm" href="${GH_URL}" target="_blank" rel="noopener">Abrir a versão instalável (GitHub)</a>`}</section>
-  ${aboutExam()}
-  <p class="muted">Versão ${typeof APP_V!=="undefined"?APP_V:""} · ${QV().length.toLocaleString("pt-BR")} questões</p>`;
-  $("#stH").onchange=e=>{S.st.h=e.target.value||"19:00";save();};
-  $("#stW").onchange=e=>{S.st.w=e.target.value||"09:00";save();};
-  $("#goalSel").onchange=e=>{S.goal=+e.target.value;save();};
-  $("#remOn").onchange=e=>{remEnable(e.target.checked);};
-  $("#remH").onchange=e=>{S.rem.h=e.target.value||"19:00";S.rem.last=null;save();};
-  document.querySelectorAll("#thSeg button").forEach(b=>b.onclick=()=>{theme=b.dataset.v;try{localStorage.setItem("transpetro26-theme",theme);}catch(e){}applyTheme();vConfigKeep();});
-  document.querySelectorAll("#fzSeg button").forEach(b=>b.onclick=()=>{fz=+b.dataset.v;try{localStorage.setItem(FZK,fz);}catch(e){}fzApply();vConfigKeep();});
-  const ib=$("#instBtn"); if(ib) ib.onclick=async()=>{if(!instEvt)return;instEvt.prompt();try{await instEvt.userChoice;}catch(e){}instEvt=null;vConfigKeep();};
-  syncWire(); clLbl();
-}
 function vConfigKeep(){if(current!=="config")return;const y=window.scrollY;vConfig();window.scrollTo({top:y});}
 VIEWS.config=()=>vConfig();
 
@@ -189,15 +105,9 @@ VIEWS.config=()=>vConfig();
   b.onclick=()=>go("config"); t.after(b);
 })();
 
-/* ---------- 25. v14: o que saiu de Hoje foi para Progresso ---------- */
-function prioPanel(){
-  return `<section class="panel stack"><h3>Assuntos de prioridade</h3>
-    <p class="muted">Os 5 assuntos específicos com pior acerto até agora (sem questões, contam como médios). Eles recebem 60% do tempo a partir da fase 2.</p>
-    <div class="row" style="gap:6px;flex-wrap:wrap">${weakCats(5).map(c=>{const pc=pct(S.stats[c]);return `<button class="chipbtn" onclick="openTopic('${c}')">${esc(CATS[c].n)}${pc!==null?` · ${pc}%`:""}</button>`;}).join("")}</div></section>`;
-}
 function planMethod(){
   const p=dayPlan(todayK());
-  return `<div class="stack inner"><div class="phases">${PHASES.map((f,i)=>`<div class="panel phase ${p.ph===f?"cur":""}"><span class="tag">Fase ${i+1} · ${fmtK(f.a)} a ${fmtK(f.b)}${p.ph===f?" · agora":""}</span><h3>${esc(f.t)}</h3><p class="muted">${esc(f.d)}</p></div>`).join("")}</div>
+  return `<div class="stack inner"><div class="phases">${PHASES.map((f,i)=>`<div class="panel phase ${p.ph===f?"cur":""}"><span class="tag">${fmtK(f.a)} a ${fmtK(f.b)}${p.ph===f?" · agora":""}</span><h3>${esc(f.t)}</h3><p class="muted">${esc(f.d)}</p></div>`).join("")}</div>
     <h3>Método de cada dia</h3>
     <ol class="steps">
       <li><b>Aquecimento, 10 min:</b> revisar as erradas (Praticar).</li>
@@ -216,40 +126,4 @@ function planMethod(){
     </ul></div>`;
 }
 
-(function(){const st=document.createElement("style");st.textContent=`
-header.band .themebtn#themeBtn{display:none}
-.cfgbtn[aria-current="page"]{background:var(--petrol-soft);color:var(--petrol);border-color:var(--petrol)}
-@media (min-width:1100px){header.band .themebtn.cfgbtn{order:4;margin-top:auto;align-self:stretch;justify-content:flex-start;padding:0 12px}}
-.hoje-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.hoje-top h2{margin:0}
-.clchip{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font:600 12px var(--f-body);padding:6px 10px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;flex:none}
-.clchip i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
-.clchip.ok i{background:var(--ok)}.clchip.bad{color:var(--bad)}.clchip.bad i{background:var(--bad)}.clchip.off i{background:var(--amber)}
-.clchip:focus-visible{outline:2px solid var(--petrol)}
-.tlist{display:flex;flex-direction:column}
-.tl{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:start;padding:12px 0;border-top:1px solid var(--line)}
-.tl:first-child{border-top:0}
-.tl input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--petrol)}
-.tl.cur{background:var(--petrol-soft);margin:0 -12px;padding:12px;border-radius:12px;border-top-color:transparent}
-.tl.cur+.tl{border-top-color:transparent}
-.tl.done .tltitle{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
-.tl.done .tlhow{display:none}
-.tl.pause{grid-template-columns:auto 1fr;padding:8px 0 8px 32px;font-size:13px}
-.tlb{display:flex;flex-direction:column;gap:4px;min-width:0}
-.tlt{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.tltime{font:600 13px var(--f-body);color:var(--ink)}
-.tltitle{cursor:pointer;line-height:1.4}
-.tlhow{margin:0;font-size:13px;color:var(--muted);line-height:1.4}
-.pill.now{background:var(--petrol);color:var(--onpetrol)}
-.achip{display:inline-flex;align-items:center;gap:4px;font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.03em;padding:3px 8px;border-radius:99px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
-.achip.a-est{color:var(--c-port)}.achip.a-pra{color:var(--petrol)}.achip.a-jog{color:var(--c-log)}.achip.a-prog{color:var(--c-fin)}
-.metaln{justify-content:space-between;gap:10px;align-items:center}
-.metaln .track.sm{flex:0 1 160px}
-.areaitem{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
-.areaitem:first-child{border-top:0;padding-top:0}
-.areaitem p{margin:0}
-.cfgrow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.cfgrow label{flex:1 1 200px}
-.cfgrow input,.cfgrow select{flex:0 0 auto;min-width:140px}
-@media (max-width:420px){.tl{grid-template-columns:22px minmax(0,1fr)}.tl>.btn{grid-column:2;justify-self:start}}
-`;document.head.appendChild(st);})();
+/* estilos: src/css/009-v14*.css */

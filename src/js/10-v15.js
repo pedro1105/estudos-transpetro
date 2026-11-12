@@ -60,7 +60,6 @@ function vEdital(){
     <div class="stack">${groups}</div>`;
 }
 VIEWS.edital=()=>vEdital(); TABOF.edital="cont";
-SEG_EST.splice(1,0,["edital","Edital"]);
 
 /* ---------- 27. v15: revisão espaçada FSRS ---------- */
 /* Modelo FSRS-5 com pesos padrão e retenção desejada de 90% (intervalo = estabilidade).
@@ -120,17 +119,6 @@ function catTable(){
     <p class="muted">Ordenado do pior para o melhor. Tempo médio por questão; acima de 3 min fica em vermelho (na prova são cerca de 4 min por questão, contando a marcação do cartão). Toque no assunto para treinar.</p>`;
 }
 function startTopErr(){const ids=topErr(20).map(x=>x[0]);if(!ids.length)return;makeQuiz(shuffle(ids),"train","Treino: questões que você mais erra",0);}
-function statsPanel(){
-  const te=topErr(8), fc=srsForecast(7);
-  return `<section class="panel stack" id="evoSec"><h3>Evolução nas específicas</h3>${evoChart()}</section>
-  <section class="panel stack"><h3>Desempenho por assunto</h3>${catTable()}</section>
-  <section class="panel stack"><div class="row" style="justify-content:space-between"><h3>Questões que você mais erra</h3>${te.length?`<button class="btn sm" onclick="startTopErr()">Treinar estas</button>`:""}</div>
-    ${te.length?te.map(([i,v])=>`<div class="repitem"><span class="pill bad num">${v}×</span> <span class="muted">${esc(CATS[Q[i].c].n)}</span><p style="margin:4px 0 0">${esc(Q[i][1].length>140?Q[i][1].slice(0,140)+"…":Q[i][1])}</p></div>`).join(""):`<p class="muted">Aparecem aqui as questões erradas 2 vezes ou mais.</p>`}</section>
-  <section class="panel stack"><h3>Revisões dos próximos 7 dias</h3><div class="fcast">${fc.map(([k,n],i)=>`<div class="fcd"><span class="num fcn" style="height:${Math.min(60,6+n*3)}px">${n}</span><span class="muted num">${i?fmtK(k):"hoje"}</span></div>`).join("")}</div>
-    <p class="muted">Revisão espaçada FSRS: cada questão errada volta no dia em que a chance de você esquecer chega a 10%. Acertou rápido, o intervalo cresce; acertou devagar, cresce menos; errou, volta amanhã.</p></section>`;
-}
-const _vStats15=vStats;
-vStats=function(){_vStats15();const w=$("#view .wkpanel");(w||$("#view h2")).insertAdjacentHTML("afterend",statsPanel());};
 
 /* ---------- 29. v15: tutor com IA (só no link do claude.ai) ---------- */
 let TUTOR=null;
@@ -248,31 +236,6 @@ function pushPanel(){
       :`<div class="row"><button class="btn sm" onclick="pushOn()">Ativar notificações</button></div>`}
     <p class="muted" id="pushMsg"></p></section>`;
 }
-const _vConfig15=vConfig;
-vConfig=function(){_vConfig15();const s=$("#syncSec");if(s)s.insertAdjacentHTML("beforebegin",pushPanel());};
 
 /* ---------- 33. v15: estilos ---------- */
-(function(){const st=document.createElement("style");st.textContent=`
-.edb{margin:14px 0 2px}
-.edt summary{display:flex;flex-direction:column;align-items:stretch;gap:4px}
-.edsum{display:flex;justify-content:space-between;gap:8px;align-items:center}
-.edflags{display:flex;gap:4px;flex:none}
-.edck{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line);display:inline-grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
-.edck.on{background:var(--ok);border-color:var(--ok)}
-.edmeta{font-size:12px}
-#view .edgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px}#view .edgrid .score .v{font-size:24px}
-@media (min-width:720px){.edgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-svg.evo{width:100%;height:auto;max-width:560px;display:block}
-.evoband{fill:var(--ok);opacity:.14}.evocut{stroke:var(--bad);stroke-dasharray:4 4;stroke-width:1.5}
-.evot{font:11px var(--f-body);fill:var(--muted)}.evol{fill:none;stroke:var(--petrol);stroke-width:2.5;stroke-linejoin:round}.evop{fill:var(--petrol)}
-.cattbl{display:flex;flex-direction:column;gap:2px}
-.ctr{display:grid;grid-template-columns:minmax(0,1fr) 52px 60px 52px;gap:6px;align-items:center;padding:4px 0;border-bottom:1px solid var(--line);font-size:14px}
-.ctr .linkbtn{white-space:normal;padding:2px 0;font-size:14px}
-.ctr>span{text-align:right}.cth{font-size:12px;color:var(--muted)}.cth>span:first-child{text-align:left}
-.ctr .bad{color:var(--bad)}.ctr .mid{color:var(--warn,#b7791f)}.ctr .ok{color:var(--ok)}
-.fcast{display:flex;gap:6px;align-items:flex-end;min-height:80px}
-.fcd{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;justify-content:flex-end}
-.fcn{background:var(--petrol-soft);color:var(--petrol);width:100%;display:grid;place-items:center;border-radius:6px;font-size:12px;font-weight:700;min-height:20px}
-.tutor .tutxt{white-space:pre-wrap;margin:0}
-.tutq{border-top:1px solid var(--line);padding-top:10px}
-`;document.head.appendChild(st);})();
+/* estilos: src/css/010-v15*.css */

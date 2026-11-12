@@ -1,0 +1,11 @@
+/* antes injetado por src/js/07b-v10-v12.js (cabeçalho) */
+.agday{padding:10px 14px;gap:8px}.agday.today{outline:2px solid var(--petrol)}.agday.miss .agdate b{color:var(--amber)}
+.aghead{all:unset;cursor:pointer;display:flex;gap:12px;align-items:center;width:100%}
+.aghead:focus-visible{outline:2px solid var(--petrol);border-radius:6px}
+.agdate{display:flex;flex-direction:column;align-items:center;min-width:44px}.agdate i{font-style:normal;font-size:12px;opacity:.7}
+.agfoco{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.agfoco i{font-style:normal;font-size:13px}
+.agst{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:12px}
+.agwk{margin:8px 0 0}
+#view{overflow-wrap:anywhere}
+.qcomp{display:flex;flex-direction:column;gap:8px}.qcomp table{font-size:13px}.qcomp th,.qcomp td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.qcomp th{background:var(--amber-soft)}.fcard{font-family:ui-monospace,Menlo,monospace;background:var(--amber-soft);padding:6px 10px;border-radius:6px;display:block}

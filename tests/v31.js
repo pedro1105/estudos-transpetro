@@ -57,7 +57,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   ok('botão Vou estudar hoje aparece', await p.locator('button:has-text("Vou estudar hoje")').count() === 1);
   await p.evaluate(() => rpUndo()); await p.waitForTimeout(150);
   ok('desfazer volta o dia de hoje', await p.evaluate(() => AG['2026-11-06'][6] !== 'off'));
-  await p.evaluate(() => go('crono')); await p.waitForTimeout(150);
+  await p.evaluate(() => { cronoOpen = todayK(); go('crono'); }); await p.waitForTimeout(150);
   ok('cronograma explica a ajuda', /Não conseguiu estudar algum dia/.test(await p.locator('#view').innerText()));
   ok('cronograma tem botão no dia aberto', await p.locator('.agday button:has-text("Não vou poder estudar")').count() >= 1);
   const w = await p.evaluate(() => document.documentElement.scrollWidth); ok('sem rolagem lateral', w <= 390, w);

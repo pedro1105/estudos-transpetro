@@ -176,8 +176,6 @@ Q9.forEach(q=>{q.c=q[0];Q.push(q);});
 FC.push(...FC2);
 LEI.push(...LEI2);
 S.gm=S.gm||{}; S.ct=S.ct||{};
-const SEG_EST2=[["cont","Resumos"],["peg","Pegadinhas"],["links","Links e vídeos"],["vesp","Revisão da véspera"]];
-SEG_EST.length=0; SEG_EST.push(...SEG_EST2);
 
 /* ---------- Navegação das telas novas ---------- */
 const NV={peg:()=>vPeg(),duel:()=>vDuel(),erro:()=>vErro(),ord:()=>vOrd()};
@@ -271,8 +269,6 @@ function lossPanel(){
   <div class="row"><button class="btn sm" onclick="startTrainCat('${top.c}')">Treinar ${esc(CATS[top.c].n)}</button><button class="btn ghost sm" onclick="openTopic('${top.c}')">Ler o resumo</button></div>
   <p class="muted">Pontos perdidos = questões esperadas do assunto na prova × taxa de erro. Assunto com menos de 5 questões respondidas conta como 50%.</p></div>`;
 }
-const _vStats5=vStats;
-vStats=function(){_vStats5();const seg=$("#view .segtabs");const h=$("#view h2");(h||seg).insertAdjacentHTML("afterend",lossPanel());};
 
 /* ---------- 4. Caderno de erros em PDF ---------- */
 function cadernoDoc(){
@@ -393,22 +389,6 @@ function dailyIds(){
 }
 function startDaily(){makeQuiz(dailyIds(),"train","Desafio do dia",0);quiz.daily=true;}
 
-/* ---------- Telas existentes: novos atalhos ---------- */
-const _vJogos5=vJogos;
-vJogos=function(){
-  _vJogos5();
-  const g=$("#view .grid2"); if(!g) return;
-  g.insertAdjacentHTML("afterbegin",`<div class="panel mode hl"><span class="tag">Todo dia</span><h3>Desafio do dia</h3><p class="muted">5 questões novas por dia, montadas para os seus pontos fracos. Faça todo dia para não perder a sequência.</p><button class="btn" onclick="startDaily()">Jogar</button>${S.gm.dch&&S.gm.dch.best?`<span class="muted num">Maior sequência: ${S.gm.dch.best} dias</span>`:""}</div>`);
-  g.insertAdjacentHTML("beforeend",`
-    <div class="panel mode"><span class="tag">10 questões · 60 s cada</span><h3>Duelo do relógio</h3><p class="muted">Quanto mais rápido você acerta, mais pontos. Errou ou o tempo acabou, vê a explicação e segue.</p>
-      <label class="muted" for="selDuel">Assuntos</label>${gameSel("selDuel",S.gm.lastDuel||"esp")}
-      <button class="btn" onclick="S.gm.lastDuel=$('#selDuel').value;startDuel()">Jogar</button>${S.gm.duelBest?`<span class="muted num">Recorde: ${S.gm.duelBest} pontos</span>`:""}</div>
-    <div class="panel mode"><span class="tag">${PEG.length} frases</span><h3>Ache o erro</h3><p class="muted">Uma frase de lei ou conceito com uma palavra trocada. Toque na palavra errada.</p>
-      <button class="btn" onclick="startErro()">Jogar</button>${S.gm.erroBest?`<span class="muted num">Recorde: ${S.gm.erroBest} de 8</span>`:""}</div>
-    <div class="panel mode"><span class="tag">${ORD.length} sequências</span><h3>Ordene as fases</h3><p class="muted">Monte na ordem certa as fases da licitação, o PDCA, a DRE, o fluxo do armazém e outras sequências cobradas.</p>
-      <label class="muted" for="selOrd">Sequência</label><select id="selOrd"><option value="r">Sorteada</option>${ORD.map((o,i)=>`<option value="${i}">${esc(o[0])}</option>`).join("")}</select>
-      <button class="btn" onclick="startOrd()">Jogar</button></div>`);
-};
 function startLaw(){makeQuiz(shuffle(QI().filter(i=>/13\.303/.test(Q[i][1]))).slice(0,15),"train","Treino: Lei 13.303 artigo por artigo",0);}
 
 /* ---------- 10. Avisos fora do app ---------- */

@@ -121,18 +121,7 @@ if(typeof STEP_HOW==="object"){
   STEP_HOW.cor="Abre os erros do simulado ou da prova. Toque no motivo de cada um: marca sozinho quando todos tiverem motivo.";
 }
 
-(function(){
-  const st=document.createElement("style");
-  st.textContent=`
-#toast .tclose{float:right;margin:-6px -6px 0 8px;background:none;border:0;color:inherit;font-size:22px;line-height:1;padding:4px 8px;cursor:pointer;opacity:.7}
-.corritem.ok{opacity:.75}
-.corritem.ok .note>.muted:first-child::after{content:" ✓ anotado"}
-.corritem p{overflow-wrap:anywhere}
-.corrbar{height:8px;border-radius:4px;background:var(--line,#ccc);overflow:hidden}
-.corrbar i{display:block;height:100%;background:var(--ok);transition:width .3s}
-`;
-  document.body.appendChild(st);
-})();
+/* estilos: src/css/519-v29*.css */
 
 /* Questões reportadas em 01/11 (explicações reescritas na v29): o aviso sai sozinho, uma única vez. */
 (function(){

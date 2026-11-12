@@ -1,0 +1,26 @@
+/* antes injetado por src/js/11-v16.js (cabeçalho) */
+.aumodes{display:grid;grid-template-columns:1fr;gap:6px}
+@media (min-width:720px){.aumodes{grid-template-columns:1fr 1fr}}
+.aumode{display:flex;flex-direction:column;gap:2px;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer}
+.aumode input{position:absolute;opacity:0;pointer-events:none}
+.aumode.on{border-color:var(--petrol);background:var(--petrol-soft)}
+.aumode:focus-within{outline:2px solid var(--petrol)}
+.aunow{gap:10px}
+.auq{font:600 18px/1.4 var(--f-body);margin:0}
+.aua{margin:0;color:var(--muted)}.aua.on{color:var(--ink);font-weight:600}
+.auctl{justify-content:center;gap:10px}.auctl .btn{min-width:56px}.aupp{min-width:120px!important}
+.sndgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (min-width:720px){.sndgrid{grid-template-columns:repeat(3,1fr)}}
+.sndbtn{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:3px;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);min-width:0}
+.sndbtn span{font-size:13px;line-height:1.35}
+.sndbtn.on{border-color:var(--petrol);background:var(--petrol-soft)}
+.sndbtn:focus-visible{outline:2px solid var(--petrol)}
+.sst{color:var(--petrol);font-weight:600}
+#sndBar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(72px + env(safe-area-inset-bottom));z-index:40;display:flex;gap:2px;background:var(--petrol);color:#fff;border-radius:999px;padding:4px;box-shadow:0 4px 14px rgba(0,0,0,.2);max-width:calc(100vw - 32px)}
+#sndBar button{all:unset;cursor:pointer;padding:6px 12px;border-radius:999px;font:600 13px var(--f-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sndBar .sbx{background:rgba(255,255,255,.18)}
+@media (min-width:1100px){#sndBar{bottom:20px}}
+#pocket{position:fixed;inset:0;z-index:100;background:#000;display:flex;flex-direction:column;gap:12px;padding:24px 16px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box}
+#pocket button{all:unset;box-sizing:border-box;cursor:pointer;text-align:center;border-radius:20px;color:#bbb;font:600 22px var(--f-body)}
+#pocket .pk1{flex:2;background:#111;border:1px solid #222}#pocket .pk2{flex:1;background:#0b0b0b;border:1px solid #1d1d1d}
+#pocket .pkt{color:#555;text-align:center;margin:0;font-size:13px}#pocket .pkx{flex:none;font-size:14px;color:#666;padding:12px}

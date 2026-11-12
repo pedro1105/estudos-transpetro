@@ -183,58 +183,11 @@ function rpSkip(k){
 }
 function rpUnskip(k){rpAsk([],`O dia ${fmtK(k)} volta a ter estudo e os próximos dias são redistribuídos.`,[k]);}
 
-/* avisos na tela Hoje e no Cronograma */
-function rpBanner(){
-  const t=todayK(), pend=rpPending();
-  if(t<"2026-10-27"||t>RP_END&&!pend.length) return "";
-  const list=pend.slice(0,6).map(x=>`${fmtK(x.k)} ${AG0[x.o][0]}`).join("; ")+(pend.length>6?"; …":"");
-  return pend.length?`<section class="panel stack rpban"><div class="row" style="gap:8px;justify-content:space-between"><h3>${pend.length===1?"Um assunto ficou":pend.length+" assuntos ficaram"} para trás</h3><span class="pill warn">sem problema</span></div>
-    <p class="muted">${esc(list)}. Toque em Reorganizar: eles voltam ao plano a partir de hoje e os próximos dias se ajustam, sem perder conteúdo e sem mexer na data da prova.</p>
-    <div class="row"><button class="btn" onclick="rpReorg()">Reorganizar o cronograma</button><button class="btn ghost sm" onclick="go('crono')">Ver o cronograma</button></div></section>`:"";
-}
-function rpTodayBtn(){
-  const t=todayK(); if(t>RP_END||rpFixed(t)||!AG0[t]) return "";
-  const off=AG[t]&&AG[t][6]==="off";
-  return off?`<div class="rpday row"><span class="muted">Hoje está marcado como dia sem estudo.</span><button class="btn ghost sm" onclick="rpUnskip('${t}')">Vou estudar hoje</button></div>`
-    :`<div class="rpday row"><span class="muted">Não vai dar para estudar hoje?</span><button class="btn ghost sm" onclick="rpSkip('${t}')">Não consigo estudar hoje</button></div>`;
-}
-const _vGuia31=vGuia;
-vGuia=function(){
-  rpApply();
-  _vGuia31();
-  const top=$("#view .hoje-top"), ban=rpBanner();
-  if(top&&ban) top.insertAdjacentHTML("afterend",ban);
-  const pd=$("#view .prog-dia"); if(pd) pd.insertAdjacentHTML("beforeend",rpTodayBtn());
-};
-const _vCrono31=vCrono;
-vCrono=function(){
-  rpApply();
-  _vCrono31();
-  const v=$("#view"), h=v.querySelector("h2"), t=todayK();
-  const head=h&&h.closest(".stack");
-  if(head){
-    head.insertAdjacentHTML("afterend",rpBanner()+`<section class="panel stack rphelp"><h3>Não conseguiu estudar algum dia?</h3>
-      <p class="muted">Abra o dia e toque em “Não vou poder estudar neste dia”, ou use o botão na tela Hoje. O conteúdo vai para os próximos dias, a ordem do plano se mantém e nenhum assunto fica de fora. Se faltar dia, dois assuntos parecidos dividem um dia, com tempos menores.</p>
-      ${S.rp&&S.rp.at?`<div class="row"><span class="muted">Última reorganização: ${new Date(S.rp.at).toLocaleDateString("pt-BR")}</span>${"rpPrev" in S?'<button class="btn ghost sm" onclick="rpUndo()">Desfazer</button>':""}</div>`:""}</section>`);
-  }
-  v.querySelectorAll(".agday").forEach(sec=>{
-    const k=sec.id.slice(3); if(k<t||k>RP_END||rpFixed(k)||k!==cronoOpen) return;
-    const off=AG[k]&&AG[k][6]==="off";
-    sec.insertAdjacentHTML("beforeend",`<div class="rpday row">${off?`<button class="btn ghost sm" onclick="rpUnskip('${k}')">Vou estudar neste dia</button>`:`<button class="btn ghost sm" onclick="rpSkip('${k}')">Não vou poder estudar neste dia</button>`}</div>`);
-  });
-};
 const _go31=go;
 go=function(v){rpApply();return _go31(v);};
 rpApply(true);
 
-document.body.insertAdjacentHTML("beforeend",`<style>
-.rpban{border-left:4px solid var(--amber)}
-.rpday{justify-content:space-between;gap:8px;padding-top:10px;border-top:1px solid var(--line);margin-top:6px}
-.rpsum{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;line-height:1.5}
-.rpdays{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:15px}
-dialog.tpdlg .rpsum,dialog.tpdlg details{max-width:60ch}
-.pill.warn{background:var(--amber-soft);color:var(--amber)}
-</style>`);
+/* estilos: src/css/521-v31*.css */
 
 /* fases: nome da fase 2 de acordo com o que ela é hoje (um assunto do edital por dia) e o aviso da reorganização */
 PHASES[1].t="Conteúdo do edital";

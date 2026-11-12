@@ -1050,44 +1050,6 @@ function foldHTML(k,title,sub,inner,defOpen){
 }
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.matches&&d.matches("details.fold[data-k]")){S.fold=S.fold||{};S.fold[d.dataset.k]=d.open;save();}},true);
 
-function vPratica(){
-  const opts=Object.entries(CATS).map(([k,v])=>`<option value="${k}">${esc(v.n)} (${QV().filter(q=>q.c===k).length})</option>`).join("");
-  const blk=Object.entries(BLOCKS).map(([k,v])=>`<option value="b:${k}">Bloco: ${esc(v)}</option>`).join("");
-  const years=Object.keys(PROVAS).sort().reverse();
-  const t=paceTarget(), a=myAvgT(), lawN=QV().filter(q=>/13\.303/.test(q[1])).length;
-  const grp=[["Mesmo cargo: Técnico(a) de Administração e Controle (TAC)",s=>/ TAC$/.test(s),s=>s.replace(/ TAC$/,"")],["Transpetro, outros cargos","Transpetro"],["Petrobras, outros cargos","Petrobras"],["Banco do Brasil (só Português, Matemática, Mat. Financeira e Informática)","BB"]].map(([t,p,f])=>typeof p==="string"?[t,s=>s.startsWith(p)&&!/ TAC$/.test(s),s=>s.replace(p+" ","")]:[t,p,f]);
-  const nv=unseenCount();
-  const especiais=`<div class="grid2 inner">
-    <div class="panel mode"><span class="tag">Cesgranrio · questões reais</span><h3>Provas anteriores</h3><p class="muted">Técnico de Administração e Controle da Transpetro, só com as questões que ainda valem pelas regras atuais, conferidas com o gabarito oficial. Cronômetro de 4 min por questão, como na prova.</p>
-      <div class="pgrid">${years.map(y=>`<button class="btn ghost sm pbtn" onclick="startPast('${y}')"><b>Transpetro ${y}</b><span>${QV().filter(q=>q[4]===y).length} questões</span></button>`).join("")}</div></div>
-    <div class="panel mode"><span class="tag">Cartão-resposta</span><h3>Modo prova real</h3><p class="muted">Caderno de questões com rascunho e “voltar depois”, cartão-resposta separado e só a correção no fim. Treina passar as respostas a tempo.</p>
-      <div class="pgrid"><button class="btn pbtn pfull" onclick="startReal('full')"><b>Simulado de 60</b><span>misturado, 4 horas</span></button>${years.map(y=>`<button class="btn ghost sm pbtn" onclick="startReal('${y}')"><b>Transpetro ${y}</b><span>prova inteira</span></button>`).join("")}</div></div>
-    <div class="panel mode"><span class="tag">60 questões · ${fmt(t)} cada</span><h3>Simulado de ritmo</h3><p class="muted">${a?`Sua média recente é ${fmt(Math.round(a))} por questão. O tempo deste simulado é 10% menor, para você ganhar folga no dia da prova.`:"Sem média ainda: o alvo começa em 3:30 por questão."} Em qualquer questão, o app avisa quando você passa de 3 minutos.</p><button class="btn ghost" onclick="startPace()">Iniciar</button></div>
-    <div class="panel mode"><span class="tag">${lawN} questões</span><h3>Lei 13.303 artigo por artigo</h3><p class="muted">Questões com o número do artigo, no estilo da letra da lei que a Cesgranrio cobra. Complete com o jogo Lei seca.</p><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="startLaw()">Treinar</button><button class="btn ghost sm" onclick="go('jogos')">Lei seca</button></div></div>
-  </div>
-  <section class="panel stack inner"><h3>Outras provas Cesgranrio</h3>
-    <p class="muted">Questões reais da mesma banca, só dos assuntos do seu edital e com a lei e os programas atuais. Cada uma mostra a prova de origem. Gabarito conferido com o oficial e explicado.</p>
-    ${grp.map(([t,p,f])=>`<div class="stack pgrp" style="gap:8px"><h4>${esc(t)}</h4><div class="pgrid">${SRC_ORD.filter(p).map(s=>`<button class="btn ghost sm pbtn" onclick="startSrc('${s}')"><b>${esc(f(s))}</b><span>${srcCount(s)} questões</span></button>`).join("")}</div></div>`).join("")}
-  </section>
-  <p class="muted inner">A divisão das 40 específicas no simulado (9 de processos, 9 de finanças, 15 de logística e compras, 7 de informática) é uma estimativa proporcional ao edital, que não define quantas questões vêm de cada tema.</p>`;
-  $("#view").innerHTML=`
-  ${rq?`<div class="rule row" style="justify-content:space-between"><span>Você tem uma prova real em andamento.</span><button class="btn" onclick="go('real')">Continuar</button></div>`:""}
-  ${quiz&&!quiz.finished?`<div class="rule row" style="justify-content:space-between"><span>Você tem um ${esc(quiz.label.toLowerCase())} em andamento.</span><button class="btn" onclick="go('quiz')">Continuar</button></div>`:""}
-  <h2>Escolha o modo</h2>
-  <div class="grid2">
-    <div class="panel mode hl"><span class="tag">Recomendado</span><h3>Treino adaptativo</h3><p class="muted">20 questões: 12 dos seus 5 assuntos mais fracos (${weakCats(5).map(k=>esc(CATS[k].n)).join(", ")}), 4 de outras específicas e 4 de Português e Matemática. Prioriza as que você nunca viu.</p><button class="btn" onclick="startAdaptive()">Começar</button></div>
-    <div class="panel mode"><span class="tag">Igual à prova</span><h3>Simulado completo</h3><p class="muted">60 questões no formato da prova, 4 h cronometradas, correção só no final e verificação das notas de corte. Puxa primeiro as questões que você nunca viu (${nv.toLocaleString("pt-BR")} inéditas no banco).</p><button class="btn" onclick="startExam('full')">Iniciar simulado</button></div>
-    <div class="panel mode"><span class="tag">50 minutos</span><h3>Mini simulado</h3><p class="muted">20 questões com a mesma proporção entre os blocos, priorizando as inéditas. Bom para dias de semana.</p><button class="btn" onclick="startExam('mini')">Iniciar mini</button></div>
-    <div class="panel mode"><span class="tag">2 h 40 min</span><h3>Simulado das específicas</h3><p class="muted">As 40 questões que decidem a classificação, na proporção do edital, com 4 minutos por questão. Mostra a distância do corte (20) e da meta (28 a 32).</p><button class="btn" onclick="startExam('esp')">Iniciar específicas</button></div>
-    <div class="panel mode"><span class="tag">Correção imediata</span><h3>Treino por assunto</h3><p class="muted">Até 15 questões de um tema, com gabarito comentado a cada resposta.</p>
-      <label for="selCat" class="muted">Assunto</label><select id="selCat"><option value="src:all">Só questões de provas anteriores (${QV().filter(q=>q[4]).length})</option>${blk}${opts}</select>
-      <label class="row muted chk" style="gap:8px"><input type="checkbox" id="onlyNew" style="width:18px;height:18px;accent-color:var(--petrol)"> Só questões que ainda não respondi</label>
-      <button class="btn ghost" onclick="startTrain()">Treinar</button></div>
-    <div class="panel mode"><span class="tag">${srsDue().length} para hoje · ${Object.keys(S.srs).length} na revisão</span><h3>Revisar erradas</h3><p class="muted">Revisão espaçada: cada questão errada volta no dia em que você estaria começando a esquecer. Acertou, o intervalo cresce; errou, ela volta amanhã.</p><button class="btn ghost" ${S.wrong.length||Object.keys(S.srs).length?"":"disabled"} onclick="startWrong()">Revisar</button></div>
-    <div class="panel mode"><span class="tag">${Object.keys(S.notes).length} notas</span><h3>Caderno de erros</h3><p class="muted">Seus erros com o motivo (não sabia, confundiu, leu rápido, errou a conta) e o que lembrar da próxima vez.</p><button class="btn ghost" onclick="go('caderno')">Abrir caderno</button></div>
-  </div>
-  ${foldHTML("prat","Provas reais e treinos especiais","Transpetro, Petrobras e BB; modo prova real; ritmo; lei seca",especiais,true)}`;
-}
 /* Seleção sem repetir: S.seen[i] guarda o dia em que a questão foi respondida (1 = antes da v13).
    As inéditas vêm primeiro; depois, as vistas há mais tempo. */
 const seenKey=i=>{const x=S.seen[i];return x?(x===1?"0":String(x)):"";};
@@ -1273,45 +1235,13 @@ function vResult(){
 function bar(name,c,t){const p=t?Math.round(c/t*100):0;return `<div class="bar"><span style="min-width:0">${esc(name)}</span><div class="track"><div class="fill ${p<50?"low":p<70?"mid":""}" style="width:${p}%"></div></div><span class="num" style="text-align:right">${p}%</span></div>`;}
 
 /* ---------- Cronograma ---------- */
-function vCrono(){} /* tela do cronograma: 07b-v10-v12.js */
 function vCronoKeep(){const y=window.scrollY;vCrono();window.scrollTo({top:y});}
 
-/* ---------- Desempenho ---------- */
-function vStats(){
-  const cats=Object.keys(CATS).filter(k=>S.stats[k]);
-  const rows=cats.sort((a,b)=>S.stats[a].c/S.stats[a].t-S.stats[b].c/S.stats[b].t).map(k=>bar(CATS[k].n+` (${S.stats[k].c}/${S.stats[k].t})`,S.stats[k].c,S.stats[k].t)).join("");
-  $("#view").innerHTML=`
-  <h2>Desempenho</h2>
-  ${forecastPanel()}
-  ${cats.length?`<div class="panel stack"><h3>Acerto por assunto</h3><p class="muted">Do mais fraco para o mais forte. Os primeiros da lista são a prioridade da semana.</p>${rows}</div>
-  <div class="panel stack"><h3>Histórico</h3><div class="tscroll"><table><thead><tr><th>Data</th><th>Modo</th><th>Acertos</th></tr></thead><tbody>
-  ${S.hist.map(h=>`<tr><td class="num">${h.date}</td><td>${esc(h.label)}</td><td class="num">${h.score}/${h.total}</td></tr>`).join("")}</tbody></table></div></div>
-  <div class="row"><button class="btn ghost" id="rst">Apagar estatísticas</button><span id="rstc" hidden class="row"><span>Apagar histórico e erros salvos?</span><button class="btn warn" id="rsty">Apagar</button></span></div>`
-  :`<div class="panel stack"><h3>Nenhum resultado ainda</h3><p class="muted">Faça um treino ou um simulado e o acerto por assunto aparece aqui, ordenado do mais fraco para o mais forte.</p><div><button class="btn" onclick="go('pratica')">Ir para Praticar</button></div></div>`}`;
-  const r=$("#rst"); if(r){r.onclick=()=>{$("#rstc").hidden=false;}; $("#rsty").onclick=()=>{S.hist=[];S.stats={};S.wrong=[];save();vStats();};}
-}
 
 /* ---------- Conteúdos ---------- */
 let topicCur=null;
 const md=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/(^|\. )! /g,'$1<span class="tchip">Pegadinha</span> ');
 function pct(st){return st&&st.t?Math.round(st.c/st.t*100):null;}
-function vCont(){
-  const read=S.read||{}, keys=Object.keys(CATS).filter(k=>RES[k]);
-  const nRead=keys.filter(k=>read[k]).length;
-  const groups=Object.entries(BLOCKS).map(([b,bn])=>{
-    const items=keys.filter(k=>CATS[k].b===b).map(k=>{
-      const p=pct(S.stats[k]);
-      return `<button class="topic" onclick="openTopic('${k}')"><span class="tname">${esc(CATS[k].n)}</span><span class="tmeta">${read[k]?'<span class="pill ok">lido</span>':'<span class="pill">não lido</span>'}${p!==null?`<span class="pill ${p<50?"bad":p<70?"mid":"ok"}">${p}% de acerto</span>`:""}</span></button>`;
-    }).join("");
-    return `<section class="stack" style="--bc:var(--c-${b})"><h3 class="bh">${esc(bn)}</h3><div class="topics">${items}</div></section>`;
-  }).join("");
-  $("#view").innerHTML=`
-  <div class="stack"><h2>Conteúdos</h2><p class="muted">Resumo de cada tópico do edital com as pegadinhas mais cobradas. Leia, marque como lido e treine o assunto em seguida.</p>
-  <div class="row"><button class="btn ghost sm" onclick="document.getElementById('baseSec').scrollIntoView({behavior:'smooth'})">Ir para a Revisão da escola (${BASE.length} lições)</button></div></div>
-  <div class="panel stack"><div class="row" style="justify-content:space-between"><strong>Leitura</strong><span class="num">${nRead}/${keys.length} assuntos</span></div><div class="track"><div class="fill" style="width:${nRead/keys.length*100}%"></div></div></div>
-  ${groups}
-  <div id="baseSec"></div>${baseList()}`;
-}
 function openTopic(k){topicCur=k;go("topic");}
 function vTopic(){
   const k=topicCur; if(!k||!RES[k]){go("cont");return;}
@@ -1336,22 +1266,6 @@ function selLabel(v){return v==="all"?"Todos os assuntos":v==="esp"?"Só especí
 function gameSel(id,def){
   const o=(v,t)=>`<option value="${v}" ${v===def?"selected":""}>${esc(t)}</option>`;
   return `<select id="${id}">${o("esp","Só específicas")}${o("all","Todos os assuntos")}${Object.entries(BLOCKS).map(([k,v])=>o("b:"+k,"Bloco: "+v)).join("")}${Object.entries(CATS).map(([k,v])=>o(k,v.n)).join("")}</select>`;
-}
-function vJogos(){
-  const g=S.gm, known=Object.values(S.fcl).filter(x=>x>=2).length;
-  $("#view").innerHTML=`
-  <div class="stack"><h2>Jogos</h2><p class="muted">Rodadas curtas para fixar conceitos, siglas, prazos e fórmulas. Boas para o celular, no ônibus ou no intervalo.</p></div>
-  <div class="grid2">
-    <div class="panel mode"><span class="tag">${known} de ${FC.length} dominados</span><h3>Flashcards</h3><p class="muted">Veja o conceito, tente lembrar e vire o cartão. Os que você não sabia voltam primeiro na próxima vez.</p>
-      <label class="muted" for="selFc">Baralho</label>${gameSel("selFc",g.lastFc||"esp")}
-      <button class="btn" onclick="startFc()">Começar</button></div>
-    <div class="panel mode"><span class="tag">90 segundos</span><h3>Verdadeiro ou falso relâmpago</h3><p class="muted">Responda o máximo de afirmações antes do tempo acabar. No fim, veja a correção de cada erro.</p>
-      <label class="muted" for="selVf">Assuntos</label>${gameSel("selVf",g.lastVf||"esp")}
-      <button class="btn" onclick="startVf()">Jogar</button>${g.vfBest?`<span class="muted num">Recorde: ${g.vfBest} acertos</span>`:""}</div>
-    <div class="panel mode"><span class="tag">6 pares</span><h3>Associação</h3><p class="muted">Ligue cada termo à sua definição no menor tempo possível. Cada erro soma 5 segundos.</p>
-      <label class="muted" for="selMt">Assuntos</label>${gameSel("selMt",g.lastMt||"esp")}
-      <button class="btn" onclick="startMatch()">Jogar</button>${g.mtBest?`<span class="muted num">Recorde: ${fmt(g.mtBest)}</span>`:""}</div>
-  </div>`;
 }
 
 /* Flashcards */
@@ -1729,21 +1643,6 @@ function noteDel(qi){delete S.notes[qi];save();const y=window.scrollY;vCaderno()
 /* ---------- Previsão de nota ---------- */
 function parseBr(s){const m=/^(\d{2})\/(\d{2})\/(\d{4})/.exec(s||"");return m?new Date(+m[3],+m[2]-1,+m[1]):null;}
 function espOf(h){let c=0,t=0;ESP_B.forEach(k=>{const b=h.byB&&h.byB[k];if(b){c+=b.c;t+=b.t;}});return {c,t};}
-function forecastPanel(){
-  const ex=S.hist.filter(h=>espOf(h).t>=8);
-  if(!ex.length) return `<div class="panel stack"><h3>Previsão de nota</h3><p class="muted">Faça um simulado (ou um treino com pelo menos 8 questões específicas) para ver a projeção da sua nota nas 40 específicas.</p></div>`;
-  const last=ex.slice(0,3), r=last.reduce((s,h)=>{const e=espOf(h);return s+e.c/e.t;},0)/last.length, proj=Math.round(r*40);
-  const wk={}; ex.forEach(h=>{const d=parseBr(h.date); if(!d) return; const m=new Date(d); m.setDate(d.getDate()-((d.getDay()+6)%7)); const key=dkey(m); const e=espOf(h); wk[key]=wk[key]||{c:0,t:0}; wk[key].c+=e.c; wk[key].t+=e.t;});
-  const weeks=Object.keys(wk).sort().slice(-6), pc=weeks.map(w=>Math.round(wk[w].c/wk[w].t*100));
-  const stall=pc.length>=3&&pc[pc.length-1]<=pc[pc.length-2]&&pc[pc.length-2]<=pc[pc.length-3];
-  const st=proj>=32?["ok","Na meta de classificação"]:proj>=20?["mid","Acima do corte, abaixo da meta"]:["bad","Abaixo do corte de 20"];
-  return `<div class="panel stack"><h3>Previsão de nota</h3>
-    <div class="grid2"><div class="score"><span class="muted">Projeção nas específicas</span><span class="v num">${proj}/40</span><span class="pill ${st[0]}">${st[1]}</span></div>
-    <div class="score"><span class="muted">Base</span><span class="v num">${Math.round(r*100)}%</span><span class="muted">média dos últimos ${last.length} ${last.length===1?"resultado":"resultados"} com específicas</span></div></div>
-    <p class="muted">Corte: 20 acertos. Meta de classificação: 32 ou mais (80%). Mire 85% nos simulados para chegar com folga.</p>
-    <h3>Tendência por semana</h3>${weeks.map((w,i)=>bar("Semana de "+fmtK(w)+(i?(pc[i]>pc[i-1]?" ↑":pc[i]<pc[i-1]?" ↓":" ="):""),wk[w].c,wk[w].t)).join("")}
-    ${stall?`<div class="rule"><span class="pill bad">Atenção</span> O acerto nas específicas não sobe há duas semanas. Mude o método nos assuntos mais fracos: mais teoria ou mais questões comentadas, não só mais horas.</div>`:""}</div>`;
-}
 
 /* ---------- Modo prova real (caderno + cartão-resposta) ---------- */
 let rq=null;
@@ -1937,8 +1836,7 @@ applyTheme();
 /* ---------- Navegação: foco, voz, tempo por questão ---------- */
 function qtAcc(){if(quiz&&!quiz.finished&&quiz._k!=null){quiz.tq=quiz.tq||quiz.ids.map(()=>0);quiz.tq[quiz._k]+=Date.now()-quiz._t;quiz._k=null;}}
 function segNav(cur,items){return `<div class="segtabs" role="tablist">${items.map(([v,t])=>`<button role="tab" aria-selected="${v===cur}" onclick="go('${v}')">${t}</button>`).join("")}</div>`;}
-const SEG_EST=[["cont","Resumos"],["links","Links e vídeos"],["vesp","Revisão da véspera"]];
-const SEG_PROG=[["stats","Desempenho"],["crono","Cronograma"]];
+const SEG_EST=[["cont","Resumos"],["edital","Edital"],["peg","Pegadinhas"],["links","Links"],["vesp","Véspera"]]; // Áudio abre pelo botão de fone
 
 /* ---------- Simulado salvo ao recarregar ---------- */
 const RK="transpetro26-run";
@@ -2051,7 +1949,6 @@ function pomoPanel(){
 function pomoWire(){const g=$("#pomoGo");if(g)g.onclick=()=>pomoStart("est");const pz=$("#pomoPause");if(pz)pz.onclick=()=>pomoStart("pau");const s=$("#pomoStop");if(s)s.onclick=pomoStop;}
 
 /* ---------- Estudar: resumos com cor por bloco, ouvir ---------- */
-const _vCont=vCont; vCont=function(){_vCont();const h=$("#view h2");if(h)h.textContent="Estudar";$("#view").insertAdjacentHTML("afterbegin",segNav("cont",SEG_EST));};
 const _vLinks=vLinks; vLinks=function(){_vLinks();$("#view").insertAdjacentHTML("afterbegin",segNav("links",SEG_EST));};
 let ttsQ=[];
 const TTS_OK="speechSynthesis" in window;
@@ -2105,22 +2002,6 @@ function vVesp(){
   ${html}`;
 }
 
-/* ---------- Progresso (Desempenho + Cronograma) ---------- */
-const _vStats=vStats;
-vStats=function(){
-  _vStats(); const v=$("#view"); const h=v.querySelector("h2"); if(h) h.textContent="Progresso";
-  v.insertAdjacentHTML("afterbegin",segNav("stats",SEG_PROG));
-  const w=slogSum(7), m=slogSum(30);
-  const blk=Object.keys(BLOCKS).concat("geral").filter(b=>m.by[b]);
-  const mx=Math.max(1,...blk.map(b=>m.by[b]));
-  const tl=S.hist.filter(x=>x.avgT).slice(0,8);
-  const fc=v.querySelector(".panel");
-  const html=`<div class="panel stack"><h3>Horas de estudo</h3>
-    <div class="row" style="gap:18px"><span>Últimos 7 dias: <b class="num">${minFmt(w.t)}</b></span><span>Últimos 30 dias: <b class="num">${minFmt(m.t)}</b></span></div>
-    ${blk.length?blk.map(b=>`<div class="hbar"><span><i class="bdot" style="background:${b==="geral"?"var(--muted)":`var(--c-${b})`}"></i>${b==="geral"?"Geral":esc(BLOCKS[b])}</span><div class="track"><div class="fill" style="width:${m.by[b]/mx*100}%;background:${b==="geral"?"var(--muted)":`var(--c-${b})`}"></div></div><span class="num">${minFmt(m.by[b])}</span></div>`).join(""):'<p class="muted">Use o cronômetro de estudo na aba Hoje para registrar o tempo por assunto.</p>'}
-    ${tl.length?`<h3>Tempo médio por questão</h3>${tl.map(x=>`<div class="row" style="justify-content:space-between"><span>${esc(x.date)} · ${esc(x.label)}</span><span class="num ${x.avgT>240?"badt":""}">${fmt(x.avgT)}</span></div>`).join("")}`:""}</div>`;
-  if(fc) fc.insertAdjacentHTML("afterend",html); else v.insertAdjacentHTML("beforeend",html);
-};
 
 /* ---------- Praticar: simulado adaptativo ---------- */
 function startAdaptive(){
@@ -2130,18 +2011,6 @@ function startAdaptive(){
   makeQuiz(ids,"train","Treino adaptativo",0);
 }
 
-/* ---------- Jogos: lei seca e cálculo ---------- */
-const _vJogos=vJogos;
-vJogos=function(){
-  _vJogos();
-  const g=$("#view .grid2");
-  if(g) g.insertAdjacentHTML("beforeend",`
-    <div class="panel mode"><span class="tag">${LEI.length} trechos</span><h3>Lei seca</h3><p class="muted">Complete o texto da Lei 13.303, da Lei 14.133 e da LGPD. A Cesgranrio copia a letra da lei nas alternativas.</p>
-      <label class="muted" for="selLei">Lei</label><select id="selLei"><option value="all">Todas</option><option value="13.303">Lei 13.303/2016 (estatais)</option><option value="14.133">Lei 14.133/2021</option><option value="LGPD">LGPD (Lei 13.709/2018)</option></select>
-      <button class="btn" onclick="startLei()">Começar</button>${S.gm.leiBest?`<span class="muted num">Recorde: ${S.gm.leiBest} acertos</span>`:""}</div>
-    <div class="panel mode"><span class="tag">90 segundos</span><h3>Cálculo sem calculadora</h3><p class="muted">Porcentagem, juros, regra de três, aumentos e descontos. Na prova, calculadora é proibida: aqui você treina a conta de cabeça.</p>
-      <button class="btn" onclick="startCalc()">Jogar</button>${S.gm.calcBest?`<span class="muted num">Recorde: ${S.gm.calcBest} acertos</span>`:""}</div>`);
-};
 const LEI=[
  ["13.303","Art. 1º","Esta Lei dispõe sobre o estatuto jurídico da empresa pública, da ___ e de suas subsidiárias.","sociedade de economia mista",["autarquia","fundação pública","agência reguladora"]],
  ["13.303","Art. 29, I","É dispensável a realização de licitação por empresas públicas e sociedades de economia mista para obras e serviços de engenharia de valor até ___.","R$ 100.000,00",["R$ 50.000,00","R$ 150.000,00","R$ 33.000,00"]],
@@ -2425,8 +2294,6 @@ Q9.forEach(q=>{q.c=q[0];Q.push(q);});
 FC.push(...FC2);
 LEI.push(...LEI2);
 S.gm=S.gm||{}; S.ct=S.ct||{};
-const SEG_EST2=[["cont","Resumos"],["peg","Pegadinhas"],["links","Links e vídeos"],["vesp","Revisão da véspera"]];
-SEG_EST.length=0; SEG_EST.push(...SEG_EST2);
 
 /* ---------- Navegação das telas novas ---------- */
 const NV={peg:()=>vPeg(),duel:()=>vDuel(),erro:()=>vErro(),ord:()=>vOrd()};
@@ -2520,8 +2387,6 @@ function lossPanel(){
   <div class="row"><button class="btn sm" onclick="startTrainCat('${top.c}')">Treinar ${esc(CATS[top.c].n)}</button><button class="btn ghost sm" onclick="openTopic('${top.c}')">Ler o resumo</button></div>
   <p class="muted">Pontos perdidos = questões esperadas do assunto na prova × taxa de erro. Assunto com menos de 5 questões respondidas conta como 50%.</p></div>`;
 }
-const _vStats5=vStats;
-vStats=function(){_vStats5();const seg=$("#view .segtabs");const h=$("#view h2");(h||seg).insertAdjacentHTML("afterend",lossPanel());};
 
 /* ---------- 4. Caderno de erros em PDF ---------- */
 function cadernoDoc(){
@@ -2642,22 +2507,6 @@ function dailyIds(){
 }
 function startDaily(){makeQuiz(dailyIds(),"train","Desafio do dia",0);quiz.daily=true;}
 
-/* ---------- Telas existentes: novos atalhos ---------- */
-const _vJogos5=vJogos;
-vJogos=function(){
-  _vJogos5();
-  const g=$("#view .grid2"); if(!g) return;
-  g.insertAdjacentHTML("afterbegin",`<div class="panel mode hl"><span class="tag">Todo dia</span><h3>Desafio do dia</h3><p class="muted">5 questões novas por dia, montadas para os seus pontos fracos. Faça todo dia para não perder a sequência.</p><button class="btn" onclick="startDaily()">Jogar</button>${S.gm.dch&&S.gm.dch.best?`<span class="muted num">Maior sequência: ${S.gm.dch.best} dias</span>`:""}</div>`);
-  g.insertAdjacentHTML("beforeend",`
-    <div class="panel mode"><span class="tag">10 questões · 60 s cada</span><h3>Duelo do relógio</h3><p class="muted">Quanto mais rápido você acerta, mais pontos. Errou ou o tempo acabou, vê a explicação e segue.</p>
-      <label class="muted" for="selDuel">Assuntos</label>${gameSel("selDuel",S.gm.lastDuel||"esp")}
-      <button class="btn" onclick="S.gm.lastDuel=$('#selDuel').value;startDuel()">Jogar</button>${S.gm.duelBest?`<span class="muted num">Recorde: ${S.gm.duelBest} pontos</span>`:""}</div>
-    <div class="panel mode"><span class="tag">${PEG.length} frases</span><h3>Ache o erro</h3><p class="muted">Uma frase de lei ou conceito com uma palavra trocada. Toque na palavra errada.</p>
-      <button class="btn" onclick="startErro()">Jogar</button>${S.gm.erroBest?`<span class="muted num">Recorde: ${S.gm.erroBest} de 8</span>`:""}</div>
-    <div class="panel mode"><span class="tag">${ORD.length} sequências</span><h3>Ordene as fases</h3><p class="muted">Monte na ordem certa as fases da licitação, o PDCA, a DRE, o fluxo do armazém e outras sequências cobradas.</p>
-      <label class="muted" for="selOrd">Sequência</label><select id="selOrd"><option value="r">Sorteada</option>${ORD.map((o,i)=>`<option value="${i}">${esc(o[0])}</option>`).join("")}</select>
-      <button class="btn" onclick="startOrd()">Jogar</button></div>`);
-};
 function startLaw(){makeQuiz(shuffle(QI().filter(i=>/13\.303/.test(Q[i][1]))).slice(0,15),"train","Treino: Lei 13.303 artigo por artigo",0);}
 
 /* ---------- 10. Avisos fora do app ---------- */
@@ -2849,47 +2698,8 @@ function agWeeks(){
   const w=[]; agDays().forEach(k=>{const d=kDate(k).getDay(); if(!w.length||d===1) w.push([]); w[w.length-1].push(k);}); return w;
 }
 function agTipo(a){const sp=a[6];return sp==="sim"?["Simulado","bad"]:sp.startsWith("past:")?["Prova anterior","bad"]:sp==="mini"?["Mini simulado","warn"]:sp==="weak"?["Pontos fracos","warn"]:sp==="rest"?["Leve","ok"]:sp==="exam"?["Prova","bad"]:sp==="rev"||sp==="law"?["Revisão","ok"]:["Conteúdo",""];}
-let cronoOpen=null;
-vCrono=function(){
-  const t=todayK(), days=agDays(), past=days.filter(k=>k<t), full=past.filter(k=>dayScore(k)>=1).length;
-  const left=Math.max(0,Math.round((kDate("2026-12-06")-kDate(t))/864e5));
-  if(cronoOpen===null) cronoOpen=AG[t]?t:days.find(k=>k>t)||days[0];
-  const card=k=>{
-    const a=AG[k], p=dayPlan(k), its=dayItems(p), tk=its.filter(i=>!i.auto), dn=tk.filter(i=>itemDone(k,i)).length, open=k===cronoOpen, tp=agTipo(a);
-    const st=k<t?(dn===tk.length?"✓ feito":dn?`${dn}/${tk.length}`:"não feito"):k===t?(dn?`${dn}/${tk.length}`:"hoje"):"";
-    return `<section class="panel agday ${k===t?"today":""} ${k<t&&dn<tk.length?"miss":""}" id="ag-${k}">
-      <button class="aghead" onclick="cronoOpen=cronoOpen==='${k}'?'':'${k}';vCronoKeep()" aria-expanded="${open}">
-        <span class="agdate num"><b>${k.slice(8)}/${k.slice(5,7)}</b><i>${WD[kDate(k).getDay()]}</i></span>
-        <span class="agfoco"><b>${esc(a[0])}</b>${a[4]&&a[5]?`<i class="muted">+ ${a[4]==="port"?"Português":"Matemática"}: ${esc(a[5])}</i>`:""}</span>
-        <span class="agst">${tp[0]!=="Conteúdo"?`<span class="pill ${tp[1]}">${tp[0]}</span>`:""}<span class="muted num">${st}</span></span>
-      </button>
-      ${open?`<div class="tlist">${tlHTML(k,its,"ag-"+k+"-",k===t)}</div>${(()=>{const m=its.find(i=>i.auto);return m?`<p class="muted">${esc(m.t)}${k<=t?` · ${S.days[k]||0} respondidas${(S.days[k]||0)>=S.goal?" ✓ cumprida":""}`:""}</p>`:"";})()}`:""}
-    </section>`;
-  };
-  $("#view").innerHTML=segNav("crono",SEG_PROG)+`
-  <div class="stack"><h2>Cronograma até 06/12</h2>
-  <p class="muted">A programação de cada dia, com horários, a área do app e o que fazer. Toque no dia para abrir; o dia de hoje é o mesmo da tela Hoje.</p></div>
-  <div class="panel row" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
-    <span><b class="num">${left}</b> dias até a prova</span><span><b class="num">${full}</b> de <b class="num">${past.length}</b> ${past.length===1?"dia anterior completo":"dias anteriores completos"}</span>
-    ${AG[t]?`<button class="btn sm" onclick="document.getElementById('ag-${t}').scrollIntoView({block:'center'})">Ir para hoje</button>`:""}
-  </div>
-  ${foldHTML("plano","Plano até 06/12 e método de estudo","as 4 fases e como estudar cada dia",planMethod(),false)}
-  ${agWeeks().map((w,i)=>`<div class="stack" style="gap:8px"><h3 class="agwk">Semana ${i+1} · ${fmtK(w[0])} a ${fmtK(w[w.length-1])}</h3>${w.map(card).join("")}</div>`).join("")}
-`;
-  document.querySelectorAll(".agday .tl input").forEach(c=>c.onchange=()=>{const k=c.dataset.k;S.daily[k]=S.daily[k]||{};S.daily[k][c.dataset.i]=c.checked;save();vCronoKeep();});
-};
-(function(){const st=document.createElement("style");st.textContent=`
-.agday{padding:10px 14px;gap:8px}.agday.today{outline:2px solid var(--petrol)}.agday.miss .agdate b{color:var(--amber)}
-.aghead{all:unset;cursor:pointer;display:flex;gap:12px;align-items:center;width:100%}
-.aghead:focus-visible{outline:2px solid var(--petrol);border-radius:6px}
-.agdate{display:flex;flex-direction:column;align-items:center;min-width:44px}.agdate i{font-style:normal;font-size:12px;opacity:.7}
-.agfoco{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.agfoco i{font-style:normal;font-size:13px}
-.agst{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:12px}
-.agwk{margin:8px 0 0}
-#view{overflow-wrap:anywhere}
-.qcomp{display:flex;flex-direction:column;gap:8px}.qcomp table{font-size:13px}.qcomp th,.qcomp td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-.qcomp th{background:var(--amber-soft)}.fcard{font-family:ui-monospace,Menlo,monospace;background:var(--amber-soft);padding:6px 10px;border-radius:6px;display:block}
-`;document.head.appendChild(st);})();
+let cronoOpen="";
+/* estilos: src/css/007b-v10-v12*.css */
 
 /* ---------- 15. v10: quadros comparativos e fórmulas nos conteúdos ---------- */
 // cada quadro: [título, [cabeçalhos], [[linha]...]]; fórmulas: [nome, fórmula, exemplo]
@@ -2986,17 +2796,7 @@ RES.mat.push(["Trigonometria",["No triângulo retângulo: **sen = oposto ÷ hipo
 
 /* ---------- 17. v12: telas mais limpas (seções secundárias recolhíveis) ---------- */
 S.fold=S.fold||{};
-(function(){const st=document.createElement("style");st.textContent=`
-details.fold{padding:0}
-details.fold>summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:14px 44px 14px 16px;position:relative;font-weight:600}
-details.fold>summary::-webkit-details-marker{display:none}
-details.fold>summary::after{content:"";position:absolute;right:18px;top:50%;width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-70%) rotate(45deg);opacity:.6;transition:transform .15s}
-details.fold[open]>summary::after{transform:translateY(-30%) rotate(-135deg)}
-details.fold>summary .muted{font-weight:400;font-size:13px}
-details.fold>summary:focus-visible{outline:2px solid var(--petrol);border-radius:10px}
-.foldin{padding:0 16px 16px}
-.foldin>.inner{border-top:1px solid var(--line);padding-top:14px}
-`;document.head.appendChild(st);})();
+/* estilos: src/css/007b-v10-v12*.css */
 
 /* ---------- v17: provas do mesmo cargo (Técnico de Administração e Controle) ----------
    Petrobras 2018, 2014 e 2012 e BR Distribuidora 2015 e 2013, gabaritos oficiais.
@@ -3803,13 +3603,6 @@ function weekPanel(a,title){
   </section>`;
 }
 /* Progresso: semana atual; Hoje: no domingo, a semana que termina; na segunda, a que terminou */
-const _vStats13=vStats;
-vStats=function(){
-  _vStats13();
-  const seg=$("#view .segtabs"), h=$("#view h2"), at=(h||seg);
-  const k=todayK(), a=monday(k);
-  at.insertAdjacentHTML("afterend",weekPanel(a,"Resumo da semana")+prioPanel()+repPanel());
-};
 function weekCard(){
   const k=todayK(), wd=kDate(k).getDay();
   if(wd!==0&&wd!==1) return "";
@@ -3818,30 +3611,7 @@ function weekCard(){
   return `<div class="wkwrap">${weekPanel(a,wd===0?"Resumo da semana":"Resumo da semana passada").replace('<div class="row" style="justify-content:space-between"><h3>',`<div class="row" style="justify-content:space-between"><button class="linkbtn wkx" onclick="S.wkSeen='${a}';save();vGuiaKeep()" aria-label="Fechar o resumo">Fechar</button><h3>`)}</div>`;
 }
 
-(function(){const st=document.createElement("style");st.textContent=`
-#view{zoom:var(--fz,1)}
-.fzbtn{font:700 15px var(--f-body)}
-@media (min-width:1100px){header.band .themebtn.fzbtn{order:5;margin-top:0}}
-.linkbtn{all:unset;cursor:pointer;color:var(--petrol);font:600 13px var(--f-body);padding:6px 0;text-decoration:underline;text-underline-offset:3px}
-.linkbtn:focus-visible{outline:2px solid var(--petrol);border-radius:4px}
-.repbtn{color:var(--muted);align-self:flex-start;white-space:nowrap}
-.repitem{border-top:1px solid var(--line);padding-top:8px}
-dialog.tpdlg{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:18px;max-width:min(520px,calc(100vw - 32px));width:100%;box-sizing:border-box;zoom:var(--fz,1)}
-dialog.tpdlg::backdrop{background:rgba(0,0,0,.45)}
-dialog.tpdlg h3{margin:0}
-dialog.tpdlg textarea,.clbox input{width:100%;box-sizing:border-box;font:inherit}
-.rrow{display:flex;gap:10px;align-items:flex-start;cursor:pointer;line-height:1.35}.rrow input{margin:2px 0 0;flex:none;width:18px;height:18px;accent-color:var(--petrol)}
-.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.clcode{font:600 14px var(--f-mono,monospace);background:var(--petrol-soft);color:var(--petrol);padding:8px 10px;border-radius:8px;overflow-wrap:anywhere}
-.cllbl.ok{color:var(--ok)}.cllbl.bad{color:var(--bad)}
-.clbox{border-bottom:1px solid var(--line);padding-bottom:14px}
-.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-@media (max-width:520px){.grid3{grid-template-columns:1fr 1fr}.grid3>:last-child{grid-column:1/-1}}
-.wkrow{display:grid;min-width:0;grid-template-columns:1fr auto 52px;gap:8px;align-items:center}
-.wkd{text-align:right;font-size:13px}.wkd.ok{color:var(--ok)}.wkd.bad{color:var(--bad)}
-.wkx{order:2;font-size:12px;color:var(--muted)}
-.qhead .fzq{min-width:40px}
-`;document.head.appendChild(st);})();
+/* estilos: src/css/008-v13*.css */
 
 /* ---------- 24. v14: tela Hoje enxuta, programação do dia e Configurações ---------- */
 
@@ -3899,57 +3669,11 @@ function syncChip(){
   return `<button class="clchip ${s[0]}" onclick="go('config')" title="Configurações › Sincronização"><i></i>${s[1]}</button>`;
 }
 
-function vGuia(){
-  const k=todayK(), p=dayPlan(k), its=dayItems(p), steps=its.filter(i=>!i.auto), done=steps.filter(i=>itemDone(k,i)).length;
-  const meta=its.find(i=>i.auto), due=srsDue().length, sc=schedule(k,its);
-  const last14=[...Array(14)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);const kk=dkey(d);return {kk,s:kk<"2026-10-27"?null:dayScore(kk)};});
-  const full=(()=>{let n=0,d=new Date();if(dayScore(dkey(d))<1)d.setDate(d.getDate()-1);while(dkey(d)>="2026-10-27"&&dayScore(dkey(d))>=1){n++;d.setDate(d.getDate()-1);}return n;})();
-  const wdN=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"][kDate(k).getDay()];
-  const rows=tlHTML(k,its,"dl-",true);
-  const tot=sc.end-sc.start;
-  $("#view").innerHTML=`${runBanner()}
-  <div class="hoje-top"><div class="stack" style="gap:2px"><h2>Hoje</h2><span class="muted">${wdN}, ${fmtK(k)}${p.ph?` · fase ${PHASES.indexOf(p.ph)+1}: ${esc(p.ph.t)}`:""}</span></div>${syncChip()}</div>
-  ${syncBanner()}
-  ${weekCard()}
-  <section class="panel stack prog-dia">
-    <div class="row" style="justify-content:space-between;gap:8px"><h3>Programação de hoje${p.foco?` · ${esc(p.foco)}`:""}</h3><span class="streak num">${full} ${full===1?"dia completo":"dias completos"} seguidos</span></div>
-    ${tot>0?`<span class="muted num">${hm(sc.start)} às ${hm(sc.end)} · ${minFmt(tot)} de estudo com pausas · <button class="linkbtn" onclick="go('config');setTimeout(()=>{const e=$('#stH');if(e)e.focus();},200)">mudar horário</button></span>`:""}
-    <div class="row" style="justify-content:space-between"><span><b class="num">${done}</b> de <b class="num">${steps.length}</b> etapas</span>${done===steps.length?'<span class="pill ok">Dia concluído</span>':""}</div>
-    <div class="track"><div class="fill" style="width:${steps.length?done/steps.length*100:0}%"></div></div>
-    ${due?`<div class="rule row" style="justify-content:space-between"><span><b class="num">${due}</b> ${due===1?"questão errada volta":"questões erradas voltam"} hoje na revisão espaçada.</span><button class="btn sm" onclick="startWrong()">Revisar agora</button></div>`:""}
-    <div class="tlist">${rows}</div>
-    ${meta?`<div class="row metaln"><span>Meta: <b class="num">${S.days[k]||0}</b> de <b class="num">${S.goal}</b> questões hoje</span>${(S.days[k]||0)>=S.goal?'<span class="pill ok">cumprida</span>':`<div class="track sm"><div class="fill" style="width:${Math.min(100,(S.days[k]||0)/S.goal*100)}%"></div></div>`}</div>`:""}
-    <div class="stack" style="gap:6px"><span class="muted">Últimos 14 dias</span><div class="days14">${last14.map(x=>`<span class="d14 ${x.s===null?"na":x.s>=1?"full":x.s>=.5?"half":x.s>0?"low":""}" title="${fmtK(x.kk)}"><i>${x.kk.slice(8)}</i></span>`).join("")}</div></div>
-    <div><button class="btn ghost sm" onclick="go('crono')">Ver a programação dos próximos dias</button></div>
-  </section>
-  ${foldHTML("ferr","Cronômetro de estudo","blocos de 50 min com 10 de pausa",pomoPanel().replace('<section class="panel stack">','<section class="stack inner">'),false)}
-  ${foldHTML("areas","Como aproveitar cada área, todo dia","Estudar, Praticar, Jogos e Progresso",areasGuide(),false)}`;
-  steps.forEach(i=>{const c=$("#dl-"+i.id); if(c) c.onchange=()=>{S.daily[k]=S.daily[k]||{};S.daily[k][i.id]=c.checked;save();vGuiaKeep();};});
-  pomoWire();
-}
-/* linhas da programação de um dia (Hoje e Cronograma); pre = prefixo dos ids das caixas */
-function tlHTML(k,its,pre,live){
-  const steps=its.filter(i=>!i.auto), sc=schedule(k,its), nowI=live?steps.findIndex(i=>!itemDone(k,i)):-1;
-  return sc.rows.map(r=>{
-    if(r.pause) return `<div class="tl pause"><span class="tltime num">${hm(r.a)}</span><span class="muted">Pausa de 10 min, longe do celular</span></div>`;
-    const i=r.i, ck=itemDone(k,i), cur=steps.indexOf(i)===nowI;
-    return `<div class="tl ${ck?"done":""} ${cur?"cur":""}">
-      <input type="checkbox" id="${pre}${i.id}" data-k="${k}" data-i="${i.id}" ${ck?"checked":""} ${i.chk&&k>=todayK()?'disabled title="Marca sozinho quando você concluir a etapa"':""} aria-label="${i.chk&&k>=todayK()?"Marca sozinho ao concluir":"Concluí"}: ${esc(r.p.h||r.p.d)}">
-      <div class="tlb"><div class="tlt">${r.a!==null?`<span class="tltime num">${hm(r.a)}–${hm(r.b)}</span>`:""}${areaChip(r.area)}${cur?'<span class="pill now">agora</span>':""}</div>
-        ${i.chk?`<span class="tltitle">`:`<label for="${pre}${i.id}" class="tltitle">`}${r.p.h?`<b>${esc(r.p.h)}:</b> `:""}${esc(r.p.d)}${i.chk?(ck?"":` <i class="muted tlauto">· ${k<todayK()?"conclua pelo botão ou marque a caixa":"marca sozinho ao concluir"}</i>`)+"</span>":"</label>"}
-        ${STEP_HOW[i.id]?`<p class="tlhow">${esc(STEP_HOW[i.id])}</p>`:""}</div>
-      ${i.act?`<button class="btn ${cur?"":"ghost"} sm" onclick="tlFrom='${k}';${i.act}">${i.lbl}</button>`:""}</div>`;}).join("");
-}
 function vGuiaKeep(){const y=window.scrollY;vGuia();window.scrollTo({top:y});}
 function areasGuide(){
   const order=[["est","30 a 40 min"],["pra","1 h a 1h30"],["jog","10 a 15 min"],["prog","5 min"]];
   return `<div class="stack inner" style="gap:12px">${order.map(([a,t])=>`<div class="areaitem"><div class="row" style="justify-content:space-between;gap:8px">${areaChip(a)}<span class="muted num">${t} por dia</span></div><p>${esc(AREAS[a].how)}</p><div><button class="btn ghost sm" onclick="go('${AREAS[a].v}')">Abrir ${AREAS[a].n}</button></div></div>`).join("")}
   <p class="muted">Ordem que mais rende: revisar erradas → teoria curta → questões do mesmo assunto → questões de outro assunto → caderno de erros → desafio do dia → conferir o progresso. Questões em 70% do tempo, teoria em 30%.</p></div>`;
-}
-function syncBanner(){
-  if(CL.st==="needmcp") return `<div class="rule row" style="justify-content:space-between;gap:8px"><span>Para o progresso daqui chegar ao celular, permita uma vez o uso do conector Supabase.</span><button class="btn sm" onclick="clAllow()">Permitir</button></div>`;
-  if(!CL.code&&!IN_CLAUDE) return `<div class="rule stack"><span><b>Este aparelho ainda não está sincronizado.</b> Abra o link de conexão (fica em Configurações, no app do PC ou do Claude) ou cole o código aqui.</span><div class="row" style="gap:8px;flex-wrap:wrap"><input id="clInH" placeholder="tp-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1;min-width:220px"><button class="btn sm" onclick="clLink($('#clInH').value,true).then(()=>vGuiaKeep())">Conectar</button></div></div>`;
-  return "";
 }
 async function clAllow(){CL.via="mcp";if(CL.perm==="denied"){try{const perm=await window.claude.use("permissions");await perm.manage();}catch(e){toast("Permissão bloqueada","Abra o menu Permissões deste artifact (no topo da página) e ligue o conector Supabase.");}CL.perm=null;}
   if(await mcpReady(true)){CL.st="";clLbl();await clPull();}else toast("Sem permissão","A sincronização com o celular fica parada até você permitir o conector Supabase.");if(current==="guia")vGuiaKeep();if(current==="config")vConfigKeep();}
@@ -3985,44 +3709,6 @@ function cfgSync(){
 async function clNew(){CL.code=newCode();CL.base=0;S.cloud=CL.code;clStore();save();await clPull();vConfigKeep();}
 async function clOff(){if((await modal(`<h3>Desconectar este aparelho?</h3><p class="muted">O progresso continua salvo aqui e na nuvem, mas este aparelho para de sincronizar.</p>`,[["cancel","Cancelar","btn ghost"],["ok","Desconectar","btn warn"]])).v!=="ok") return;CL.code=null;CL.base=0;CL.st="off";clStore();clSnap(null);delete S.cloud;saveLocal();vConfigKeep();}
 function seg(id,cur,opts){return `<div class="segtabs" role="radiogroup" id="${id}">${opts.map(([v,t])=>`<button role="radio" aria-checked="${v===cur}" aria-selected="${v===cur}" data-v="${v}">${t}</button>`).join("")}</div>`;}
-function vConfig(){
-  $("#view").innerHTML=`<div class="stack"><h2>Configurações</h2><p class="muted">Ajustes deste app. O progresso é salvo sozinho a cada resposta.</p></div>
-  ${cfgSync()}
-  <section class="panel stack"><h3>Rotina de estudo</h3>
-    <div class="cfgrow"><label for="stH">Início da programação em dias úteis</label><input type="time" id="stH" value="${S.st.h}"></div>
-    <div class="cfgrow"><label for="stW">Início no sábado e no domingo</label><input type="time" id="stW" value="${S.st.w}"></div>
-    <div class="cfgrow"><label for="goalSel">Meta diária</label><select id="goalSel">${[10,20,30,40,60,80].map(v=>`<option value="${v}" ${v===S.goal?"selected":""}>${v} questões</option>`).join("")}</select></div>
-    <p class="muted">A programação de Hoje calcula os horários a partir daqui, com pausa de 10 min a cada bloco de cerca de 50 min.</p></section>
-  <section class="panel stack"><h3>Lembrete diário</h3>
-    <div class="row" style="gap:10px;flex-wrap:wrap">
-      <label class="row" style="gap:8px"><input type="checkbox" id="remOn" ${S.rem.on?"checked":""} style="width:18px;height:18px;accent-color:var(--petrol)"> Avisar às</label>
-      <input type="time" id="remH" value="${S.rem.h}">
-      <button class="btn ghost sm" onclick="notify('Lembrete de teste','É assim que o aviso diário aparece.')">Testar</button></div>
-    <p class="muted">${notifState()}</p>
-    <details class="rev"><summary><span class="mark">⏰</span><span>Avisos com o app fechado (agenda do celular)</span></summary>${outsidePanel().replace(/^<section class="panel stack" id="outSec"><h3>Avisos com o app fechado<\/h3>/,'<div class="stack" id="outSec" style="margin-top:10px">').replace(/<\/section>$/,"</div>")}</details></section>
-  <section class="panel stack"><h3>Aparência</h3>
-    <span class="muted">Tema</span>${seg("thSeg",theme,[["auto","Automático"],["light","Claro"],["dark","Escuro"]])}
-    <span class="muted">Tamanho da letra</span>${seg("fzSeg",String(fz),[[".92","92%"],["1","100%"],["1.12","112%"],["1.25","125%"],["1.4","140%"]])}
-    <p class="muted">Tema e letra valem só para este aparelho. Dentro do simulado, o botão Aa também muda a letra.</p></section>
-  <section class="panel stack" id="syncSec"><h3>Backup manual</h3>
-    <p class="synclbl">${esc(syncText())}</p>
-    <div class="stack"><p class="muted">Cópia do progresso por código, para guardar ou passar para um aparelho sem internet. A importação substitui o progresso deste aparelho.</p>
-      <div class="row"><button class="btn ghost sm" id="bkGen">Gerar código</button><button class="btn ghost sm" id="bkCopy">Copiar</button></div>
-      <textarea id="bkTxt" rows="3" placeholder="Cole aqui o código de backup"></textarea>
-      <div class="row"><button class="btn sm" id="bkImp">Importar código</button><span class="muted" id="bkMsg"></span></div></div>
-    ${instEvt?`<button class="btn" id="instBtn">Instalar o app neste aparelho</button>`:IS_PWA?"":`<a class="btn ghost sm" href="${GH_URL}" target="_blank" rel="noopener">Abrir a versão instalável (GitHub)</a>`}</section>
-  ${aboutExam()}
-  <p class="muted">Versão ${typeof APP_V!=="undefined"?APP_V:""} · ${QV().length.toLocaleString("pt-BR")} questões</p>`;
-  $("#stH").onchange=e=>{S.st.h=e.target.value||"19:00";save();};
-  $("#stW").onchange=e=>{S.st.w=e.target.value||"09:00";save();};
-  $("#goalSel").onchange=e=>{S.goal=+e.target.value;save();};
-  $("#remOn").onchange=e=>{remEnable(e.target.checked);};
-  $("#remH").onchange=e=>{S.rem.h=e.target.value||"19:00";S.rem.last=null;save();};
-  document.querySelectorAll("#thSeg button").forEach(b=>b.onclick=()=>{theme=b.dataset.v;try{localStorage.setItem("transpetro26-theme",theme);}catch(e){}applyTheme();vConfigKeep();});
-  document.querySelectorAll("#fzSeg button").forEach(b=>b.onclick=()=>{fz=+b.dataset.v;try{localStorage.setItem(FZK,fz);}catch(e){}fzApply();vConfigKeep();});
-  const ib=$("#instBtn"); if(ib) ib.onclick=async()=>{if(!instEvt)return;instEvt.prompt();try{await instEvt.userChoice;}catch(e){}instEvt=null;vConfigKeep();};
-  syncWire(); clLbl();
-}
 function vConfigKeep(){if(current!=="config")return;const y=window.scrollY;vConfig();window.scrollTo({top:y});}
 VIEWS.config=()=>vConfig();
 
@@ -4034,15 +3720,9 @@ VIEWS.config=()=>vConfig();
   b.onclick=()=>go("config"); t.after(b);
 })();
 
-/* ---------- 25. v14: o que saiu de Hoje foi para Progresso ---------- */
-function prioPanel(){
-  return `<section class="panel stack"><h3>Assuntos de prioridade</h3>
-    <p class="muted">Os 5 assuntos específicos com pior acerto até agora (sem questões, contam como médios). Eles recebem 60% do tempo a partir da fase 2.</p>
-    <div class="row" style="gap:6px;flex-wrap:wrap">${weakCats(5).map(c=>{const pc=pct(S.stats[c]);return `<button class="chipbtn" onclick="openTopic('${c}')">${esc(CATS[c].n)}${pc!==null?` · ${pc}%`:""}</button>`;}).join("")}</div></section>`;
-}
 function planMethod(){
   const p=dayPlan(todayK());
-  return `<div class="stack inner"><div class="phases">${PHASES.map((f,i)=>`<div class="panel phase ${p.ph===f?"cur":""}"><span class="tag">Fase ${i+1} · ${fmtK(f.a)} a ${fmtK(f.b)}${p.ph===f?" · agora":""}</span><h3>${esc(f.t)}</h3><p class="muted">${esc(f.d)}</p></div>`).join("")}</div>
+  return `<div class="stack inner"><div class="phases">${PHASES.map((f,i)=>`<div class="panel phase ${p.ph===f?"cur":""}"><span class="tag">${fmtK(f.a)} a ${fmtK(f.b)}${p.ph===f?" · agora":""}</span><h3>${esc(f.t)}</h3><p class="muted">${esc(f.d)}</p></div>`).join("")}</div>
     <h3>Método de cada dia</h3>
     <ol class="steps">
       <li><b>Aquecimento, 10 min:</b> revisar as erradas (Praticar).</li>
@@ -4061,43 +3741,7 @@ function planMethod(){
     </ul></div>`;
 }
 
-(function(){const st=document.createElement("style");st.textContent=`
-header.band .themebtn#themeBtn{display:none}
-.cfgbtn[aria-current="page"]{background:var(--petrol-soft);color:var(--petrol);border-color:var(--petrol)}
-@media (min-width:1100px){header.band .themebtn.cfgbtn{order:4;margin-top:auto;align-self:stretch;justify-content:flex-start;padding:0 12px}}
-.hoje-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.hoje-top h2{margin:0}
-.clchip{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font:600 12px var(--f-body);padding:6px 10px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;flex:none}
-.clchip i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
-.clchip.ok i{background:var(--ok)}.clchip.bad{color:var(--bad)}.clchip.bad i{background:var(--bad)}.clchip.off i{background:var(--amber)}
-.clchip:focus-visible{outline:2px solid var(--petrol)}
-.tlist{display:flex;flex-direction:column}
-.tl{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:start;padding:12px 0;border-top:1px solid var(--line)}
-.tl:first-child{border-top:0}
-.tl input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--petrol)}
-.tl.cur{background:var(--petrol-soft);margin:0 -12px;padding:12px;border-radius:12px;border-top-color:transparent}
-.tl.cur+.tl{border-top-color:transparent}
-.tl.done .tltitle{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
-.tl.done .tlhow{display:none}
-.tl.pause{grid-template-columns:auto 1fr;padding:8px 0 8px 32px;font-size:13px}
-.tlb{display:flex;flex-direction:column;gap:4px;min-width:0}
-.tlt{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.tltime{font:600 13px var(--f-body);color:var(--ink)}
-.tltitle{cursor:pointer;line-height:1.4}
-.tlhow{margin:0;font-size:13px;color:var(--muted);line-height:1.4}
-.pill.now{background:var(--petrol);color:var(--onpetrol)}
-.achip{display:inline-flex;align-items:center;gap:4px;font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.03em;padding:3px 8px;border-radius:99px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
-.achip.a-est{color:var(--c-port)}.achip.a-pra{color:var(--petrol)}.achip.a-jog{color:var(--c-log)}.achip.a-prog{color:var(--c-fin)}
-.metaln{justify-content:space-between;gap:10px;align-items:center}
-.metaln .track.sm{flex:0 1 160px}
-.areaitem{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
-.areaitem:first-child{border-top:0;padding-top:0}
-.areaitem p{margin:0}
-.cfgrow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.cfgrow label{flex:1 1 200px}
-.cfgrow input,.cfgrow select{flex:0 0 auto;min-width:140px}
-@media (max-width:420px){.tl{grid-template-columns:22px minmax(0,1fr)}.tl>.btn{grid-column:2;justify-self:start}}
-`;document.head.appendChild(st);})();
+/* estilos: src/css/009-v14*.css */
 
 /* ---------- 26. v15: edital verticalizado ---------- */
 /* Tópicos do edital (PSP 2026.3, Ênfase 1) com os assuntos do app que cobrem cada um */
@@ -4161,7 +3805,6 @@ function vEdital(){
     <div class="stack">${groups}</div>`;
 }
 VIEWS.edital=()=>vEdital(); TABOF.edital="cont";
-SEG_EST.splice(1,0,["edital","Edital"]);
 
 /* ---------- 27. v15: revisão espaçada FSRS ---------- */
 /* Modelo FSRS-5 com pesos padrão e retenção desejada de 90% (intervalo = estabilidade).
@@ -4221,17 +3864,6 @@ function catTable(){
     <p class="muted">Ordenado do pior para o melhor. Tempo médio por questão; acima de 3 min fica em vermelho (na prova são cerca de 4 min por questão, contando a marcação do cartão). Toque no assunto para treinar.</p>`;
 }
 function startTopErr(){const ids=topErr(20).map(x=>x[0]);if(!ids.length)return;makeQuiz(shuffle(ids),"train","Treino: questões que você mais erra",0);}
-function statsPanel(){
-  const te=topErr(8), fc=srsForecast(7);
-  return `<section class="panel stack" id="evoSec"><h3>Evolução nas específicas</h3>${evoChart()}</section>
-  <section class="panel stack"><h3>Desempenho por assunto</h3>${catTable()}</section>
-  <section class="panel stack"><div class="row" style="justify-content:space-between"><h3>Questões que você mais erra</h3>${te.length?`<button class="btn sm" onclick="startTopErr()">Treinar estas</button>`:""}</div>
-    ${te.length?te.map(([i,v])=>`<div class="repitem"><span class="pill bad num">${v}×</span> <span class="muted">${esc(CATS[Q[i].c].n)}</span><p style="margin:4px 0 0">${esc(Q[i][1].length>140?Q[i][1].slice(0,140)+"…":Q[i][1])}</p></div>`).join(""):`<p class="muted">Aparecem aqui as questões erradas 2 vezes ou mais.</p>`}</section>
-  <section class="panel stack"><h3>Revisões dos próximos 7 dias</h3><div class="fcast">${fc.map(([k,n],i)=>`<div class="fcd"><span class="num fcn" style="height:${Math.min(60,6+n*3)}px">${n}</span><span class="muted num">${i?fmtK(k):"hoje"}</span></div>`).join("")}</div>
-    <p class="muted">Revisão espaçada FSRS: cada questão errada volta no dia em que a chance de você esquecer chega a 10%. Acertou rápido, o intervalo cresce; acertou devagar, cresce menos; errou, volta amanhã.</p></section>`;
-}
-const _vStats15=vStats;
-vStats=function(){_vStats15();const w=$("#view .wkpanel");(w||$("#view h2")).insertAdjacentHTML("afterend",statsPanel());};
 
 /* ---------- 29. v15: tutor com IA (só no link do claude.ai) ---------- */
 let TUTOR=null;
@@ -4349,34 +3981,9 @@ function pushPanel(){
       :`<div class="row"><button class="btn sm" onclick="pushOn()">Ativar notificações</button></div>`}
     <p class="muted" id="pushMsg"></p></section>`;
 }
-const _vConfig15=vConfig;
-vConfig=function(){_vConfig15();const s=$("#syncSec");if(s)s.insertAdjacentHTML("beforebegin",pushPanel());};
 
 /* ---------- 33. v15: estilos ---------- */
-(function(){const st=document.createElement("style");st.textContent=`
-.edb{margin:14px 0 2px}
-.edt summary{display:flex;flex-direction:column;align-items:stretch;gap:4px}
-.edsum{display:flex;justify-content:space-between;gap:8px;align-items:center}
-.edflags{display:flex;gap:4px;flex:none}
-.edck{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line);display:inline-grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
-.edck.on{background:var(--ok);border-color:var(--ok)}
-.edmeta{font-size:12px}
-#view .edgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px}#view .edgrid .score .v{font-size:24px}
-@media (min-width:720px){.edgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-svg.evo{width:100%;height:auto;max-width:560px;display:block}
-.evoband{fill:var(--ok);opacity:.14}.evocut{stroke:var(--bad);stroke-dasharray:4 4;stroke-width:1.5}
-.evot{font:11px var(--f-body);fill:var(--muted)}.evol{fill:none;stroke:var(--petrol);stroke-width:2.5;stroke-linejoin:round}.evop{fill:var(--petrol)}
-.cattbl{display:flex;flex-direction:column;gap:2px}
-.ctr{display:grid;grid-template-columns:minmax(0,1fr) 52px 60px 52px;gap:6px;align-items:center;padding:4px 0;border-bottom:1px solid var(--line);font-size:14px}
-.ctr .linkbtn{white-space:normal;padding:2px 0;font-size:14px}
-.ctr>span{text-align:right}.cth{font-size:12px;color:var(--muted)}.cth>span:first-child{text-align:left}
-.ctr .bad{color:var(--bad)}.ctr .mid{color:var(--warn,#b7791f)}.ctr .ok{color:var(--ok)}
-.fcast{display:flex;gap:6px;align-items:flex-end;min-height:80px}
-.fcd{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;justify-content:flex-end}
-.fcn{background:var(--petrol-soft);color:var(--petrol);width:100%;display:grid;place-items:center;border-radius:6px;font-size:12px;font-weight:700;min-height:20px}
-.tutor .tutxt{white-space:pre-wrap;margin:0}
-.tutq{border-top:1px solid var(--line);padding-top:10px}
-`;document.head.appendChild(st);})();
+/* estilos: src/css/010-v15*.css */
 
 /* ---------- 34. v16: estudo em áudio (trem lotado, fone, mãos livres) ---------- */
 /* Monta uma fila de trechos falados (resumos, questões, flashcards e pegadinhas) e toca em sequência
@@ -4636,11 +4243,6 @@ function vAudio(){
   auDraw(); sndDrawAll();
 }
 VIEWS.audio=()=>vAudio(); TABOF.audio="cont";
-SEG_EST.push(["audio","Áudio"]);
-/* atalhos: card em Jogos e botão de fone no cabeçalho */
-const _vJogos16=vJogos;
-vJogos=function(){_vJogos16();const g=$("#view .grid2");if(!g||!TTS_OK)return;
-  g.insertAdjacentHTML("beforeend",`<div class="panel mode"><span class="tag">Mãos livres</span><h3>Estudo em áudio</h3><p class="muted">Resumos, questões, flashcards e pegadinhas lidos em voz alta, com pausa para pensar. Para o trem e o ônibus, de fone.</p><button class="btn" onclick="go('audio')">Ouvir</button>${S.au&&S.au.n?`<span class="muted num">${S.au.n} trechos ouvidos</span>`:""}</div>`);};
 (function(){
   const g=$("#cfgBtn"); if(!g) return;
   const b=document.createElement("button"); b.className="themebtn cfgbtn"; b.id="audBtn"; b.type="button"; b.setAttribute("aria-label","Áudio: estudo falado e sons para concentrar");
@@ -4649,33 +4251,7 @@ vJogos=function(){_vJogos16();const g=$("#view .grid2");if(!g||!TTS_OK)return;
 })();
 VIEWS.afc=()=>go("audio");
 
-(function(){const st=document.createElement("style");st.textContent=`
-.aumodes{display:grid;grid-template-columns:1fr;gap:6px}
-@media (min-width:720px){.aumodes{grid-template-columns:1fr 1fr}}
-.aumode{display:flex;flex-direction:column;gap:2px;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer}
-.aumode input{position:absolute;opacity:0;pointer-events:none}
-.aumode.on{border-color:var(--petrol);background:var(--petrol-soft)}
-.aumode:focus-within{outline:2px solid var(--petrol)}
-.aunow{gap:10px}
-.auq{font:600 18px/1.4 var(--f-body);margin:0}
-.aua{margin:0;color:var(--muted)}.aua.on{color:var(--ink);font-weight:600}
-.auctl{justify-content:center;gap:10px}.auctl .btn{min-width:56px}.aupp{min-width:120px!important}
-.sndgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-@media (min-width:720px){.sndgrid{grid-template-columns:repeat(3,1fr)}}
-.sndbtn{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:3px;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);min-width:0}
-.sndbtn span{font-size:13px;line-height:1.35}
-.sndbtn.on{border-color:var(--petrol);background:var(--petrol-soft)}
-.sndbtn:focus-visible{outline:2px solid var(--petrol)}
-.sst{color:var(--petrol);font-weight:600}
-#sndBar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(72px + env(safe-area-inset-bottom));z-index:40;display:flex;gap:2px;background:var(--petrol);color:#fff;border-radius:999px;padding:4px;box-shadow:0 4px 14px rgba(0,0,0,.2);max-width:calc(100vw - 32px)}
-#sndBar button{all:unset;cursor:pointer;padding:6px 12px;border-radius:999px;font:600 13px var(--f-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#sndBar .sbx{background:rgba(255,255,255,.18)}
-@media (min-width:1100px){#sndBar{bottom:20px}}
-#pocket{position:fixed;inset:0;z-index:100;background:#000;display:flex;flex-direction:column;gap:12px;padding:24px 16px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box}
-#pocket button{all:unset;box-sizing:border-box;cursor:pointer;text-align:center;border-radius:20px;color:#bbb;font:600 22px var(--f-body)}
-#pocket .pk1{flex:2;background:#111;border:1px solid #222}#pocket .pk2{flex:1;background:#0b0b0b;border:1px solid #1d1d1d}
-#pocket .pkt{color:#555;text-align:center;margin:0;font-size:13px}#pocket .pkx{flex:none;font-size:14px;color:#666;padding:12px}
-`;document.head.appendChild(st);})();
+/* estilos: src/css/011-v16*.css */
 
 /* ---------- 37. v21: revisão geral ---------- */
 
@@ -4729,67 +4305,11 @@ new MutationObserver(()=>{
   h.insertAdjacentHTML("afterbegin",`<button class="btn ghost sm qexit" onclick="go('${to}')">← Sair</button>`);
 }).observe($("#view"),{childList:true});
 
-(function(){const st=document.createElement("style");st.textContent=`
-/* controles nativos (hora, caixa de seleção, rolagem) acompanham o tema escuro */
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark}}
-:root[data-theme="dark"]{color-scheme:dark}
-:root[data-theme="light"]{color-scheme:light}
-
-/* campos de texto, hora e área de texto com o mesmo desenho das listas */
-#view input[type=text],#view input[type=time],#view input:not([type]),#view input[type=search],#view textarea{font:15px var(--f-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;box-sizing:border-box;min-height:46px;max-width:100%}
-#view textarea{min-height:72px;width:100%;line-height:1.45}
-#view input::placeholder,#view textarea::placeholder{color:var(--muted);opacity:.8}
-#view input:focus-visible,#view textarea:focus-visible,#view select:focus-visible{outline:2px solid var(--petrol);outline-offset:1px}
-#view input[type=text],#view input:not([type]){width:100%;font-family:var(--f-mono,ui-monospace),monospace;letter-spacing:.02em}
-
-/* menu lateral (PC): Áudio e Configurações juntos no rodapé, os dois com nome */
-@media (min-width:1100px){
- header.band .themebtn#audBtn{order:4;margin-top:auto;align-self:stretch;justify-content:flex-start;padding:0 12px}
- header.band .themebtn#cfgBtn{margin-top:0}
-}
-
-/* opção sem letra (Ordene as fases): o texto ocupa a largura toda */
-.opt>span:only-child{grid-column:1/-1}
-
-/* cabeçalho de questões e jogos: Sair, título e cronômetro sempre numa linha */
-.qhead{flex-wrap:nowrap;align-items:center}
-.qhead>.stack{flex:1 1 auto;min-width:0}
-.qhead>.btn,.qhead>.timer{flex:none}
-
-/* abas de Estudar e Progresso: uma linha só, com rolagem lateral no celular */
-@media (max-width:759px){
- .segtabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
- .segtabs::-webkit-scrollbar{display:none}
- .segtabs>*,.segtabs button{flex:none;white-space:nowrap}
-}
-
-/* cartões: 3 colunas no PC, para os textos não ficarem espremidos */
-@media (min-width:1100px){.grid2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}}
-
-/* tabelas dos resumos: sem quebrar palavra no meio; no celular, a tabela rola de lado */
-#view table,#view table *{overflow-wrap:normal;word-break:normal;hyphens:auto}
-.qcomp table{min-width:460px}
-
-/* edital: as quatro marcas visíveis no tema escuro */
-.edck{border-color:var(--muted);opacity:.85}.edck.on{opacity:1}
-.edsum{width:100%}
-
-/* revisões dos próximos 7 dias: datas sem quebrar no celular */
-.fcast{gap:3px}.fcd{min-width:0}.fcd>.muted{font-size:10px;white-space:nowrap;letter-spacing:-.02em}
-
-/* links: marcador alinhado e etiqueta na mesma linha */
-ul.links li{padding:5px 0;line-height:1.45}
-ul.links a{display:inline;padding:0}
-details.lk summary .muted{flex:none;white-space:nowrap}
-details.lk summary .bh{min-width:0}
-
-/* sons: descrição legível */
-.sndbtn .muted{font-size:13px;line-height:1.4}
-`;document.body.appendChild(st);})();
+/* estilos: src/css/513-v22*.css */
 
 /* Cada aparelho grava no progresso sincronizado a versão do app, onde abriu e quando,
    para dar para conferir pela nuvem se o celular está atualizado e sincronizando */
-const APP_V=32;
+const APP_V=33;
 function devMark(){
   let id="x";try{id=localStorage.getItem("transpetro26-dev");if(!id){id=Math.random().toString(36).slice(2,8);localStorage.setItem("transpetro26-dev",id);}}catch(e){}
   const ua=navigator.userAgent, m=(/Android [\d.]+/.exec(ua)||/iPhone|iPad|Windows|Mac OS X|CrOS|Linux/.exec(ua)||["?"])[0];
@@ -4817,19 +4337,7 @@ toast=function(t,b,goHoje){
   clearTimeout(toast.tm);
   toast.tm=setTimeout(()=>{if(!el.querySelector(".btn:not(.ghost)"))el.classList.remove("on");},4000);
 };
-(function(){
-  const st=document.createElement("style");
-  st.textContent=`
-#toast{max-height:calc(100vh - 140px);overflow:auto}
-.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px}
-.pgrid .pbtn{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;width:100%;min-height:54px;padding:8px 12px;text-align:left;white-space:normal;line-height:1.25}
-.pgrid .pbtn b{font-weight:650;font-size:14px}
-.pgrid .pbtn span{font-weight:500;font-size:12px;opacity:.8}
-.pgrid .pfull{grid-column:1/-1}
-.pgrp h4{text-transform:none;letter-spacing:0;font-size:14px;margin:6px 0 0}
-`;
-  document.body.appendChild(st);
-})();
+/* estilos: src/css/514-v24*.css */
 /* Questões reportadas pelo usuário em 29/10 e revisadas na v24: o aviso sai sozinho, uma única vez. */
 (function(){
   if(S.v24rep) return;
@@ -5195,18 +4703,7 @@ if(typeof STEP_HOW==="object"){
   STEP_HOW.cor="Abre os erros do simulado ou da prova. Toque no motivo de cada um: marca sozinho quando todos tiverem motivo.";
 }
 
-(function(){
-  const st=document.createElement("style");
-  st.textContent=`
-#toast .tclose{float:right;margin:-6px -6px 0 8px;background:none;border:0;color:inherit;font-size:22px;line-height:1;padding:4px 8px;cursor:pointer;opacity:.7}
-.corritem.ok{opacity:.75}
-.corritem.ok .note>.muted:first-child::after{content:" ✓ anotado"}
-.corritem p{overflow-wrap:anywhere}
-.corrbar{height:8px;border-radius:4px;background:var(--line,#ccc);overflow:hidden}
-.corrbar i{display:block;height:100%;background:var(--ok);transition:width .3s}
-`;
-  document.body.appendChild(st);
-})();
+/* estilos: src/css/519-v29*.css */
 
 /* Questões reportadas em 01/11 (explicações reescritas na v29): o aviso sai sozinho, uma única vez. */
 (function(){
@@ -5507,20 +5004,7 @@ vTopic=function(){
 };
 
 /* ---- 6. Estilos ---- */
-document.body.insertAdjacentHTML("beforeend",`<style>
-.simple30{margin:0;padding:10px 12px;border-radius:10px;background:var(--petrol-soft);line-height:1.55;max-width:75ch}
-.intro30 p{margin:0;line-height:1.6;max-width:75ch}
-.fx30 .fxitem{padding:12px 0;border-top:1px solid var(--line);gap:8px}
-.fx30 .fxitem:first-of-type{border-top:0;padding-top:4px}
-.fx30 .fcard{overflow-wrap:anywhere}
-.fxleg dl,.sigdl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:6px 0 0}
-.fxleg dt,.sigdl dt{font-weight:700;font-family:var(--f-mono);white-space:nowrap}
-.fxleg dd,.sigdl dd{margin:0;line-height:1.45;min-width:0}
-.fxsteps{margin:6px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:4px;line-height:1.45}
-.fxidea{margin:0;line-height:1.5}
-.sig30 .sigdl{margin-top:12px}
-.vidbox{padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:6px}
-</style>`);
+/* estilos: src/css/520-v30*.css */
 
 /* ---------- v31: cronograma que se reorganiza quando você não consegue estudar ----------
    O plano original (AG0) é uma fila de blocos, um por dia. S.rp.m guarda onde cada bloco está agora:
@@ -5707,58 +5191,11 @@ function rpSkip(k){
 }
 function rpUnskip(k){rpAsk([],`O dia ${fmtK(k)} volta a ter estudo e os próximos dias são redistribuídos.`,[k]);}
 
-/* avisos na tela Hoje e no Cronograma */
-function rpBanner(){
-  const t=todayK(), pend=rpPending();
-  if(t<"2026-10-27"||t>RP_END&&!pend.length) return "";
-  const list=pend.slice(0,6).map(x=>`${fmtK(x.k)} ${AG0[x.o][0]}`).join("; ")+(pend.length>6?"; …":"");
-  return pend.length?`<section class="panel stack rpban"><div class="row" style="gap:8px;justify-content:space-between"><h3>${pend.length===1?"Um assunto ficou":pend.length+" assuntos ficaram"} para trás</h3><span class="pill warn">sem problema</span></div>
-    <p class="muted">${esc(list)}. Toque em Reorganizar: eles voltam ao plano a partir de hoje e os próximos dias se ajustam, sem perder conteúdo e sem mexer na data da prova.</p>
-    <div class="row"><button class="btn" onclick="rpReorg()">Reorganizar o cronograma</button><button class="btn ghost sm" onclick="go('crono')">Ver o cronograma</button></div></section>`:"";
-}
-function rpTodayBtn(){
-  const t=todayK(); if(t>RP_END||rpFixed(t)||!AG0[t]) return "";
-  const off=AG[t]&&AG[t][6]==="off";
-  return off?`<div class="rpday row"><span class="muted">Hoje está marcado como dia sem estudo.</span><button class="btn ghost sm" onclick="rpUnskip('${t}')">Vou estudar hoje</button></div>`
-    :`<div class="rpday row"><span class="muted">Não vai dar para estudar hoje?</span><button class="btn ghost sm" onclick="rpSkip('${t}')">Não consigo estudar hoje</button></div>`;
-}
-const _vGuia31=vGuia;
-vGuia=function(){
-  rpApply();
-  _vGuia31();
-  const top=$("#view .hoje-top"), ban=rpBanner();
-  if(top&&ban) top.insertAdjacentHTML("afterend",ban);
-  const pd=$("#view .prog-dia"); if(pd) pd.insertAdjacentHTML("beforeend",rpTodayBtn());
-};
-const _vCrono31=vCrono;
-vCrono=function(){
-  rpApply();
-  _vCrono31();
-  const v=$("#view"), h=v.querySelector("h2"), t=todayK();
-  const head=h&&h.closest(".stack");
-  if(head){
-    head.insertAdjacentHTML("afterend",rpBanner()+`<section class="panel stack rphelp"><h3>Não conseguiu estudar algum dia?</h3>
-      <p class="muted">Abra o dia e toque em “Não vou poder estudar neste dia”, ou use o botão na tela Hoje. O conteúdo vai para os próximos dias, a ordem do plano se mantém e nenhum assunto fica de fora. Se faltar dia, dois assuntos parecidos dividem um dia, com tempos menores.</p>
-      ${S.rp&&S.rp.at?`<div class="row"><span class="muted">Última reorganização: ${new Date(S.rp.at).toLocaleDateString("pt-BR")}</span>${"rpPrev" in S?'<button class="btn ghost sm" onclick="rpUndo()">Desfazer</button>':""}</div>`:""}</section>`);
-  }
-  v.querySelectorAll(".agday").forEach(sec=>{
-    const k=sec.id.slice(3); if(k<t||k>RP_END||rpFixed(k)||k!==cronoOpen) return;
-    const off=AG[k]&&AG[k][6]==="off";
-    sec.insertAdjacentHTML("beforeend",`<div class="rpday row">${off?`<button class="btn ghost sm" onclick="rpUnskip('${k}')">Vou estudar neste dia</button>`:`<button class="btn ghost sm" onclick="rpSkip('${k}')">Não vou poder estudar neste dia</button>`}</div>`);
-  });
-};
 const _go31=go;
 go=function(v){rpApply();return _go31(v);};
 rpApply(true);
 
-document.body.insertAdjacentHTML("beforeend",`<style>
-.rpban{border-left:4px solid var(--amber)}
-.rpday{justify-content:space-between;gap:8px;padding-top:10px;border-top:1px solid var(--line);margin-top:6px}
-.rpsum{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;line-height:1.5}
-.rpdays{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:15px}
-dialog.tpdlg .rpsum,dialog.tpdlg details{max-width:60ch}
-.pill.warn{background:var(--amber-soft);color:var(--amber)}
-</style>`);
+/* estilos: src/css/521-v31*.css */
 
 /* fases: nome da fase 2 de acordo com o que ela é hoje (um assunto do edital por dia) e o aviso da reorganização */
 PHASES[1].t="Conteúdo do edital";
@@ -5780,6 +5217,307 @@ dayItems=function(p){
   const out=it.filter(i=>i.id!=="mini2"&&!(i.id==="sim"&&a[6]==="mini"));
   let n=1; out.forEach(i=>{if(i.auto)return;i.t=(n++)+". "+i.t.replace(/^\d+\.\s*/,"");});
   return out;
+};
+
+/* ---------- v33: telas mais limpas ----------
+   Substitui por inteiro as telas principais (antes montadas em camadas, uma por versão):
+   Hoje + Cronograma (abas lado a lado), Praticar, Jogos, Progresso, Estudar e Configurações.
+   Nenhum dado muda: as mesmas chaves de S e do localStorage; nada de conteúdo sai do app,
+   só fica recolhido (toque para abrir). Os grupos abertos/fechados ficam em S.fold. */
+
+const SEG_HOJE=[["guia","Hoje"],["crono","Cronograma"]];
+TABOF.crono="guia";
+
+/* linha compacta: título e um número à esquerda, botão à direita; descrição e opções ao tocar */
+function mrow(o){
+  S.fold=S.fold||{}; const fk="m:"+o.k, op=S.fold[fk]===undefined?!!o.open:!!S.fold[fk];
+  return `<div class="mrow${o.hl?" hl":""}${op?" open":""}" data-mk="${o.k}">
+    <button type="button" class="mrt" aria-expanded="${op}" onclick="mrTog(this)"><span class="mrn">${o.t}</span>${o.m?`<span class="mrm">${o.m}</span>`:""}</button>
+    <div class="mrb">${o.b||""}</div>
+    <div class="mrx">${o.d?`<p class="muted">${o.d}</p>`:""}${o.x||""}</div></div>`;
+}
+function mrTog(b){const r=b.closest(".mrow"),o=r.classList.toggle("open");b.setAttribute("aria-expanded",o);S.fold=S.fold||{};S.fold["m:"+r.dataset.mk]=o;save();}
+const mlist=rows=>`<div class="mlist">${rows.join("")}</div>`;
+
+/* semana do cronograma (a mesma numeração em Hoje e no Cronograma) */
+function weekNo(k){const w=agWeeks(),i=w.findIndex(x=>x.includes(k));return i<0?null:[i+1,w.length];}
+function fullStreak(){let n=0,d=new Date();if(dayScore(dkey(d))<1)d.setDate(d.getDate()-1);while(dkey(d)>="2026-10-27"&&dayScore(dkey(d))>=1){n++;d.setDate(d.getDate()-1);}return n;}
+
+/* ---------- Hoje ---------- */
+/* aviso de sincronização: o selo no topo já mostra o estado; o cartão só aparece quando falta uma permissão */
+function syncBanner(){
+  if(CL.st==="needmcp") return `<div class="rule row" style="justify-content:space-between;gap:8px"><span>Para o progresso daqui chegar ao celular, permita uma vez o uso do conector Supabase.</span><button class="btn sm" onclick="clAllow()">Permitir</button></div>`;
+  return "";
+};
+function rpBanner(){
+  const t=todayK(), pend=rpPending();
+  if(!pend.length||t<"2026-10-27") return "";
+  return `<section class="panel stack rpban"><p><b>${pend.length===1?"Um assunto ficou":pend.length+" assuntos ficaram"} para trás.</b> Reorganizar coloca tudo de volta no plano, sem mexer na data da prova.</p>
+    <div class="row" style="gap:10px;align-items:center"><button class="btn sm" onclick="rpReorg()">Reorganizar</button>
+    <details class="rplist"><summary>Ver quais</summary><ul>${pend.map(x=>`<li><span class="num">${fmtK(x.k)}</span> · ${esc(AG0[x.o][0])}</li>`).join("")}</ul></details></div></section>`;
+};
+function tlTog(b){const r=b.closest(".tl"),o=r.classList.toggle("open");b.setAttribute("aria-expanded",o);}
+/* uma linha por etapa: hora, nome e botão; o resto (área, o que fazer, como marca) ao tocar */
+function tlHTML(k,its,pre,live){
+  const steps=its.filter(i=>!i.auto), sc=schedule(k,its), nowI=live?steps.findIndex(i=>!itemDone(k,i)):-1, past=k<todayK();
+  return sc.rows.map(r=>{
+    if(r.pause) return `<div class="tl pause"><span></span><span class="muted"><span class="tltime num">${hm(r.a)}</span> pausa de 10 min</span></div>`;
+    const i=r.i, ck=itemDone(k,i), cur=steps.indexOf(i)===nowI, lock=i.chk&&!past;
+    const how=STEP_HOW[i.id], note=i.chk&&!ck?(past?"Conclua pelo botão ou marque a caixa.":"A caixa marca sozinha quando você concluir a etapa."):"";
+    return `<div class="tl ${ck?"done":""} ${cur?"cur":""}">
+      <input type="checkbox" id="${pre}${i.id}" data-k="${k}" data-i="${i.id}" ${ck?"checked":""} ${lock?'disabled title="Marca sozinho quando você concluir a etapa"':""} aria-label="${lock?"Marca sozinho ao concluir":"Concluí"}: ${esc(r.p.h||r.p.d)}">
+      <button type="button" class="tlx" aria-expanded="false" onclick="tlTog(this)">${r.a!==null?`<span class="tltime num">${hm(r.a)}</span>`:""}<span class="tltitle">${r.p.h?`<b>${esc(r.p.h)}:</b> `:""}${esc(r.p.d)}</span>${cur?'<span class="pill now">agora</span>':""}</button>
+      ${i.act?`<button class="btn ${cur?"":"ghost"} sm" onclick="tlFrom='${k}';${i.act}">${i.lbl}</button>`:"<span></span>"}
+      <div class="tlmore">${r.a!==null?`<span class="muted num">${hm(r.a)} a ${hm(r.b)}</span> `:""}${areaChip(r.area)}
+        <p>${r.p.h?`<b>${esc(r.p.h)}:</b> `:""}${esc(r.p.d)}</p>${how?`<p class="muted">${esc(how)}</p>`:""}${note?`<p class="muted"><i>${note}</i></p>`:""}</div></div>`;
+  }).join("");
+};
+function vGuia(){
+  rpApply();
+  const k=todayK(), p=dayPlan(k), its=dayItems(p), steps=its.filter(i=>!i.auto), done=steps.filter(i=>itemDone(k,i)).length;
+  const meta=its.find(i=>i.auto), sc=schedule(k,its), tot=sc.end-sc.start, full=fullStreak(), wn=weekNo(k);
+  const due=srsDue().length, hasRev=its.some(i=>/startWrong/.test(i.act||""));
+  const last14=[...Array(14)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);const kk=dkey(d);return {kk,s:kk<"2026-10-27"?null:dayScore(kk)};});
+  const wdN=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"][kDate(k).getDay()];
+  const nq=S.days[k]||0;
+  $("#view").innerHTML=`${segNav("guia",SEG_HOJE)}${runBanner()}
+  <div class="hoje-top"><div class="stack" style="gap:2px"><h2>Hoje</h2><span class="muted">${wdN}, ${fmtK(k)}${wn?` · semana ${wn[0]} de ${wn[1]}`:""}${p.ph?` · ${esc(p.ph.t)}`:""}</span></div>${syncChip()}</div>
+  ${syncBanner()}${rpBanner()}${weekCard()}
+  <section class="panel stack prog-dia">
+    <div class="row" style="justify-content:space-between;gap:8px;align-items:baseline"><h3>${p.foco?esc(p.foco):"Programação de hoje"}</h3><span class="muted num">${done} de ${steps.length} etapas</span></div>
+    ${tot>0?`<span class="muted num">${hm(sc.start)} às ${hm(sc.end)} · ${minFmt(tot)} com pausas · <button class="linkbtn" onclick="go('config');setTimeout(()=>{const e=$('#stH');if(e)e.focus();},200)">mudar horário</button></span>`:""}
+    <div class="track"><div class="fill" style="width:${steps.length?done/steps.length*100:0}%"></div></div>
+    ${due&&!hasRev?`<div class="row" style="justify-content:space-between"><span><b class="num">${due}</b> ${due===1?"questão errada volta":"questões erradas voltam"} hoje.</span><button class="btn sm" onclick="startWrong()">Revisar</button></div>`:""}
+    <div class="tlist">${tlHTML(k,its,"dl-",true)}</div>
+    <p class="muted tlnote">Toque numa etapa para ver o que fazer. As caixas marcam sozinhas quando você conclui.</p>
+    <div class="hfoot">
+      ${meta?`<div class="row metaln"><span>Meta: <b class="num">${nq}</b>/<b class="num">${S.goal}</b> questões</span>${nq>=S.goal?'<span class="pill ok">cumprida</span>':`<div class="track sm"><div class="fill" style="width:${Math.min(100,nq/S.goal*100)}%"></div></div>`}</div>`:""}
+      <div class="row" style="justify-content:space-between;gap:8px"><span class="muted">${full} ${full===1?"dia completo":"dias completos"} seguidos</span><div class="days14" aria-label="Últimos 14 dias">${last14.map(x=>`<span class="d14 ${x.s===null?"na":x.s>=1?"full":x.s>=.5?"half":x.s>0?"low":""}" title="${fmtK(x.kk)}"><i>${x.kk.slice(8)}</i></span>`).join("")}</div></div>
+    </div>
+    ${rpTodayBtn()}
+  </section>
+  ${foldHTML("ferr","Cronômetro de estudo","blocos de 50 min com 10 de pausa",pomoPanel().replace('<section class="panel stack">','<section class="stack inner">'),false)}
+  ${foldHTML("areas","Como aproveitar cada área, todo dia","Estudar, Praticar, Jogos e Progresso",areasGuide(),false)}`;
+  steps.forEach(i=>{const c=$("#dl-"+i.id); if(c) c.onchange=()=>{S.daily[k]=S.daily[k]||{};S.daily[k][i.id]=c.checked;save();vGuiaKeep();};});
+  pomoWire();
+};
+function rpTodayBtn(){
+  const t=todayK(); if(t>RP_END||rpFixed(t)||!AG0[t]) return "";
+  const off=AG[t]&&AG[t][6]==="off";
+  return off?`<div class="rpday row"><span class="muted">Hoje está marcado como dia sem estudo.</span><button class="linkbtn" onclick="rpUnskip('${t}')">Vou estudar hoje</button></div>`
+    :`<div class="rpday row"><button class="linkbtn" onclick="rpSkip('${t}')">Não consigo estudar hoje</button></div>`;
+};
+
+/* ---------- Cronograma (aba ao lado de Hoje) ---------- */
+function vCrono(){
+  rpApply();
+  const t=todayK(), days=agDays(), past=days.filter(k=>k<t), full=past.filter(k=>dayScore(k)>=1).length, pend=rpPending();
+  const left=Math.max(0,Math.round((kDate("2026-12-06")-kDate(t))/864e5));
+  const card=k=>{
+    const a=AG[k], p=dayPlan(k), its=dayItems(p), tk=its.filter(i=>!i.auto), dn=tk.filter(i=>itemDone(k,i)).length, open=k===cronoOpen, tp=agTipo(a);
+    const st=k<t?(dn===tk.length?"✓":dn?`${dn}/${tk.length}`:"não feito"):k===t?"hoje":"";
+    const m=its.find(i=>i.auto), off=AG[k]&&AG[k][6]==="off";
+    return `<section class="agday ${k===t?"today":""} ${k<t&&dn<tk.length?"miss":""} ${open?"open":""}" id="ag-${k}">
+      <button class="aghead" onclick="cronoOpen=cronoOpen==='${k}'?'':'${k}';vCronoKeep()" aria-expanded="${open}">
+        <span class="agdate num"><b>${k.slice(8)}/${k.slice(5,7)}</b><i>${WD[kDate(k).getDay()]}</i></span>
+        <span class="agfoco"><b>${esc(a[0])}</b>${a[4]&&a[5]?`<i class="muted">+ ${a[4]==="port"?"Português":"Matemática"}: ${esc(a[5])}</i>`:""}</span>
+        <span class="agst">${tp[0]!=="Conteúdo"?`<span class="pill ${tp[1]}">${tp[0]}</span>`:""}${st?`<span class="muted num">${st}</span>`:""}</span>
+      </button>
+      ${open?`<div class="tlist">${tlHTML(k,its,"ag-"+k+"-",k===t)}</div>${m?`<p class="muted">${esc(m.t)}${k<=t?` · ${S.days[k]||0} respondidas${(S.days[k]||0)>=S.goal?" ✓ cumprida":""}`:""}</p>`:""}
+        ${k>=t&&k<=RP_END&&!rpFixed(k)?`<div class="rpday row"><button class="linkbtn" onclick="${off?`rpUnskip('${k}')">Vou estudar neste dia`:`rpSkip('${k}')">Não vou poder estudar neste dia`}</button></div>`:""}`:""}
+    </section>`;
+  };
+  const wks=agWeeks(), cw=wks.findIndex(w=>w[w.length-1]>=t), before=cw>0?wks.slice(0,cw):cw<0?wks:[], rest=cw<0?[]:wks.slice(cw);
+  const wkHTML=(w,i)=>`<div class="stack agwkb"><h3 class="agwk">Semana ${i+1} · ${fmtK(w[0])} a ${fmtK(w[w.length-1])}</h3><div class="aglist">${w.map(card).join("")}</div></div>`;
+  $("#view").innerHTML=`${segNav("crono",SEG_HOJE)}
+  <div class="stack" style="gap:4px"><h2>Cronograma até 06/12</h2>
+    <span class="muted num">${left} dias até a prova · ${full} de ${past.length} dias anteriores completos</span></div>
+  ${pend.length?`<div class="rule row" style="justify-content:space-between;gap:8px"><span>${pend.length===1?"Um assunto atrasado":pend.length+" assuntos atrasados"}.</span><button class="btn sm" onclick="rpReorg()">Reorganizar</button></div>`:""}
+  ${before.length?foldHTML("agprev",`Semanas anteriores (${before.length===1?"semana 1":"1 a "+before.length})`,`${full} de ${past.length} dias completos`,before.map((w,i)=>wkHTML(w,i)).join(""),false):""}
+  ${rest.map((w,i)=>wkHTML(w,i+before.length)).join("")}
+  ${foldHTML("plano","Plano até 06/12 e método de estudo","as etapas do plano e como estudar cada dia",planMethod(),false)}
+  ${foldHTML("rphelp","Não conseguiu estudar algum dia?","como o plano se ajusta",`<div class="stack inner"><p class="muted">Abra o dia e toque em “Não vou poder estudar neste dia”, ou use o botão na tela Hoje. O conteúdo vai para os próximos dias, a ordem do plano se mantém e nenhum assunto fica de fora. Se faltar dia, dois assuntos parecidos dividem um dia, com tempos menores.</p>
+    ${S.rp&&S.rp.at?`<div class="row"><span class="muted">Última reorganização: ${new Date(S.rp.at).toLocaleDateString("pt-BR")}</span>${"rpPrev" in S?'<button class="btn ghost sm" onclick="rpUndo()">Desfazer</button>':""}</div>`:""}</div>`,false)}`;
+  document.querySelectorAll(".agday .tl input").forEach(c=>c.onchange=()=>{const k=c.dataset.k;S.daily[k]=S.daily[k]||{};S.daily[k][c.dataset.i]=c.checked;save();vCronoKeep();});
+  /* dia anterior aberto (ex.: voltou de uma etapa atrasada): mostra as semanas anteriores */
+  if(cronoOpen&&cronoOpen<t){const d=$('#view details.fold[data-k="agprev"]');if(d&&!d.open)d.open=true;}
+};
+/* plano: as etapas aparecem pelo nome e pelas datas (sem "fase 1, 2…", que não batia com as semanas) */
+
+/* ---------- Praticar ---------- */
+function vPratica(){
+  const opts=Object.entries(CATS).map(([k,v])=>`<option value="${k}">${esc(v.n)} (${QV().filter(q=>q.c===k).length})</option>`).join("");
+  const blk=Object.entries(BLOCKS).map(([k,v])=>`<option value="b:${k}">Bloco: ${esc(v)}</option>`).join("");
+  const years=Object.keys(PROVAS).sort().reverse();
+  const t=paceTarget(), a=myAvgT(), lawN=QV().filter(q=>/13\.303/.test(q[1])).length, nv=unseenCount(), due=srsDue().length, nsrs=Object.keys(S.srs).length;
+  const grp=[["Mesmo cargo (Técnico de Administração e Controle)",s=>/ TAC$/.test(s),s=>s.replace(/ TAC$/,"")],["Transpetro, outros cargos","Transpetro"],["Petrobras, outros cargos","Petrobras"],["Banco do Brasil (Português, Matemática, Mat. Financeira e Informática)","BB"]].map(([t,p,f])=>typeof p==="string"?[t,s=>s.startsWith(p)&&!/ TAC$/.test(s),s=>s.replace(p+" ","")]:[t,p,f]);
+  const go1=(fn,l,gh)=>`<button class="btn ${gh?"ghost ":""}sm" onclick="${fn}">${l}</button>`;
+  const dia=mlist([
+    mrow({k:"adapt",hl:1,t:"Treino adaptativo",m:"20 questões · recomendado",b:go1("startAdaptive()","Começar"),
+      d:`12 dos seus 5 assuntos mais fracos (${weakCats(5).map(k=>esc(CATS[k].n)).join(", ")}), 4 de outras específicas e 4 de Português e Matemática. Prioriza as que você nunca viu.`}),
+    mrow({k:"wrong",t:"Revisar erradas",m:`${due} para hoje · ${nsrs} na revisão`,b:`<button class="btn ghost sm" ${S.wrong.length||nsrs?"":"disabled"} onclick="startWrong()">Revisar</button>`,
+      d:"Revisão espaçada: cada questão errada volta no dia em que você estaria começando a esquecer. Acertou, o intervalo cresce; errou, ela volta amanhã."}),
+    mrow({k:"tema",open:1,t:"Treino por assunto",m:"até 15 questões · correção na hora",b:go1("startTrain()","Treinar",1),
+      x:`<label for="selCat" class="muted">Assunto</label><select id="selCat"><option value="src:all">Só questões de provas anteriores (${QV().filter(q=>q[4]).length})</option>${blk}${opts}</select>
+      <label class="row muted chk" style="gap:8px"><input type="checkbox" id="onlyNew" style="width:18px;height:18px;accent-color:var(--petrol)"> Só questões que ainda não respondi</label>`}),
+    mrow({k:"cad",t:"Caderno de erros",m:`${Object.keys(S.notes).length} notas`,b:go1("go('caderno')","Abrir",1),
+      d:"Seus erros com o motivo (não sabia, confundiu, leu rápido, errou a conta) e o que lembrar da próxima vez."}),
+    mrow({k:"lei",t:"Lei 13.303 artigo por artigo",m:`${lawN} questões`,b:go1("startLaw()","Treinar",1),
+      d:"Questões com o número do artigo, no estilo da letra da lei que a Cesgranrio cobra. Complete com o jogo Lei seca, em Jogos."})]);
+  const sims=mlist([
+    mrow({k:"full",t:"Simulado completo",m:"60 questões · 4 h",b:go1("startExam('full')","Iniciar",1),
+      d:`No formato da prova: cronometrado, correção só no final e verificação das notas de corte. Puxa primeiro as questões que você nunca viu (${nv.toLocaleString("pt-BR")} inéditas no banco).`}),
+    mrow({k:"esp",t:"Simulado das específicas",m:"40 questões · 2 h 40",b:go1("startExam('esp')","Iniciar",1),
+      d:"As 40 questões que decidem a classificação, na proporção do edital, com 4 minutos por questão. Mostra a distância do corte (20) e da meta (28 a 32)."}),
+    mrow({k:"mini",t:"Mini simulado",m:"20 questões · 50 min",b:go1("startExam('mini')","Iniciar",1),
+      d:"Mesma proporção entre os blocos, priorizando as inéditas. Bom para dias de semana."}),
+    mrow({k:"ritmo",t:"Simulado de ritmo",m:`60 questões · ${fmt(t)} cada`,b:go1("startPace()","Iniciar",1),
+      d:`${a?`Sua média recente é ${fmt(Math.round(a))} por questão. O tempo deste simulado é 10% menor, para você ganhar folga no dia da prova.`:"Sem média ainda: o alvo começa em 3:30 por questão."} Em qualquer questão, o app avisa quando você passa de 3 minutos.`}),
+    mrow({k:"real",t:"Modo prova real",m:"cartão-resposta",b:go1("startReal('full')","Simulado de 60",1),
+      d:"Caderno de questões com rascunho e “voltar depois”, cartão-resposta separado e só a correção no fim. Treina passar as respostas a tempo. As provas inteiras da Transpetro estão em Provas anteriores."})]);
+  const prov=`<div class="stack inner"><p class="muted">Técnico de Administração e Controle da Transpetro, só com as questões que ainda valem pelas regras atuais, conferidas com o gabarito oficial. <b>Treinar</b>: 4 min por questão, correção no fim. <b>Prova real</b>: com cartão-resposta.</p>
+    <div class="mlist">${years.map(y=>`<div class="prow"><span><b>Transpetro ${y}</b> <span class="muted num">${QV().filter(q=>q[4]===y).length} questões</span></span><span class="row" style="gap:6px">${go1(`startPast('${y}')`,"Treinar",1)}${go1(`startReal('${y}')`,"Prova real",1)}</span></div>`).join("")}</div>
+    <h4>Outras provas Cesgranrio</h4>
+    <p class="muted">Questões reais da mesma banca, só dos assuntos do seu edital e com a lei e os programas atuais. Gabarito conferido com o oficial e explicado.</p>
+    ${grp.map(([gt,p,f],gi)=>{const ss=SRC_ORD.filter(p);return `<details class="pgrp2"><summary>${esc(gt)} <span class="muted num">· ${ss.length} provas</span></summary><div class="pgrid">${ss.map(s=>`<button class="btn ghost sm pbtn" onclick="startSrc('${s}')"><b>${esc(f(s))}</b><span>${srcCount(s)} questões</span></button>`).join("")}</div></details>`;}).join("")}
+    <p class="muted">A divisão das 40 específicas no simulado (9 de processos, 9 de finanças, 15 de logística e compras, 7 de informática) é uma estimativa proporcional ao edital, que não define quantas questões vêm de cada tema.</p></div>`;
+  $("#view").innerHTML=`
+  ${rq?`<div class="rule row" style="justify-content:space-between"><span>Você tem uma prova real em andamento.</span><button class="btn sm" onclick="go('real')">Continuar</button></div>`:""}
+  ${quiz&&!quiz.finished?`<div class="rule row" style="justify-content:space-between"><span>Você tem um ${esc(quiz.label.toLowerCase())} em andamento.</span><button class="btn sm" onclick="go('quiz')">Continuar</button></div>`:""}
+  <div class="stack" style="gap:4px"><h2>Praticar</h2><span class="muted">Toque no nome para ver como funciona.</span></div>
+  <section class="panel stack"><h3>Treinos</h3>${dia}</section>
+  ${foldHTML("sims","Simulados","completo, específicas, mini, ritmo e prova real",sims,true)}
+  ${foldHTML("prat","Provas anteriores","Transpetro 2018, 2012 e 2011 e outras provas Cesgranrio",prov,false)}`;
+};
+
+/* ---------- Jogos ---------- */
+function vJogos(){
+  const g=S.gm, known=Object.values(S.fcl).filter(x=>x>=2).length, rec=t=>t?` · ${t}`:"";
+  const sel=(id,lbl,html)=>`<label class="muted" for="${id}">${lbl}</label>${html}`;
+  const b=(fn,l)=>`<button class="btn sm" onclick="${fn}">${l}</button>`;
+  $("#view").innerHTML=`<div class="stack" style="gap:4px"><h2>Jogos</h2><span class="muted">Rodadas curtas para fixar conceitos, siglas, prazos e fórmulas. Toque no nome para ver as regras e escolher o assunto.</span></div>
+  <section class="panel">${mlist([
+    mrow({k:"dch",hl:1,t:"Desafio do dia",m:`5 questões${rec(g.dch&&g.dch.best?`sequência ${g.dch.best} dias`:"")}`,b:b("startDaily()","Jogar"),d:"5 questões novas por dia, montadas para os seus pontos fracos. Faça todo dia para não perder a sequência."}),
+    mrow({k:"fc",t:"Flashcards",m:`${known} de ${FC.length} dominados`,b:b("startFc()","Começar"),d:"Veja o conceito, tente lembrar e vire o cartão. Os que você não sabia voltam primeiro na próxima vez.",x:sel("selFc","Baralho",gameSel("selFc",g.lastFc||"esp"))}),
+    mrow({k:"vf",t:"Verdadeiro ou falso relâmpago",m:`90 s${rec(g.vfBest?`recorde ${g.vfBest}`:"")}`,b:b("startVf()","Jogar"),d:"Responda o máximo de afirmações antes do tempo acabar. No fim, veja a correção de cada erro.",x:sel("selVf","Assuntos",gameSel("selVf",g.lastVf||"esp"))}),
+    mrow({k:"mt",t:"Associação",m:`6 pares${rec(g.mtBest?`recorde ${fmt(g.mtBest)}`:"")}`,b:b("startMatch()","Jogar"),d:"Ligue cada termo à sua definição no menor tempo possível. Cada erro soma 5 segundos.",x:sel("selMt","Assuntos",gameSel("selMt",g.lastMt||"esp"))}),
+    mrow({k:"leis",t:"Lei seca",m:`${LEI.length} trechos${rec(g.leiBest?`recorde ${g.leiBest}`:"")}`,b:b("startLei()","Começar"),d:"Complete o texto da Lei 13.303, da Lei 14.133 e da LGPD. A Cesgranrio copia a letra da lei nas alternativas.",
+      x:sel("selLei","Lei",`<select id="selLei"><option value="all">Todas</option><option value="13.303">Lei 13.303/2016 (estatais)</option><option value="14.133">Lei 14.133/2021</option><option value="LGPD">LGPD (Lei 13.709/2018)</option></select>`)}),
+    mrow({k:"calc",t:"Cálculo sem calculadora",m:`90 s${rec(g.calcBest?`recorde ${g.calcBest}`:"")}`,b:b("startCalc()","Jogar"),d:"Porcentagem, juros, regra de três, aumentos e descontos. Na prova, calculadora é proibida: aqui você treina a conta de cabeça."}),
+    mrow({k:"duel",t:"Duelo do relógio",m:`10 questões · 60 s cada${rec(g.duelBest?`recorde ${g.duelBest}`:"")}`,b:b("S.gm.lastDuel=$('#selDuel').value;startDuel()","Jogar"),d:"Quanto mais rápido você acerta, mais pontos. Errou ou o tempo acabou, vê a explicação e segue.",x:sel("selDuel","Assuntos",gameSel("selDuel",g.lastDuel||"esp"))}),
+    mrow({k:"erro",t:"Ache o erro",m:`${PEG.length} frases${rec(g.erroBest?`recorde ${g.erroBest} de 8`:"")}`,b:b("startErro()","Jogar"),d:"Uma frase de lei ou conceito com uma palavra trocada. Toque na palavra errada."}),
+    mrow({k:"ord",t:"Ordene as fases",m:`${ORD.length} sequências`,b:b("startOrd()","Jogar"),d:"Monte na ordem certa as fases da licitação, o PDCA, a DRE, o fluxo do armazém e outras sequências cobradas.",
+      x:sel("selOrd","Sequência",`<select id="selOrd"><option value="r">Sorteada</option>${ORD.map((o,i)=>`<option value="${i}">${esc(o[0])}</option>`).join("")}</select>`)})])}</section>
+  ${TTS_OK?`<p class="muted">Para estudar ouvindo (resumos, questões, flashcards e pegadinhas em voz alta), use o botão de fone no topo.</p>`:""}`;
+};
+
+/* ---------- Progresso ---------- */
+function vStats(){
+  const k=todayK(), a=monday(k), w=weekData(a), pw=weekData(plusK(a,-7)), pc=v=>v&&v.t?Math.round(v.c/v.t*100):null;
+  const acc=pc(w), pacc=pc(pw), any=Object.keys(S.stats).length>0;
+  const ex=S.hist.filter(h=>espOf(h).t>=8), last=ex.slice(0,3);
+  const proj=last.length?Math.round(last.reduce((s,h)=>{const e=espOf(h);return s+e.c/e.t;},0)/last.length*40):null;
+  const pst=proj===null?null:proj>=32?["ok","na meta"]:proj>=20?["mid","acima do corte"]:["bad","abaixo do corte"];
+  const w7=slogSum(7), m30=slogSum(30), full=fullStreak();
+  const rows=Object.keys(BLOCKS).filter(bk=>w.blk[bk]||pw.blk[bk]).map(bk=>{const x=pc(w.blk[bk]),y=pc(pw.blk[bk]);const d=x!==null&&y!==null?x-y:null;
+    return `<div class="wkrow"><span><i class="bdot" style="background:var(--c-${bk})"></i>${esc(BLOCKS[bk])}</span><span class="num">${x===null?"—":x+"%"}</span><span class="num wkd ${d>0?"ok":d<0?"bad":""}">${d===null?"":d>0?"▲ "+d:d<0?"▼ "+(-d):"="}</span></div>`;}).join("");
+  /* tendência por semana nas específicas (era da Previsão de nota) */
+  const wk={}; ex.forEach(h=>{const d=parseBr(h.date);if(!d)return;const m=new Date(d);m.setDate(d.getDate()-((d.getDay()+6)%7));const key=dkey(m),e=espOf(h);wk[key]=wk[key]||{c:0,t:0};wk[key].c+=e.c;wk[key].t+=e.t;});
+  const weeks=Object.keys(wk).sort().slice(-6), wpc=weeks.map(x=>Math.round(wk[x].c/wk[x].t*100));
+  const stall=wpc.length>=3&&wpc[wpc.length-1]<=wpc[wpc.length-2]&&wpc[wpc.length-2]<=wpc[wpc.length-3];
+  const te=topErr(8), fc=srsForecast(7);
+  const blk=Object.keys(BLOCKS).concat("geral").filter(b=>m30.by[b]), mx=Math.max(1,...blk.map(b=>m30.by[b])), tl=S.hist.filter(x=>x.avgT).slice(0,8);
+  $("#view").innerHTML=`<h2>Progresso</h2>
+  <section class="panel stack nums">
+    <div class="row" style="justify-content:space-between"><h3>Esta semana</h3><span class="muted num">${fmtK(w.a)} a ${fmtK(w.b)}</span></div>
+    <div class="numgrid">
+      <div><span class="v num">${w.q}</span><span class="muted">questões · ${w.days} de 7 dias</span></div>
+      <div><span class="v num">${acc===null?"—":acc+"%"}</span><span class="muted">acerto${pacc===null?"":` · antes ${pacc}%`}</span></div>
+      <div><span class="v num">${proj===null?"—":proj+"/40"}</span><span class="muted">${pst?`previsão · <span class="${pst[0]==="ok"?"okt":pst[0]==="bad"?"badt":""}">${pst[1]}</span>`:"previsão (faça um simulado)"}</span></div>
+      <div><span class="v num">${minFmt(w7.t)}</span><span class="muted">estudo · ${full} ${full===1?"dia seguido":"dias seguidos"}</span></div>
+    </div>
+    ${rows?`<div class="stack" style="gap:6px">${rows}</div>`:""}
+    <p class="muted">Corte: 20 acertos nas 40 específicas. Meta: 28 a 32.</p>
+  </section>
+  ${any?lossPanel().replace("<h3>Onde estou perdendo pontos</h3>","<h3>Onde focar</h3>")
+    :`<section class="panel stack"><h3>Nenhum resultado ainda</h3><p class="muted">Faça um treino ou um simulado: aqui aparecem a previsão de nota, onde você perde pontos e o acerto por assunto.</p><div><button class="btn" onclick="go('pratica')">Ir para Praticar</button></div></section>`}
+  ${any?foldHTML("pcat","Acerto por assunto","do pior para o melhor; toque para treinar",`<div class="stack inner">${catTable()}</div>`,false):""}
+  ${te.length?foldHTML("ptop","Questões que você mais erra",`${te.length} questões erradas 2 vezes ou mais`,`<div class="stack inner"><div><button class="btn sm" onclick="startTopErr()">Treinar estas</button></div>${te.map(([i,v])=>`<div class="repitem"><span class="pill bad num">${v}×</span> <span class="muted">${esc(CATS[Q[i].c].n)}</span><p style="margin:4px 0 0">${esc(Q[i][1].length>140?Q[i][1].slice(0,140)+"…":Q[i][1])}</p></div>`).join("")}</div>`,false):""}
+  ${ex.length?foldHTML("pevo","Evolução nas específicas","nota projetada para 40 questões",`<div class="stack inner" id="evoSec">${evoChart()}${weeks.length?`<h4>Tendência por semana</h4>${weeks.map((x,i)=>bar("Semana de "+fmtK(x)+(i?(wpc[i]>wpc[i-1]?" ↑":wpc[i]<wpc[i-1]?" ↓":" ="):""),wk[x].c,wk[x].t)).join("")}`:""}</div>`,stall):""}
+  ${stall?`<div class="rule"><span class="pill bad">Atenção</span> O acerto nas específicas não sobe há duas semanas. Mude o método nos assuntos mais fracos: mais teoria ou mais questões comentadas, não só mais horas.</div>`:""}
+  ${nsrsAny()?foldHTML("psrs","Revisões dos próximos 7 dias",`${fc[0][1]} para hoje`,`<div class="stack inner"><div class="fcast">${fc.map(([kk,n],i)=>`<div class="fcd"><span class="num fcn" style="height:${Math.min(60,6+n*3)}px">${n}</span><span class="muted num">${i?fmtK(kk):"hoje"}</span></div>`).join("")}</div>
+    <p class="muted">Revisão espaçada FSRS: cada questão errada volta no dia em que a chance de você esquecer chega a 10%. Acertou rápido, o intervalo cresce; acertou devagar, cresce menos; errou, volta amanhã.</p></div>`,false):""}
+  ${foldHTML("phrs","Horas de estudo",`${minFmt(w7.t)} em 7 dias · ${minFmt(m30.t)} em 30 dias`,`<div class="stack inner">
+    ${blk.length?blk.map(b=>`<div class="hbar"><span><i class="bdot" style="background:${b==="geral"?"var(--muted)":`var(--c-${b})`}"></i>${b==="geral"?"Geral":esc(BLOCKS[b])}</span><div class="track"><div class="fill" style="width:${m30.by[b]/mx*100}%;background:${b==="geral"?"var(--muted)":`var(--c-${b})`}"></div></div><span class="num">${minFmt(m30.by[b])}</span></div>`).join(""):'<p class="muted">Use o cronômetro de estudo na tela Hoje para registrar o tempo por assunto.</p>'}
+    ${tl.length?`<h4>Tempo médio por questão</h4>${tl.map(x=>`<div class="row" style="justify-content:space-between"><span>${esc(x.date)} · ${esc(x.label)}</span><span class="num ${x.avgT>240?"badt":""}">${fmt(x.avgT)}</span></div>`).join("")}`:""}</div>`,false)}
+  ${S.hist.length?foldHTML("phist","Histórico de simulados e treinos",`${S.hist.length} registros`,`<div class="stack inner"><div class="tscroll"><table><thead><tr><th>Data</th><th>Modo</th><th>Acertos</th></tr></thead><tbody>
+    ${S.hist.map(h=>`<tr><td class="num">${h.date}</td><td>${esc(h.label)}</td><td class="num">${h.score}/${h.total}</td></tr>`).join("")}</tbody></table></div>
+    <div class="row"><button class="btn ghost sm" id="rst">Apagar estatísticas</button><span id="rstc" hidden class="row"><span>Apagar histórico e erros salvos?</span><button class="btn warn sm" id="rsty">Apagar</button></span></div></div>`,false):""}
+  ${repPanel()}`;
+  const r=$("#rst"); if(r){r.onclick=()=>{$("#rstc").hidden=false;}; $("#rsty").onclick=()=>{S.hist=[];S.stats={};S.wrong=[];save();vStats();};}
+};
+function nsrsAny(){return Object.keys(S.srs||{}).length>0;}
+
+/* ---------- Estudar ---------- */
+function vCont(){
+  const read=S.read||{}, keys=Object.keys(CATS).filter(k=>RES[k]), nRead=keys.filter(k=>read[k]).length, bdone=BASE.filter(l=>S.base[l.id]).length;
+  const groups=Object.entries(BLOCKS).map(([b,bn])=>{
+    const items=keys.filter(k=>CATS[k].b===b).map(k=>{const p=pct(S.stats[k]);
+      return `<button class="topic" onclick="openTopic('${k}')"><span class="tname">${esc(CATS[k].n)}</span><span class="tmeta">${p!==null?`<span class="pill ${p<50?"bad":p<70?"mid":"ok"}">${p}%</span>`:""}${read[k]?'<span class="pill ok">lido</span>':""}</span></button>`;}).join("");
+    return `<section class="stack tgrp" style="--bc:var(--c-${b})"><h3 class="bh">${esc(bn)}</h3><div class="topics">${items}</div></section>`;
+  }).join("");
+  const base=baseList().replace(/<div class="row" style="justify-content:space-between"><h2>Revisão da escola<\/h2>.*?<\/div>/,"");
+  $("#view").innerHTML=`${segNav("cont",SEG_EST)}
+  <div class="stack" style="gap:6px"><div class="row" style="justify-content:space-between;align-items:baseline"><h2>Estudar</h2><span class="muted num">${nRead} de ${keys.length} lidos</span></div>
+    <div class="track"><div class="fill" style="width:${nRead/keys.length*100}%"></div></div>
+    <span class="muted">Resumo de cada tópico do edital com as pegadinhas mais cobradas. Leia, marque como lido e treine o assunto em seguida.</span></div>
+  ${groups}
+  ${foldHTML("base","Revisão da escola",`Português e Matemática básicos · ${bdone} de ${BASE.length} lições`,`<div class="inner">${base}</div>`,false)}
+  ${aboutExam()}`;
+};
+/* Áudio abre pelo botão de fone (sem aba repetida em Estudar) */
+VIEWS.audio=()=>{vAudio();const s=$("#view .segtabs");if(s)s.remove();};
+
+/* ---------- Configurações: só ajustes ---------- */
+function vConfig(){
+  const push=pushPanel().replace(/^<section class="panel stack">/,'<div class="stack" style="gap:8px">').replace(/<\/section>$/,"</div>").replace("<h3>Notificações com o app fechado</h3>","<h4>Com o app fechado</h4>");
+  $("#view").innerHTML=`<div class="stack" style="gap:4px"><h2>Configurações</h2><span class="muted">O progresso é salvo sozinho a cada resposta.</span></div>
+  ${cfgSync()}
+  <section class="panel stack"><h3>Rotina de estudo</h3>
+    <div class="cfgrow"><label for="stH">Início em dias úteis</label><input type="time" id="stH" value="${S.st.h}"></div>
+    <div class="cfgrow"><label for="stW">Início no sábado e no domingo</label><input type="time" id="stW" value="${S.st.w}"></div>
+    <div class="cfgrow"><label for="goalSel">Meta diária</label><select id="goalSel">${[10,20,30,40,60,80].map(v=>`<option value="${v}" ${v===S.goal?"selected":""}>${v} questões</option>`).join("")}</select></div>
+    <p class="muted">Os horários de Hoje partem daqui, com pausa de 10 min a cada bloco de cerca de 50 min.</p></section>
+  <section class="panel stack"><h3>Lembretes</h3>
+    <div class="row" style="gap:10px;flex-wrap:wrap">
+      <label class="row" style="gap:8px"><input type="checkbox" id="remOn" ${S.rem.on?"checked":""} style="width:18px;height:18px;accent-color:var(--petrol)"> Avisar às</label>
+      <input type="time" id="remH" value="${S.rem.h}">
+      <button class="btn ghost sm" onclick="notify('Lembrete de teste','É assim que o aviso diário aparece.')">Testar</button></div>
+    <p class="muted">${notifState()}</p>
+    ${push}
+    <details class="rev"><summary><span class="mark">⏰</span><span>Avisos pela agenda do celular</span></summary>${outsidePanel().replace(/^<section class="panel stack" id="outSec"><h3>Avisos com o app fechado<\/h3>/,'<div class="stack" id="outSec" style="margin-top:10px">').replace(/<\/section>$/,"</div>")}</details></section>
+  <section class="panel stack"><h3>Aparência</h3>
+    <span class="muted">Tema</span>${seg("thSeg",theme,[["auto","Automático"],["light","Claro"],["dark","Escuro"]])}
+    <span class="muted">Tamanho da letra</span>${seg("fzSeg",String(fz),[[".92","92%"],["1","100%"],["1.12","112%"],["1.25","125%"],["1.4","140%"]])}
+    <p class="muted">Valem só para este aparelho. Dentro do simulado, o botão Aa também muda a letra.</p></section>
+  <section class="panel stack" id="syncSec"><h3>Backup manual</h3>
+    <p class="muted">Cópia do progresso por código, para guardar ou passar para um aparelho sem internet. A importação substitui o progresso deste aparelho.</p>
+    <details class="rev"><summary><span class="mark">⇩</span><span>Gerar ou importar um código</span></summary><div class="stack" style="margin-top:10px">
+      <p class="synclbl muted">${esc(syncText())}</p>
+      <div class="row"><button class="btn ghost sm" id="bkGen">Gerar código</button><button class="btn ghost sm" id="bkCopy">Copiar</button></div>
+      <textarea id="bkTxt" rows="3" placeholder="Cole aqui o código de backup"></textarea>
+      <div class="row"><button class="btn sm" id="bkImp">Importar código</button><span class="muted" id="bkMsg"></span></div></div></details>
+    ${instEvt?`<button class="btn" id="instBtn">Instalar o app neste aparelho</button>`:IS_PWA?"":`<a class="btn ghost sm" href="${GH_URL}" target="_blank" rel="noopener">Abrir a versão instalável (GitHub)</a>`}</section>
+  <p class="muted">Versão ${typeof APP_V!=="undefined"?APP_V:""} · ${QV().length.toLocaleString("pt-BR")} questões</p>`;
+  $("#stH").onchange=e=>{S.st.h=e.target.value||"19:00";save();};
+  $("#stW").onchange=e=>{S.st.w=e.target.value||"09:00";save();};
+  $("#goalSel").onchange=e=>{S.goal=+e.target.value;save();};
+  $("#remOn").onchange=e=>{remEnable(e.target.checked);};
+  $("#remH").onchange=e=>{S.rem.h=e.target.value||"19:00";S.rem.last=null;save();};
+  document.querySelectorAll("#thSeg button").forEach(b=>b.onclick=()=>{theme=b.dataset.v;try{localStorage.setItem("transpetro26-theme",theme);}catch(e){}applyTheme();vConfigKeep();});
+  document.querySelectorAll("#fzSeg button").forEach(b=>b.onclick=()=>{fz=+b.dataset.v;try{localStorage.setItem(FZK,fz);}catch(e){}fzApply();vConfigKeep();});
+  const ib=$("#instBtn"); if(ib) ib.onclick=async()=>{if(!instEvt)return;instEvt.prompt();try{await instEvt.userChoice;}catch(e){}instEvt=null;vConfigKeep();};
+  syncWire(); clLbl();
 };
 
 if("serviceWorker" in navigator&&location.protocol==="https:"){const sw=navigator.serviceWorker;let had=!!sw.controller;sw.register("sw.js").then(r=>{document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")r.update().catch(()=>{});});}).catch(()=>{});sw.addEventListener("controllerchange",()=>{if(had)swUpdated();had=true;});}

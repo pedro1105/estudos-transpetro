@@ -56,44 +56,6 @@ function foldHTML(k,title,sub,inner,defOpen){
 }
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.matches&&d.matches("details.fold[data-k]")){S.fold=S.fold||{};S.fold[d.dataset.k]=d.open;save();}},true);
 
-function vPratica(){
-  const opts=Object.entries(CATS).map(([k,v])=>`<option value="${k}">${esc(v.n)} (${QV().filter(q=>q.c===k).length})</option>`).join("");
-  const blk=Object.entries(BLOCKS).map(([k,v])=>`<option value="b:${k}">Bloco: ${esc(v)}</option>`).join("");
-  const years=Object.keys(PROVAS).sort().reverse();
-  const t=paceTarget(), a=myAvgT(), lawN=QV().filter(q=>/13\.303/.test(q[1])).length;
-  const grp=[["Mesmo cargo: Técnico(a) de Administração e Controle (TAC)",s=>/ TAC$/.test(s),s=>s.replace(/ TAC$/,"")],["Transpetro, outros cargos","Transpetro"],["Petrobras, outros cargos","Petrobras"],["Banco do Brasil (só Português, Matemática, Mat. Financeira e Informática)","BB"]].map(([t,p,f])=>typeof p==="string"?[t,s=>s.startsWith(p)&&!/ TAC$/.test(s),s=>s.replace(p+" ","")]:[t,p,f]);
-  const nv=unseenCount();
-  const especiais=`<div class="grid2 inner">
-    <div class="panel mode"><span class="tag">Cesgranrio · questões reais</span><h3>Provas anteriores</h3><p class="muted">Técnico de Administração e Controle da Transpetro, só com as questões que ainda valem pelas regras atuais, conferidas com o gabarito oficial. Cronômetro de 4 min por questão, como na prova.</p>
-      <div class="pgrid">${years.map(y=>`<button class="btn ghost sm pbtn" onclick="startPast('${y}')"><b>Transpetro ${y}</b><span>${QV().filter(q=>q[4]===y).length} questões</span></button>`).join("")}</div></div>
-    <div class="panel mode"><span class="tag">Cartão-resposta</span><h3>Modo prova real</h3><p class="muted">Caderno de questões com rascunho e “voltar depois”, cartão-resposta separado e só a correção no fim. Treina passar as respostas a tempo.</p>
-      <div class="pgrid"><button class="btn pbtn pfull" onclick="startReal('full')"><b>Simulado de 60</b><span>misturado, 4 horas</span></button>${years.map(y=>`<button class="btn ghost sm pbtn" onclick="startReal('${y}')"><b>Transpetro ${y}</b><span>prova inteira</span></button>`).join("")}</div></div>
-    <div class="panel mode"><span class="tag">60 questões · ${fmt(t)} cada</span><h3>Simulado de ritmo</h3><p class="muted">${a?`Sua média recente é ${fmt(Math.round(a))} por questão. O tempo deste simulado é 10% menor, para você ganhar folga no dia da prova.`:"Sem média ainda: o alvo começa em 3:30 por questão."} Em qualquer questão, o app avisa quando você passa de 3 minutos.</p><button class="btn ghost" onclick="startPace()">Iniciar</button></div>
-    <div class="panel mode"><span class="tag">${lawN} questões</span><h3>Lei 13.303 artigo por artigo</h3><p class="muted">Questões com o número do artigo, no estilo da letra da lei que a Cesgranrio cobra. Complete com o jogo Lei seca.</p><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn ghost" onclick="startLaw()">Treinar</button><button class="btn ghost sm" onclick="go('jogos')">Lei seca</button></div></div>
-  </div>
-  <section class="panel stack inner"><h3>Outras provas Cesgranrio</h3>
-    <p class="muted">Questões reais da mesma banca, só dos assuntos do seu edital e com a lei e os programas atuais. Cada uma mostra a prova de origem. Gabarito conferido com o oficial e explicado.</p>
-    ${grp.map(([t,p,f])=>`<div class="stack pgrp" style="gap:8px"><h4>${esc(t)}</h4><div class="pgrid">${SRC_ORD.filter(p).map(s=>`<button class="btn ghost sm pbtn" onclick="startSrc('${s}')"><b>${esc(f(s))}</b><span>${srcCount(s)} questões</span></button>`).join("")}</div></div>`).join("")}
-  </section>
-  <p class="muted inner">A divisão das 40 específicas no simulado (9 de processos, 9 de finanças, 15 de logística e compras, 7 de informática) é uma estimativa proporcional ao edital, que não define quantas questões vêm de cada tema.</p>`;
-  $("#view").innerHTML=`
-  ${rq?`<div class="rule row" style="justify-content:space-between"><span>Você tem uma prova real em andamento.</span><button class="btn" onclick="go('real')">Continuar</button></div>`:""}
-  ${quiz&&!quiz.finished?`<div class="rule row" style="justify-content:space-between"><span>Você tem um ${esc(quiz.label.toLowerCase())} em andamento.</span><button class="btn" onclick="go('quiz')">Continuar</button></div>`:""}
-  <h2>Escolha o modo</h2>
-  <div class="grid2">
-    <div class="panel mode hl"><span class="tag">Recomendado</span><h3>Treino adaptativo</h3><p class="muted">20 questões: 12 dos seus 5 assuntos mais fracos (${weakCats(5).map(k=>esc(CATS[k].n)).join(", ")}), 4 de outras específicas e 4 de Português e Matemática. Prioriza as que você nunca viu.</p><button class="btn" onclick="startAdaptive()">Começar</button></div>
-    <div class="panel mode"><span class="tag">Igual à prova</span><h3>Simulado completo</h3><p class="muted">60 questões no formato da prova, 4 h cronometradas, correção só no final e verificação das notas de corte. Puxa primeiro as questões que você nunca viu (${nv.toLocaleString("pt-BR")} inéditas no banco).</p><button class="btn" onclick="startExam('full')">Iniciar simulado</button></div>
-    <div class="panel mode"><span class="tag">50 minutos</span><h3>Mini simulado</h3><p class="muted">20 questões com a mesma proporção entre os blocos, priorizando as inéditas. Bom para dias de semana.</p><button class="btn" onclick="startExam('mini')">Iniciar mini</button></div>
-    <div class="panel mode"><span class="tag">2 h 40 min</span><h3>Simulado das específicas</h3><p class="muted">As 40 questões que decidem a classificação, na proporção do edital, com 4 minutos por questão. Mostra a distância do corte (20) e da meta (28 a 32).</p><button class="btn" onclick="startExam('esp')">Iniciar específicas</button></div>
-    <div class="panel mode"><span class="tag">Correção imediata</span><h3>Treino por assunto</h3><p class="muted">Até 15 questões de um tema, com gabarito comentado a cada resposta.</p>
-      <label for="selCat" class="muted">Assunto</label><select id="selCat"><option value="src:all">Só questões de provas anteriores (${QV().filter(q=>q[4]).length})</option>${blk}${opts}</select>
-      <label class="row muted chk" style="gap:8px"><input type="checkbox" id="onlyNew" style="width:18px;height:18px;accent-color:var(--petrol)"> Só questões que ainda não respondi</label>
-      <button class="btn ghost" onclick="startTrain()">Treinar</button></div>
-    <div class="panel mode"><span class="tag">${srsDue().length} para hoje · ${Object.keys(S.srs).length} na revisão</span><h3>Revisar erradas</h3><p class="muted">Revisão espaçada: cada questão errada volta no dia em que você estaria começando a esquecer. Acertou, o intervalo cresce; errou, ela volta amanhã.</p><button class="btn ghost" ${S.wrong.length||Object.keys(S.srs).length?"":"disabled"} onclick="startWrong()">Revisar</button></div>
-    <div class="panel mode"><span class="tag">${Object.keys(S.notes).length} notas</span><h3>Caderno de erros</h3><p class="muted">Seus erros com o motivo (não sabia, confundiu, leu rápido, errou a conta) e o que lembrar da próxima vez.</p><button class="btn ghost" onclick="go('caderno')">Abrir caderno</button></div>
-  </div>
-  ${foldHTML("prat","Provas reais e treinos especiais","Transpetro, Petrobras e BB; modo prova real; ritmo; lei seca",especiais,true)}`;
-}
 /* Seleção sem repetir: S.seen[i] guarda o dia em que a questão foi respondida (1 = antes da v13).
    As inéditas vêm primeiro; depois, as vistas há mais tempo. */
 const seenKey=i=>{const x=S.seen[i];return x?(x===1?"0":String(x)):"";};
@@ -279,45 +241,13 @@ function vResult(){
 function bar(name,c,t){const p=t?Math.round(c/t*100):0;return `<div class="bar"><span style="min-width:0">${esc(name)}</span><div class="track"><div class="fill ${p<50?"low":p<70?"mid":""}" style="width:${p}%"></div></div><span class="num" style="text-align:right">${p}%</span></div>`;}
 
 /* ---------- Cronograma ---------- */
-function vCrono(){} /* tela do cronograma: 07b-v10-v12.js */
 function vCronoKeep(){const y=window.scrollY;vCrono();window.scrollTo({top:y});}
 
-/* ---------- Desempenho ---------- */
-function vStats(){
-  const cats=Object.keys(CATS).filter(k=>S.stats[k]);
-  const rows=cats.sort((a,b)=>S.stats[a].c/S.stats[a].t-S.stats[b].c/S.stats[b].t).map(k=>bar(CATS[k].n+` (${S.stats[k].c}/${S.stats[k].t})`,S.stats[k].c,S.stats[k].t)).join("");
-  $("#view").innerHTML=`
-  <h2>Desempenho</h2>
-  ${forecastPanel()}
-  ${cats.length?`<div class="panel stack"><h3>Acerto por assunto</h3><p class="muted">Do mais fraco para o mais forte. Os primeiros da lista são a prioridade da semana.</p>${rows}</div>
-  <div class="panel stack"><h3>Histórico</h3><div class="tscroll"><table><thead><tr><th>Data</th><th>Modo</th><th>Acertos</th></tr></thead><tbody>
-  ${S.hist.map(h=>`<tr><td class="num">${h.date}</td><td>${esc(h.label)}</td><td class="num">${h.score}/${h.total}</td></tr>`).join("")}</tbody></table></div></div>
-  <div class="row"><button class="btn ghost" id="rst">Apagar estatísticas</button><span id="rstc" hidden class="row"><span>Apagar histórico e erros salvos?</span><button class="btn warn" id="rsty">Apagar</button></span></div>`
-  :`<div class="panel stack"><h3>Nenhum resultado ainda</h3><p class="muted">Faça um treino ou um simulado e o acerto por assunto aparece aqui, ordenado do mais fraco para o mais forte.</p><div><button class="btn" onclick="go('pratica')">Ir para Praticar</button></div></div>`}`;
-  const r=$("#rst"); if(r){r.onclick=()=>{$("#rstc").hidden=false;}; $("#rsty").onclick=()=>{S.hist=[];S.stats={};S.wrong=[];save();vStats();};}
-}
 
 /* ---------- Conteúdos ---------- */
 let topicCur=null;
 const md=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/(^|\. )! /g,'$1<span class="tchip">Pegadinha</span> ');
 function pct(st){return st&&st.t?Math.round(st.c/st.t*100):null;}
-function vCont(){
-  const read=S.read||{}, keys=Object.keys(CATS).filter(k=>RES[k]);
-  const nRead=keys.filter(k=>read[k]).length;
-  const groups=Object.entries(BLOCKS).map(([b,bn])=>{
-    const items=keys.filter(k=>CATS[k].b===b).map(k=>{
-      const p=pct(S.stats[k]);
-      return `<button class="topic" onclick="openTopic('${k}')"><span class="tname">${esc(CATS[k].n)}</span><span class="tmeta">${read[k]?'<span class="pill ok">lido</span>':'<span class="pill">não lido</span>'}${p!==null?`<span class="pill ${p<50?"bad":p<70?"mid":"ok"}">${p}% de acerto</span>`:""}</span></button>`;
-    }).join("");
-    return `<section class="stack" style="--bc:var(--c-${b})"><h3 class="bh">${esc(bn)}</h3><div class="topics">${items}</div></section>`;
-  }).join("");
-  $("#view").innerHTML=`
-  <div class="stack"><h2>Conteúdos</h2><p class="muted">Resumo de cada tópico do edital com as pegadinhas mais cobradas. Leia, marque como lido e treine o assunto em seguida.</p>
-  <div class="row"><button class="btn ghost sm" onclick="document.getElementById('baseSec').scrollIntoView({behavior:'smooth'})">Ir para a Revisão da escola (${BASE.length} lições)</button></div></div>
-  <div class="panel stack"><div class="row" style="justify-content:space-between"><strong>Leitura</strong><span class="num">${nRead}/${keys.length} assuntos</span></div><div class="track"><div class="fill" style="width:${nRead/keys.length*100}%"></div></div></div>
-  ${groups}
-  <div id="baseSec"></div>${baseList()}`;
-}
 function openTopic(k){topicCur=k;go("topic");}
 function vTopic(){
   const k=topicCur; if(!k||!RES[k]){go("cont");return;}
@@ -342,22 +272,6 @@ function selLabel(v){return v==="all"?"Todos os assuntos":v==="esp"?"Só especí
 function gameSel(id,def){
   const o=(v,t)=>`<option value="${v}" ${v===def?"selected":""}>${esc(t)}</option>`;
   return `<select id="${id}">${o("esp","Só específicas")}${o("all","Todos os assuntos")}${Object.entries(BLOCKS).map(([k,v])=>o("b:"+k,"Bloco: "+v)).join("")}${Object.entries(CATS).map(([k,v])=>o(k,v.n)).join("")}</select>`;
-}
-function vJogos(){
-  const g=S.gm, known=Object.values(S.fcl).filter(x=>x>=2).length;
-  $("#view").innerHTML=`
-  <div class="stack"><h2>Jogos</h2><p class="muted">Rodadas curtas para fixar conceitos, siglas, prazos e fórmulas. Boas para o celular, no ônibus ou no intervalo.</p></div>
-  <div class="grid2">
-    <div class="panel mode"><span class="tag">${known} de ${FC.length} dominados</span><h3>Flashcards</h3><p class="muted">Veja o conceito, tente lembrar e vire o cartão. Os que você não sabia voltam primeiro na próxima vez.</p>
-      <label class="muted" for="selFc">Baralho</label>${gameSel("selFc",g.lastFc||"esp")}
-      <button class="btn" onclick="startFc()">Começar</button></div>
-    <div class="panel mode"><span class="tag">90 segundos</span><h3>Verdadeiro ou falso relâmpago</h3><p class="muted">Responda o máximo de afirmações antes do tempo acabar. No fim, veja a correção de cada erro.</p>
-      <label class="muted" for="selVf">Assuntos</label>${gameSel("selVf",g.lastVf||"esp")}
-      <button class="btn" onclick="startVf()">Jogar</button>${g.vfBest?`<span class="muted num">Recorde: ${g.vfBest} acertos</span>`:""}</div>
-    <div class="panel mode"><span class="tag">6 pares</span><h3>Associação</h3><p class="muted">Ligue cada termo à sua definição no menor tempo possível. Cada erro soma 5 segundos.</p>
-      <label class="muted" for="selMt">Assuntos</label>${gameSel("selMt",g.lastMt||"esp")}
-      <button class="btn" onclick="startMatch()">Jogar</button>${g.mtBest?`<span class="muted num">Recorde: ${fmt(g.mtBest)}</span>`:""}</div>
-  </div>`;
 }
 
 /* Flashcards */

@@ -7,12 +7,14 @@ App de estudo para a prova Transpetro PSP Nível Médio 2026.3, Ênfase 1 (Admin
 
 ## Como o código está organizado
 
-- `src/shell.html`: estilos e estrutura da página.
+- `src/shell.html`: estrutura da página (cabeçalho, abas).
+- `src/css/*.css`: todos os estilos, na ordem do nome. Os que começam com `0` vão no `<head>`; os outros entram no lugar de `<!--CSS-->` do shell (em empate de seletor vale o que vem depois). `400-base.css` é a base; `900-v33-telas.css` as telas limpas da v33.
 - `src/js/*.js`: módulos, montados em ordem numérica:
   - `01-questoes.js` banco principal; `07a-questoes-outras-provas.js` questões de outras provas Cesgranrio.
   - `02-conteudos.js` resumos, lições de base, flashcards e cronograma original.
   - `03-nucleo.js` estado, navegação (`VIEWS`/`TABOF`), simulados, correção.
-  - `04` a `07b` telas e recursos acrescentados por versão; `08-v13.js` identificação fixa das questões, sincronização, reportar erro, letra e resumo semanal; `09-v14.js` tela Hoje (programação com horários), Configurações.
+  - `04` a `22` recursos acrescentados por versão; `08-v13.js` identificação fixa das questões, sincronização, reportar erro, letra e resumo semanal.
+  - `23-v33-telas.js` as telas principais inteiras (Hoje, Cronograma, Praticar, Jogos, Progresso, Estudar, Configurações). As versões antigas dessas telas, que eram remontadas em camadas a cada versão, foram apagadas.
 - `build.py` gera `dist/app.html` (claude.ai) e `index.html` (GitHub Pages, com service worker).
 
 Regras do banco de questões: nunca remover nem reordenar itens de `Q`; para tirar uma questão de circulação, marque `q.hid=1`.
@@ -24,9 +26,20 @@ python3 build.py
 node tests/func.js      # sincronização (nuvem simulada), IDs, reportar erro, letra, resumo semanal
 node tests/flows.js     # percorre jogos e modos de prova em 3 tamanhos de tela
 node tests/snapshot.js dist/app.html antes.json   # foto do HTML das telas, para comparar refatorações
+node tests/crawl.js index.html   # clica em todos os botões em 390, 820 e 1366 px
+node tests/v33.js index.html     # progresso salvo pela v32 abre igual; telas de rolagem por aba no celular e no PC
 ```
 
 Ao publicar, troque a versão do cache em `sw.js`.
+
+## v33 (12/11/2026, telas mais limpas)
+
+- Hoje: cada etapa numa linha (hora, nome, botão); o que fazer e como marca aparecem ao tocar. Aviso de atraso numa frase com a lista recolhida. Cartão "não sincronizado" saiu (o selo no topo continua). Cronograma virou aba ao lado de Hoje e não repete a programação do dia nem o aviso; semanas passadas recolhidas. "Fase 2" deu lugar a "semana 3 de 6", a mesma numeração do Cronograma.
+- Praticar e Jogos em listas compactas (descrição e opções ao tocar). Provas da Transpetro numa linha por ano com Treinar e Prova real; outras provas recolhidas por grupo. Áudio só no botão de fone.
+- Progresso: números da semana num cartão (questões, acerto, previsão, estudo); "Onde focar" substitui 3 focos, Assuntos de prioridade e Desempenho por assunto; o resto recolhido.
+- Estudar: assuntos em linhas baixas, abas curtas, Revisão da escola recolhida, "Como a prova funciona" veio de Configurações.
+- Código: 11 blocos de estilo espalhados nos .js foram para `src/css/`; telas antigas reescritas em camadas apagadas (−37 KB). Snapshot de todas as telas e estilos idêntico antes e depois da limpeza.
+- Chaves de armazenamento e sincronização sem mudança. APP_V=33, cache do SW transpetro-v35. Teste novo `tests/v33.js` com progresso salvo pela v32 (`tests/fixtures/progresso-v32.json`).
 
 ## v32 (06/11/2026, revisão geral)
 

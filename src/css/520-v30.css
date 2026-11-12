@@ -1,0 +1,13 @@
+/* antes injetado por src/js/20-v30.js (fim da página) */
+.simple30{margin:0;padding:10px 12px;border-radius:10px;background:var(--petrol-soft);line-height:1.55;max-width:75ch}
+.intro30 p{margin:0;line-height:1.6;max-width:75ch}
+.fx30 .fxitem{padding:12px 0;border-top:1px solid var(--line);gap:8px}
+.fx30 .fxitem:first-of-type{border-top:0;padding-top:4px}
+.fx30 .fcard{overflow-wrap:anywhere}
+.fxleg dl,.sigdl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:6px 0 0}
+.fxleg dt,.sigdl dt{font-weight:700;font-family:var(--f-mono);white-space:nowrap}
+.fxleg dd,.sigdl dd{margin:0;line-height:1.45;min-width:0}
+.fxsteps{margin:6px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:4px;line-height:1.45}
+.fxidea{margin:0;line-height:1.5}
+.sig30 .sigdl{margin-top:12px}
+.vidbox{padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:6px}

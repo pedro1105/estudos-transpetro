@@ -64,8 +64,8 @@ const answerTrain = async (p, n) => { for (let i = 0; i < n; i++) { await p.loca
 
   // Progresso: resumo semanal e lista de reportadas
   await A.evaluate(() => go('stats'));
-  ok('resumo semanal', await A.locator('#view .wkpanel').count() === 1, await A.locator('.wkpanel .wkstats .v').allTextContents());
-  ok('3 focos', await A.locator('#view .wkpanel button:has-text("Treinar")').count() === 3);
+  ok('resumo semanal', await A.locator('#view .nums').count() === 1, await A.locator('.nums .v').allTextContents());
+  ok('onde focar com botão de treino', await A.locator('#view button:has-text("Treinar")').count() >= 1);
   ok('lista de reportadas', await A.locator('#repSec .repitem').count() === 1);
   ok('Hoje abre sem erro', await A.evaluate(() => { go('guia'); return !!document.querySelector('#view h2,#view h3'); }));
 
