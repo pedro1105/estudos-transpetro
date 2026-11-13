@@ -19,7 +19,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   ok('todas íntegras', r.bad.length === 0, r.bad.join(','));
   ok('contagem por prova 30/35/20', r.srcs.join('/') === '30/35/20', r.srcs.join('/'));
   ok('códigos únicos', r.ids);
-  await p.evaluate(() => go('pratica')); await p.waitForTimeout(200);
+  await p.evaluate(() => go('pratica')); await p.waitForTimeout(200); await p.evaluate(() => document.querySelectorAll('#view details').forEach(d => d.open = true)); // v33: provas ficam em grupos recolhidos
   const txt = await p.locator('#view').textContent();
   ok('botões em Petrobras, outros cargos', /2018 Suprimento\s*30 questões/.test(txt) && /2014 Suprimento\s*35 questões/.test(txt) && /2012 Suprimento\s*20 questões/.test(txt));
   await p.locator('#view button',{hasText:/2014 Suprimento\s*35 questões/}).click(); await p.waitForTimeout(200);

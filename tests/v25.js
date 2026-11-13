@@ -34,7 +34,8 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   await p.waitForTimeout(150); await p.locator('#view .opt').first().click(); await p.waitForTimeout(150);
   ok('explicação mostra a sigla por extenso', /PL \(patrimônio líquido\)/.test(await p.locator('#view .expl').textContent()));
   await p.evaluate(() => { quiz = null; go('pratica'); }); await p.waitForTimeout(200);
-  await p.locator('#view button', { hasText: 'Iniciar específicas' }).click(); await p.waitForTimeout(200);
+  // v33: Simulados viraram linhas; a 2ª é o Simulado das específicas
+  await p.locator('#view button', { hasText: 'Iniciar' }).nth(1).click(); await p.waitForTimeout(200);
   const s = await p.evaluate(() => ({ n: quiz.ids.length, lim: quiz.limit, port: quiz.ids.filter(i => ['port', 'mat'].includes(CATS[Q[i].c].b)).length }));
   ok('simulado das específicas: 40 questões, 2h40, sem gerais', s.n === 40 && s.lim === 9600 && s.port === 0, JSON.stringify(s));
   await p.evaluate(() => { quiz.ids.forEach((qi, k) => quiz.ans[k] = quiz.order[k].indexOf(0)); finish(); }); await p.waitForTimeout(200);

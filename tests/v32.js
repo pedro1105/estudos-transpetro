@@ -28,7 +28,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   ok('questões criadas sem a certa denunciada pelo tamanho', !bias.length, bias.join(','));
   ok('1343: dividendos a pagar ficam no passivo', await p.evaluate(() => /passivo/.test(Q.find(q => /depois das destinações/.test(q[1]))[2][0])));
   await p.evaluate(() => go('config')); await p.waitForTimeout(150);
-  ok('Configurações mostra a versão 32', /Versão 32/.test(await p.locator('#view').innerText()));
+  ok('Configurações mostra a versão do app', new RegExp('Versão ' + await p.evaluate(() => APP_V)).test(await p.locator('#view').innerText()));
   ok('sem erros de script', !errs.length, errs.join(' | '));
   await b.close(); console.log(fails ? `\n${fails} FALHA(S)` : '\nTudo certo'); process.exit(fails ? 1 : 0);
 })();

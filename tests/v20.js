@@ -19,7 +19,7 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   ok('todas íntegras', r.bad.length === 0, r.bad.join(','));
   ok('contagem 41', r.srcs.join('/') === '41', r.srcs.join('/'));
   ok('códigos únicos', r.ids);
-  await p.evaluate(() => go('pratica')); await p.waitForTimeout(200);
+  await p.evaluate(() => go('pratica')); await p.waitForTimeout(200); await p.evaluate(() => document.querySelectorAll('#view details').forEach(d => d.open = true)); // v33: provas ficam em grupos recolhidos
   const txt = await p.locator('#view').textContent();
   ok('botões no grupo do mesmo cargo', /Petrobras 2010\s*41 questões/.test(txt));
   await p.locator('#view button',{hasText:/Petrobras 2010\s*41 questões/}).click(); await p.waitForTimeout(200);

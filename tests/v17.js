@@ -19,9 +19,9 @@ const ok = (t, v, extra) => { if (!v) fails++; console.log(v ? 'OK  ' : 'FAIL', 
   ok('todas íntegras (5 alternativas distintas, assunto, explicação)', r.bad.length === 0, r.bad.join(','));
   ok('5 provas listadas', r.srcs.length === 5, r.srcs.join(' | '));
   ok('códigos únicos', r.ids);
-  await p.evaluate(() => go('pratica')); await p.waitForTimeout(200);
+  await p.evaluate(() => go('pratica')); await p.waitForTimeout(200); await p.evaluate(() => document.querySelectorAll('#view details').forEach(d => d.open = true)); // v33: provas ficam em grupos recolhidos
   const txt = await p.locator('#view').textContent();
-  ok('grupo do mesmo cargo em Praticar', /Mesmo cargo: Técnico\(a\) de Administração e Controle/.test(txt));
+  ok('grupo do mesmo cargo em Praticar', /Mesmo cargo \(Técnico de Administração e Controle\)/.test(txt));
   ok('botões sem o sufixo TAC', /Petrobras 2018\s*43 questões/.test(txt) && /BR Distribuidora 2015\s*31 questões/.test(txt) && !/2018 TAC ·/.test(txt));
   ok('Petrobras outros cargos sem as TAC', /Petrobras, outros cargos/.test(txt));
   await p.locator('#view button',{hasText:/Petrobras 2018\s*43 questões/}).click(); await p.waitForTimeout(200);
