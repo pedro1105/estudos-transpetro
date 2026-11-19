@@ -45,7 +45,7 @@ function tlHTML(k,its,pre,live){
     const how=STEP_HOW[i.id], note=i.chk&&!ck?(past?"Conclua pelo botão ou marque a caixa.":"A caixa marca sozinha quando você concluir a etapa."):"";
     return `<div class="tl ${ck?"done":""} ${cur?"cur":""}">
       <input type="checkbox" id="${pre}${i.id}" data-k="${k}" data-i="${i.id}" ${ck?"checked":""} ${lock?'disabled title="Marca sozinho quando você concluir a etapa"':""} aria-label="${lock?"Marca sozinho ao concluir":"Concluí"}: ${esc(r.p.h||r.p.d)}">
-      <button type="button" class="tlx" aria-expanded="false" onclick="tlTog(this)">${r.a!==null?`<span class="tltime num">${hm(r.a)}</span>`:""}<span class="tltitle">${r.p.h?`<b>${esc(r.p.h)}:</b> `:""}${esc(r.p.d)}</span>${cur?'<span class="pill now">agora</span>':""}</button>
+      <button type="button" class="tlx" aria-expanded="false" onclick="tlTog(this)">${cur?'<span class="nowdot" title="Etapa atual"><span class="vh">Agora: </span></span>':""}${r.a!==null?`<span class="tltime num">${hm(r.a)}</span>`:""}<span class="tltitle">${r.p.h?`<b>${esc(r.p.h)}:</b> `:""}${esc(r.p.d)}</span></button>
       ${i.act?`<button class="btn ${cur?"":"ghost"} sm" onclick="tlFrom='${k}';${i.act}">${i.lbl}</button>`:"<span></span>"}
       <div class="tlmore">${r.a!==null?`<span class="muted num">${hm(r.a)} a ${hm(r.b)}</span> `:""}${areaChip(r.area)}
         <p>${r.p.h?`<b>${esc(r.p.h)}:</b> `:""}${esc(r.p.d)}</p>${how?`<p class="muted">${esc(how)}</p>`:""}${note?`<p class="muted"><i>${note}</i></p>`:""}</div></div>`;
@@ -58,25 +58,26 @@ function vGuia(){
   const due=srsDue().length, hasRev=its.some(i=>/startWrong/.test(i.act||""));
   const last14=[...Array(14)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);const kk=dkey(d);return {kk,s:kk<"2026-10-27"?null:dayScore(kk)};});
   const wdN=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"][kDate(k).getDay()];
-  const nq=S.days[k]||0;
+  const nq=S.days[k]||0, H=S.hide||{};
   $("#view").innerHTML=`${segNav("guia",SEG_HOJE)}${runBanner()}
   <div class="hoje-top"><div class="stack" style="gap:2px"><h2>Hoje</h2><span class="muted">${wdN}, ${fmtK(k)}${wn?` · semana ${wn[0]} de ${wn[1]}`:""}${p.ph?` · ${esc(p.ph.t)}`:""}</span></div>${syncChip()}</div>
-  ${syncBanner()}${rpBanner()}${weekCard()}
+  ${syncBanner()}${H.atraso?"":rpBanner()}${H.wk?"":weekCard()}
   <section class="panel stack prog-dia">
-    <div class="row" style="justify-content:space-between;gap:8px;align-items:baseline"><h3>${p.foco?esc(p.foco):"Programação de hoje"}</h3><span class="muted num">${done} de ${steps.length} etapas</span></div>
-    ${tot>0?`<span class="muted num">${hm(sc.start)} às ${hm(sc.end)} · ${minFmt(tot)} com pausas · <button class="linkbtn" onclick="go('config');setTimeout(()=>{const e=$('#stH');if(e)e.focus();},200)">mudar horário</button></span>`:""}
+    <div class="row" style="justify-content:space-between;gap:8px;align-items:baseline"><h3>${p.foco?esc(p.foco):"Programação de hoje"}</h3><button class="btn ghost sm" onclick="focoStart()">Modo foco</button></div>
+    ${tot>0?`<span class="muted num">${done} de ${steps.length} etapas · ${hm(sc.start)} às ${hm(sc.end)} · ${minFmt(tot)} com pausas · <button class="linkbtn" onclick="go('config');setTimeout(()=>{const e=$('#stH');if(e)e.focus();},200)">mudar horário</button></span>`:`<span class="muted num">${done} de ${steps.length} etapas</span>`}
     <div class="track"><div class="fill" style="width:${steps.length?done/steps.length*100:0}%"></div></div>
     ${due&&!hasRev?`<div class="row" style="justify-content:space-between"><span><b class="num">${due}</b> ${due===1?"questão errada volta":"questões erradas voltam"} hoje.</span><button class="btn sm" onclick="startWrong()">Revisar</button></div>`:""}
     <div class="tlist">${tlHTML(k,its,"dl-",true)}</div>
     <p class="muted tlnote">Toque numa etapa para ver o que fazer. As caixas marcam sozinhas quando você conclui.</p>
-    <div class="hfoot">
+    ${H.meta?"":`<div class="hfoot">
       ${meta?`<div class="row metaln"><span>Meta: <b class="num">${nq}</b>/<b class="num">${S.goal}</b> questões</span>${nq>=S.goal?'<span class="pill ok">cumprida</span>':`<div class="track sm"><div class="fill" style="width:${Math.min(100,nq/S.goal*100)}%"></div></div>`}</div>`:""}
       <div class="row" style="justify-content:space-between;gap:8px"><span class="muted">${full} ${full===1?"dia completo":"dias completos"} seguidos</span><div class="days14" aria-label="Últimos 14 dias">${last14.map(x=>`<span class="d14 ${x.s===null?"na":x.s>=1?"full":x.s>=.5?"half":x.s>0?"low":""}" title="${fmtK(x.kk)}"><i>${x.kk.slice(8)}</i></span>`).join("")}</div></div>
-    </div>
+    </div>`}
     ${rpTodayBtn()}
   </section>
-  ${foldHTML("ferr","Cronômetro de estudo","blocos de 50 min com 10 de pausa",pomoPanel().replace('<section class="panel stack">','<section class="stack inner">').replace('<h3>Cronômetro de estudo</h3>',''),false)}
-  ${foldHTML("areas","Como aproveitar cada área, todo dia","Estudar, Praticar, Jogos e Progresso",areasGuide(),false)}`;
+  ${H.ferr?"":foldHTML("ferr","Cronômetro de estudo","blocos de 50 min com 10 de pausa",pomoPanel().replace('<section class="panel stack">','<section class="stack inner">').replace('<h3>Cronômetro de estudo</h3>',''),false)}
+  ${H.areas?"":foldHTML("areas","Como aproveitar cada área, todo dia","Estudar, Praticar, Jogos e Progresso",areasGuide(),false)}
+  <p class="muted hpick"><button class="linkbtn" onclick="hojeCfg()">Escolher o que aparece em Hoje</button></p>`;
   steps.forEach(i=>{const c=$("#dl-"+i.id); if(c) c.onchange=()=>{S.daily[k]=S.daily[k]||{};S.daily[k][i.id]=c.checked;save();vGuiaKeep();};});
   pomoWire();
 };
